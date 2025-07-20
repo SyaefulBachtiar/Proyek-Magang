@@ -50,4 +50,9 @@ php artisan serve
 npm run dev
 ```
 
+### 8. Jalankan Seeder
+```bash
+php artisan db:seed
+```
+
 
