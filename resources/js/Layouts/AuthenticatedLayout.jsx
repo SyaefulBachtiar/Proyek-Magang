@@ -3,6 +3,7 @@ import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
+import { Menu, Settings, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
@@ -16,22 +17,77 @@ export default function AuthenticatedLayout({ header, children }) {
     return (
         <div className="min-h-screen bg-gray-100">
             <div className="p-2 px-10 bg-white">
-                <div className="flex items-center gap-5">
-
-                    <div>
-                        <div className="w-[50px] h-[50px]">
-                            {/* image perusahaan */}
-                            <img
-                                src={img}
-                                alt="Image"
-                                className="h-full w-full object-cover rounded-[50%]"
-                            />
+                <div className="flex py-2">
+                    <div className="flex items-center w-[400px] justify-between">
+                        <div className="flex items-center gap-5">
+                            <div className="w-[40px] h-[40px]">
+                                {/* image perusahaan */}
+                                <img
+                                    src={img}
+                                    alt="Image"
+                                    className="h-full w-full object-cover rounded-[50%]"
+                                />
+                            </div>
+                            {/* Nama perusahaan */}
+                            <h1 className="text-xl text-gray-500">
+                                PT. Maju Mundur
+                            </h1>
                         </div>
-                        {/* Nama perusahaan */}
-                        <h1>PT. Maju Mundur</h1>
+
+                        {/* Menu icon */}
+                        <div>
+                            <Menu />
+                        </div>
+                    </div>
+                    <div className="w-full flex justify-end items-center gap-5">
+                        {/* Users */}
+                        <div className="flex">
+                            <div className="relative">
+                                <div className="w-[30px] h-[30px] rounded-[50%] bg-blue-600 flex items-center justify-center text-white">
+                                    <p>S</p>
+                                </div>
+                                <div className="w-[10px] h-[10px] bg-green-500 rounded-[50%] absolute right-0 top-[25px]"></div>
+                            </div>
+
+                            <div className="relative">
+                                <div className="w-[30px] h-[30px] rounded-[50%] bg-cyan-600 flex items-center justify-center text-white">
+                                    <p>F</p>
+                                </div>
+                                <div className="w-[10px] h-[10px] bg-green-500 rounded-[50%] absolute right-0 top-[25px]"></div>
+                            </div>
+
+                            <div className="relative">
+                                <div className="w-[30px] h-[30px] rounded-[50%] bg-cyan-400 flex items-center justify-center text-white">
+                                    <p>S</p>
+                                </div>
+                                <div className="w-[10px] h-[10px] bg-green-500 rounded-[50%] absolute right-0 top-[25px]"></div>
+                            </div>
+                        </div>
+
+                        {/* button tambah anggota */}
+                        <button className="px-4 py-2 bg-blue-400/50 rounded-lg">
+                            Tambah anggota
+                        </button>
+
+                        {/* Profil icon user */}
+                        <div className="w-[40px] h-[40px] rounded-[50%] bg-blue-600 flex justify-center items-center text-md text-white text-xl">
+                            <p>S</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-3 bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6">
+                    {/* Akses tim */}
+                    <div className="flex items-center gap-1 cursor-pointer">
+                        <ShieldCheck className="w-5 text-gray-500" />
+                        <p className="text-sm text-gray-500">Akses tim</p>
                     </div>
 
-                    
+                    {/* Pengaturan */}
+                    <div className="flex items-center gap-1 cursor-pointer">
+                        <Settings className="w-5 text-gray-500" />
+                        <p className="text-sm text-gray-500">Pengaturan</p>
+                    </div>
                 </div>
             </div>
 
