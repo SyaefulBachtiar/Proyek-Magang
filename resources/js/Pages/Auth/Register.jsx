@@ -5,7 +5,7 @@ import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function Register() {
+export default function Register({register}) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
@@ -21,8 +21,11 @@ export default function Register() {
         });
     };
 
+    // debug
+    
+
     return (
-        <GuestLayout>
+        <GuestLayout register={register}>
             <Head title="Register" />
 
             <form onSubmit={submit}>
@@ -107,7 +110,7 @@ export default function Register() {
                         href={route('login')}
                         className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                        Already registered?
+                        Sudah registrasi?
                     </Link>
 
                     <PrimaryButton className="ms-4" disabled={processing}>
