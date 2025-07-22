@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { Menu, Search, Settings, ShieldCheck } from 'lucide-react';
 import { useState, createContext, useContext, useRef } from "react";
 import SearchModal from '../modal/SearchModal';
+import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
 
 // untuk sidebar
 export const SidebarContext = createContext();
@@ -21,6 +22,9 @@ export default function AuthenticatedLayout({ children }) {
 
     // search/cari state
     const [search, setSearch] = useState(false);
+
+    // Tambah Anggota
+    const [tambahAnggotaModal, setTambahAnggotaModal] = useState(false);
 
     // Users
     const users = [
@@ -132,8 +136,9 @@ export default function AuthenticatedLayout({ children }) {
                             </div>
 
                             {/* button tambah anggota */}
-                            <button className="px-4 py-2 bg-blue-400/50 rounded-lg">
+                            <button className="px-4 py-2 bg-blue-400/50 rounded-lg" onClick={() => setTambahAnggotaModal(true)}>
                                 Tambah anggota
+                                
                             </button>
 
                             {/* Profil icon user */}
@@ -162,6 +167,9 @@ export default function AuthenticatedLayout({ children }) {
 
                 {/* modal search */}
                 {search && <SearchModal onClose={() => setSearch(false)} />}
+                
+                {/* Modal Tambah Anggota */}
+                {tambahAnggotaModal && (<TambahAnggotaModal onclick={() => setTambahAnggotaModal(false)}/>)}
             </div>
         </SidebarContext.Provider>
     );
