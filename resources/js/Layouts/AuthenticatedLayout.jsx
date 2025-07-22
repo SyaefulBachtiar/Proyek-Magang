@@ -2,7 +2,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Menu, Search, Settings, ShieldCheck } from 'lucide-react';
 import { useState, createContext, useContext, useRef } from "react";
-import SearchModal from './modal/SearchModal';
+import SearchModal from '../modal/SearchModal';
 
 // untuk sidebar
 export const SidebarContext = createContext();
@@ -51,7 +51,9 @@ export default function AuthenticatedLayout({ children }) {
         <SidebarContext.Provider
             value={{ sidebarOpen, setSidebarOpen, search, setSearch, buttonMenu }}
         >
-            <div className="min-h-screen">
+            <div className="min-h-screen w-screen flex flex-col">
+
+                {/* Header */}
                 <div className="p-2 px-4 bg-gray-200/30">
                     <div className="flex py-2 gap-5">
                         <div className="flex items-center w-[500px] justify-between">
@@ -156,7 +158,7 @@ export default function AuthenticatedLayout({ children }) {
                     </div>
                 </div>
 
-                <main>{children}</main>
+                <main className='flex-1 h-full flex flex-col'>{children}</main>
 
                 {/* modal search */}
                 {search && <SearchModal onClose={() => setSearch(false)} />}
