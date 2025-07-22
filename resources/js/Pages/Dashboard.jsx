@@ -1,6 +1,7 @@
 import AuthenticatedLayout, {
     useAllState,
 } from "@/Layouts/AuthenticatedLayout";
+import BuatTimModal from "@/modal/BuatTimModal";
 import { Head } from '@inertiajs/react';
 import { ListFilterIcon, PlusCircle, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -14,10 +15,14 @@ export default function Dashboard() {
 }
 
 function DashboardContent(){
+    // sidebar ref
     const sidebar = useRef(null);
+
+    // ambil state dari Allstate
     const { sidebarOpen, setSidebarOpen, buttonMenu } = useAllState();
 
-
+    // state untuk modal buat tim
+    const [buatTimModal, setBuatTimModal] = useState(false);
 
     // tutup sidebar ketika klik selain sidebar
     useEffect(() => {
@@ -31,11 +36,12 @@ function DashboardContent(){
             document.removeEventListener("mousedown", handleClickOutside);
         }
     }, [])
+
     return (
         <>
             <Head title="Dashboard" />
 
-            <div className="min-h-screen flex">
+            <div className="h-full flex-1 flex">
                 {/* Sidebar */}
                 <div
                     ref={sidebar}
@@ -53,8 +59,8 @@ function DashboardContent(){
                                 }`}
                                 placeholder="Cari..."
                             />
-                            <div className='p-2 bg-white rounded-lg'>
-                                <ListFilterIcon className='w-5 h-5'/>
+                            <div className="p-2 bg-white rounded-lg">
+                                <ListFilterIcon className="w-5 h-5" />
                             </div>
                         </div>
                     </div>
@@ -64,18 +70,26 @@ function DashboardContent(){
                 <div className="w-full flex-1 px-4">
                     <div className="flex flex-col justify-center items-center px-5">
                         {/* buat grup */}
-                        <div className="my-10 flex flex-col justify-center items-center gap-2">
+                        <div
+                            className="my-10 flex flex-col justify-center items-center gap-2 cursor-pointer"
+                            onClick={() => setBuatTimModal(true)}
+                        >
                             <h1 className="text-xl text-gray-400">Buat grup</h1>
                             <PlusCircle className="w-10 h-10 text-gray-400" />
                         </div>
 
                         {/* card grup */}
                         <div className="w-full">
-                            {/* <div className="w-64 h-44 bg-gray-400"></div> */}
+                            
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Tim modal */}
+            {buatTimModal && (
+                <BuatTimModal onClose={() => setBuatTimModal(false)} />
+            )}
         </>
     );
 }
