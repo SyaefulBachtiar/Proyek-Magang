@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.hover-sidebar{
+    width: 60px;
+    flex: none;
+}
+.hover-sidebar:hover{
+    width: 250px;
+}
+.sidebar-click{
+    width: 250px;
+}
+
