@@ -7,6 +7,7 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+#### Pastikan versi php di atas 8.2.0
 ### 1. Clone Repository
 ```bash
 git clone https://github.com/username/laravel-breeze-react.git
