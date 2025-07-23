@@ -1,4 +1,5 @@
 import { useAllState } from "@/Layouts/AuthenticatedLayout";
+import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 
@@ -29,9 +30,9 @@ export default function SearchModal() {
             <div ref={searchModal} className="bg-white rounded-lg p-6 shadow-lg w-3/4 h-3/4 relative">
                 <button
                     onClick={() => setSearch(false)}
-                    className="absolute top-2 right-2 text-gray-400 hover:text-black"
+                    className="absolute top-2 right-2 hover:text-black"
                 >
-                    ×
+                    <X />
                 </button>
                 <h2 className="text-lg font-semibold mb-2">Cari Sesuatu</h2>
                 <input

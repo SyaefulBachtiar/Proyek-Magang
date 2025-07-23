@@ -1,6 +1,6 @@
 
 import { Link, usePage } from '@inertiajs/react';
-import { Menu, Search, Settings, ShieldCheck } from 'lucide-react';
+import { Menu, Search } from 'lucide-react';
 import { useState, createContext, useContext, useRef } from "react";
 import SearchModal from '../modal/SearchModal';
 import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
@@ -48,15 +48,17 @@ export default function AuthenticatedLayout({ children }) {
         },
     ];
 
-    const img ="";
-    console.log("Modal: ", search);
-
     return (
         <SidebarContext.Provider
-            value={{ sidebarOpen, setSidebarOpen, search, setSearch, buttonMenu }}
+            value={{
+                sidebarOpen,
+                setSidebarOpen,
+                search,
+                setSearch,
+                buttonMenu,
+            }}
         >
-            <div className="min-h-screen w-screen flex flex-col">
-
+            <div className="h-screen flex flex-col overflow-hidden">
                 {/* Header */}
                 <div className="p-2 px-4 bg-gray-200/30">
                     <div className="flex py-2 gap-5">
@@ -65,14 +67,14 @@ export default function AuthenticatedLayout({ children }) {
                                 <div className="w-[40px] h-[40px]">
                                     {/* image perusahaan */}
                                     <img
-                                        src={img}
+                                        src="/img/kemenkes.png"
                                         alt="Image"
                                         className="h-full w-full object-cover rounded-[50%]"
                                     />
                                 </div>
                                 {/* Nama perusahaan */}
                                 <h1 className="text-xl text-gray-500">
-                                    PT. Maju Mundur
+                                    Kemenkes
                                 </h1>
                             </div>
 
@@ -89,11 +91,11 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
 
                         {/* Search */}
-                        <div
-                            className="w-[250px] flex items-center cursor-pointer"
-                            onClick={() => setSearch(true)}
-                        >
-                            <div className="group flex items-center gap-4 h-[30px] justify-start mx-4 border border-gray-400 p-[7px] rounded-xl w-[35px] overflow-hidden transition-all duration-500 hover:w-full">
+                        <div className="w-[250px] flex items-center ">
+                            <div
+                                className="group flex items-center gap-4 h-[30px] justify-start mx-4 border border-gray-400 p-[7px] rounded-xl w-[35px] overflow-hidden transition-all duration-500 hover:w-full cursor-pointer"
+                                onClick={() => setSearch(true)}
+                            >
                                 <Search className="text-gray-400 min-w-5 h-5 group-hover:text-black" />
                                 <p className="text-gray-400 group-hover:text-black">
                                     Cari..
@@ -136,9 +138,11 @@ export default function AuthenticatedLayout({ children }) {
                             </div>
 
                             {/* button tambah anggota */}
-                            <button className="px-4 py-2 bg-blue-400/50 rounded-lg" onClick={() => setTambahAnggotaModal(true)}>
+                            <button
+                                className="px-4 py-2 bg-blue-400/50 rounded-lg"
+                                onClick={() => setTambahAnggotaModal(true)}
+                            >
                                 Tambah anggota
-                                
                             </button>
 
                             {/* Profil icon user */}
@@ -148,28 +152,34 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
                     </div>
 
-                    <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6">
+                    {/* <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6"> */}
                         {/* Akses tim */}
-                        <div className="flex items-center gap-1 cursor-pointer">
+                        {/* <div className="flex items-center gap-1 cursor-pointer">
                             <ShieldCheck className="w-5 text-gray-500" />
                             <p className="text-sm text-gray-500">Akses tim</p>
-                        </div>
+                        </div> */}
 
                         {/* Pengaturan */}
-                        <div className="flex items-center gap-1 cursor-pointer">
-                            <Settings className="w-5 text-gray-500" />
+                        {/* {/* <div className="flex items-center gap-1 cursor-pointer"> */}
+                            {/* <Settings className="w-5 text-gray-500" />
                             <p className="text-sm text-gray-500">Pengaturan</p>
-                        </div>
-                    </div>
-                </div>
+                        </div> */}
+                    {/* </div> */}
+                </div> 
 
-                <main className='flex-1 h-full flex flex-col'>{children}</main>
+                <main className="flex-1 h-full flex flex-col overflow-hidden">
+                    {children}
+                </main>
 
                 {/* modal search */}
                 {search && <SearchModal onClose={() => setSearch(false)} />}
-                
+
                 {/* Modal Tambah Anggota */}
-                {tambahAnggotaModal && (<TambahAnggotaModal onclick={() => setTambahAnggotaModal(false)}/>)}
+                {tambahAnggotaModal && (
+                    <TambahAnggotaModal
+                        onclick={() => setTambahAnggotaModal(false)}
+                    />
+                )}
             </div>
         </SidebarContext.Provider>
     );

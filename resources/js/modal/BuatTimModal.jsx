@@ -34,7 +34,7 @@ export default function BuatTimModal({onClose}) {
                     </div>
                     <div>
                         <div className="my-5">
-                            <h1 className="text-4xl">Buat Tim</h1>
+                            <h1 className="text-xl font-bold">Buat Tim</h1>
                         </div>
                         <form className="my-5">
                             <Input id="namaTim" label="Nama Tim" />

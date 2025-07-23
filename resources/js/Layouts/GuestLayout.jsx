@@ -6,15 +6,28 @@ export default function GuestLayout({ children, register}) {
     console.log("register: ", register)
     return (
         <div className="flex flex-wrap sm:flex-nowrap min-h-screen">
-            <div className="w-full sm:w-[90vw] min-h-[20vh] sm:min-h-screen">
+            <div className="w-full sm:w-[90vw] h-[20vh] sm:h-screen relative">
                 <div>
-                    <Link href="/">
-                        {/* <ApplicationLogo className="h-20 w-20 fill-current text-gray-500" /> */}
+                    <Link
+                        href="/"
+                        className="absolute z-50 top-[40px] left-[30px]"
+                    >
+                        <div className='flex gap-4 items-center'>
+                            {/* <ApplicationLogo className="h-20 w-20 fill-current text-gray-500" /> */}
+                            <img src="/img/kemenkes.png" alt="" className='h-20 w-20 fill-current' />
+                            <h1 className='text-4xl text-gray-500'>BBPK Ciloto</h1>
+                        </div>
                     </Link>
                 </div>
 
                 {/* Image */}
-                <div className="h-full w-full bg-gray-200"></div>
+                <div className="h-full w-full bg-gray-200">
+                    <img
+                        src="/img/img_login.png"
+                        alt=""
+                        className="object-cover h-full w-full"
+                    />
+                </div>
             </div>
 
             {/* Form login */}
