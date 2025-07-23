@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { PlusCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Input from "./input/Input";
 
@@ -27,14 +27,14 @@ export default function BuatTimModal({onClose}) {
             <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
                 <div
                     ref={modalTimRef}
-                    className="bg-white rounded-lg p-6 px-10 shadow-lg w-[500px] h-3/4"
+                    className="bg-white rounded-lg p-6 px-10 shadow-lg w-[500px] h-[90%]"
                 >
                     <div className="flex justify-end">
                         <X onClick={onClose} className="cursor-pointer" />
                     </div>
                     <div>
                         <div className="my-5">
-                            <h1 className="text-4xl">Buat Tim</h1>
+                            <h1 className="text-xl font-bold">Buat Tim</h1>
                         </div>
                         <form className="my-5">
                             <Input id="namaTim" label="Nama Tim" />
@@ -61,23 +61,55 @@ export default function BuatTimModal({onClose}) {
                                                 Proyek
                                             </span>
                                         </label>
-                                        {jenisTim === "proyek" && (
-                                            <p>Tes</p>
+                                        {jenisTim === "proyek" ? (
+                                            <div className="flex justify-center">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <PlusCircle className="text-gray-400" />
+                                                    <p className="text-gray-500 text-sm">
+                                                        Kelola Anggota
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            ""
                                         )}
                                     </div>
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="radio"
-                                            name="jenisTim"
-                                            value="Tim"
-                                            className="form-radio text-blue-600"
-                                        />
-                                        <span className="text-gray-600">
-                                            Tim
-                                        </span>
-                                    </label>
+                                    <div>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="radio"
+                                                name="jenisTim"
+                                                value="tim"
+                                                checked={jenisTim === "tim"}
+                                                onChange={(e) =>
+                                                    setJenisTim(e.target.value)
+                                                }
+                                                className="form-radio text-blue-600"
+                                            />
+                                            <span className="text-gray-600">
+                                                Tim
+                                            </span>
+                                        </label>
+                                        {jenisTim === "tim" ? (
+                                            <div className="flex justify-center">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <PlusCircle className="text-gray-400" />
+                                                    <p className="text-gray-500 text-sm">
+                                                        Kelola Anggota
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            ""
+                                        )}
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* button submit */}
+                            <button className="py-2 px-3 bg-blue-600 text-white rounded-md w-full mt-16">
+                                Submit
+                            </button>
                         </form>
                     </div>
                 </div>
