@@ -1,7 +1,7 @@
 
 import { Link, usePage } from '@inertiajs/react';
 import { Menu, Search, Settings, ShieldCheck } from 'lucide-react';
-import { useState, createContext, useContext, useRef } from "react";
+import { useState, useEffect,  createContext, useContext, useRef } from "react";
 import SearchModal from '../modal/SearchModal';
 import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
 
@@ -50,6 +50,18 @@ export default function AuthenticatedLayout({ children }) {
 
     const img ="";
     console.log("Modal: ", search);
+
+    const [open, setOpen] = useState(false);
+    const dropdownRef = useRef(null);
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
         <SidebarContext.Provider
@@ -148,7 +160,7 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
                     </div>
 
-                    <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6">
+                    <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6" ref={dropdownRef}>
                         {/* Akses tim */}
                         <div className="flex items-center gap-1 cursor-pointer">
                             <ShieldCheck className="w-5 text-gray-500" />
@@ -156,10 +168,32 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
 
                         {/* Pengaturan */}
-                        <div className="flex items-center gap-1 cursor-pointer">
+                        <div className="relative" ref={dropdownRef}>
+                        <div className="flex items-center gap-1 cursor-pointer" onClick={() => setOpen(!open)}>
                             <Settings className="w-5 text-gray-500" />
                             <p className="text-sm text-gray-500">Pengaturan</p>
                         </div>
+
+                        {open && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-10">
+                                <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Profil
+                                </a>
+                                <a href="/notifications" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Notifikasi
+                                </a>
+                                <a href="/security" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Keamanan
+                                </a>
+                                <form method="POST" action="/logout">
+                                    <button type="submit" className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+                    </div>
+
                     </div>
                 </div>
 
