@@ -1,12 +1,10 @@
 
 import { Link, usePage } from '@inertiajs/react';
-<<<<<<<<< Temporary merge branch 1
+
 import { Menu, Search, Settings, ShieldCheck } from 'lucide-react';
 import { useState, useEffect,  createContext, useContext, useRef } from "react";
-=========
-import { Menu, Search } from 'lucide-react';
-import { useState, createContext, useContext, useRef } from "react";
->>>>>>>>> Temporary merge branch 2
+
+
 import SearchModal from '../modal/SearchModal';
 import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
 
@@ -53,7 +51,7 @@ export default function AuthenticatedLayout({ children }) {
         },
     ];
 
-<<<<<<<<< Temporary merge branch 1
+
     const img ="";
     console.log("Modal: ", search);
 
@@ -69,8 +67,8 @@ export default function AuthenticatedLayout({ children }) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-=========
->>>>>>>>> Temporary merge branch 2
+
+
     return (
         <SidebarContext.Provider
             value={{
@@ -175,11 +173,11 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
                     </div>
 
-<<<<<<<<< Temporary merge branch 1
+
                     <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6" ref={dropdownRef}>
-=========
+
                     {/* <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6"> */}
->>>>>>>>> Temporary merge branch 2
+
                         {/* Akses tim */}
                         {/* <div className="flex items-center gap-1 cursor-pointer">
                             <ShieldCheck className="w-5 text-gray-500" />
@@ -187,22 +185,16 @@ export default function AuthenticatedLayout({ children }) {
                         </div> */}
 
                         {/* Pengaturan */}
-<<<<<<<<< Temporary merge branch 1
-                        <div className="relative" ref={dropdownRef}>
-                        <div className="flex items-center gap-1 cursor-pointer" onClick={() => setOpen(!open)}>
-                            <Settings className="w-5 text-gray-500" />
-                            <p className="text-sm text-gray-500">Pengaturan</p>
-                        </div>
-                    </div>
+
                 </div>
-=========
+
                         {/* {/* <div className="flex items-center gap-1 cursor-pointer"> */}
                             {/* <Settings className="w-5 text-gray-500" />
                             <p className="text-sm text-gray-500">Pengaturan</p>
                         </div> */}
                     {/* </div> */}
                 </div> 
->>>>>>>>> Temporary merge branch 2
+
 
                 <main className="flex-1 h-full flex flex-col overflow-hidden">
                     {children}
