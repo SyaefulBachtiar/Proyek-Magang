@@ -1,6 +1,6 @@
 
 import { Link, usePage } from '@inertiajs/react';
-import { Menu, Search } from 'lucide-react';
+import { Menu, Search, Settings, ShieldCheck } from 'lucide-react';
 import { useState, createContext, useContext, useRef } from "react";
 import SearchModal from '../modal/SearchModal';
 import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
@@ -47,6 +47,9 @@ export default function AuthenticatedLayout({ children }) {
             color: "bg-green-900",
         },
     ];
+
+    const img ="";
+    console.log("Modal: ", search);
 
     return (
         <SidebarContext.Provider
@@ -152,7 +155,7 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
                     </div>
 
-                    {/* <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6"> */}
+                    <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6">
                         {/* Akses tim */}
                         {/* <div className="flex items-center gap-1 cursor-pointer">
                             <ShieldCheck className="w-5 text-gray-500" />
@@ -160,12 +163,12 @@ export default function AuthenticatedLayout({ children }) {
                         </div> */}
 
                         {/* Pengaturan */}
-                        {/* {/* <div className="flex items-center gap-1 cursor-pointer"> */}
-                            {/* <Settings className="w-5 text-gray-500" />
+                        <div className="flex items-center gap-1 cursor-pointer">
+                            <Settings className="w-5 text-gray-500" />
                             <p className="text-sm text-gray-500">Pengaturan</p>
-                        </div> */}
-                    {/* </div> */}
-                </div> 
+                        </div>
+                    </div>
+                </div>
 
                 <main className="flex-1 h-full flex flex-col overflow-hidden">
                     {children}
