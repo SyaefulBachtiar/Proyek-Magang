@@ -1,10 +1,11 @@
-import { usePage } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import Dashboard, {DashboardState} from "../Dashboard";
 import { useEffect, useState } from "react";
 
 export default function ContentPengaturan () {
     return (
         <Dashboard>
+            <Head title="Pengaturan" />
             <Pengaturan />
         </Dashboard>
     );

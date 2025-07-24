@@ -71,7 +71,7 @@ function DashboardContent({children}){
                 </div>
 
                 {/* Main content */}
-                <div className="w-full h-full flex-1 px-4 overflow-y-scroll">
+                <div className="w-full h-full flex-1 overflow-y-scroll">
                     {children}
                 </div>
             </div>
