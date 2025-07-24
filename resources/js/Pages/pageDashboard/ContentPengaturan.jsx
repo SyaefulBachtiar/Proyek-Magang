@@ -28,7 +28,9 @@ function Pengaturan () {
         name: "Kemenkes Ciloto",
         description: "Deskripsi singkat tentang perusahaan.",
         logo: "https://via.placeholder.com/150",
-        // members: ['Saeful', 'Fikri', 'Sahrul'],
+        member: [{ id: 1, name: 'Saeful', position: 'Direktur Utama' },
+    { id: 2, name: 'Fikri', position: 'Satff IT' },
+    { id: 3, name: 'Sahrul', position: 'Staff IT' },],
     });
 
     const [editing, setEditing] = useState(false);
@@ -129,6 +131,21 @@ function Pengaturan () {
                             Edit Profil
                         </button>
                     )}
+                </div>
+
+                <div className="bg-white rounded-xl shadow p-6">
+                    <h4 className="text-lg font-semibold mb-4">Anggota Perusahaan</h4>
+                    <ul className="space-y-2">
+                    {company.member.map((member) => (
+                        <li
+                        key={member.id}
+                        className="flex justify-between items-center border-b pb-2"
+                        >
+                        <span>{member.name}</span>
+                        <span className="text-sm text-gray-500">{member.position}</span>
+                        </li>
+                    ))}
+                    </ul>
                 </div>
             </div>
         </div>
