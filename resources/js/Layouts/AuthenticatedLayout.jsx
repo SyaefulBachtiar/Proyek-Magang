@@ -195,11 +195,17 @@ export default function AuthenticatedLayout({ children }) {
                                             </p>
                                         </li>
                                         <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
-                                            <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                                            <p className="text-sm text-gray-400">
-                                                Log out
-                                            </p>
-                                        </li>
+                                    <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400" />
+
+                                    <Link
+                                        href={route("logout")}
+                                        method="post"
+                                        as="button"
+                                        className="text-sm text-gray-400 text-left"
+                                    >
+                                        Log out
+                                    </Link>
+                                    </li>
                                     </ul>
                                 </div>
                             </div>
