@@ -1,15 +1,35 @@
 import BuatTimModal from "@/modal/BuatTimModal";
+import { router, usePage } from "@inertiajs/react";
 import { PlusCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import Dashboard, {DashboardState} from "../Dashboard";
 
-export default function ContentMainDashboard ({setActivePage}) {
+export default function ContentMainDashboard () {
+   return(
+    <>
+    <Dashboard>
+        <MainDashboard />
+    </Dashboard>
+    </>
+   )
+}
+
+function MainDashboard () {
+
+    // Props dari controller 
+    const { activePage } = usePage().props;
+
+    // Dasboard state
+    const { setActivePage } = DashboardState();
+
     // state untuk modal buat tim
     const [buatTimModal, setBuatTimModal] = useState(false);
-    
-    // Active page
-    // useEffect(() => {
-    //     setActivePage("DashboardMain");
-    // }, []);
+
+    useEffect(() => {
+        if(activePage && setActivePage){
+            setActivePage(activePage);
+        }
+    }, [activePage]);
 
     return (
         <>
@@ -30,7 +50,10 @@ export default function ContentMainDashboard ({setActivePage}) {
                         <h1 className="mb-4 text-4xl">Proyek</h1>
 
                         {/* card proyek */}
-                        <div className="w-[280px] rounded-md overflow-hidden shadow-lg transition-all ease-in-out duration-300 cursor-pointer">
+                        <div
+                            className="w-[280px] rounded-md overflow-hidden shadow-lg transition-all ease-in-out duration-300 cursor-pointer"
+                            onClick={() => router.visit(route("proyek"))}
+                        >
                             <div className="">
                                 {/* image */}
                                 <div className="h-[80px]">

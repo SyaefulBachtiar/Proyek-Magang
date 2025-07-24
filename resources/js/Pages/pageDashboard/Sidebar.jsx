@@ -1,6 +1,7 @@
+import { router } from "@inertiajs/react";
 import { House, ListFilterIcon, Search, Settings, ShieldCheck } from "lucide-react";
 
-export default function Sidebar ({sidebarOpen, activePage, setActivePage}) {
+export default function Sidebar ({sidebarOpen, activePage}) {
     return (
         <>
             <div className="w-full flex flex-col justify-end my-10 rounded-lg gap-6">
@@ -9,7 +10,7 @@ export default function Sidebar ({sidebarOpen, activePage, setActivePage}) {
                     className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
                         activePage === "DashboardMain" ? "bg-gray-200" : ""
                     }`}
-                    onClick={() => setActivePage("DashboardMain")}
+                    onClick={() => router.visit(route('dashboard'))}
                 >
                     <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                         <div
@@ -40,14 +41,16 @@ export default function Sidebar ({sidebarOpen, activePage, setActivePage}) {
                             }`}
                             placeholder="Cari..."
                         />
-                        <p className="group-hover:hidden">Cari</p>
+                        <p className="group-hover:hidden transition-all delay-150 ease-in-out duration-300">
+                            Cari
+                        </p>
                         <div className="p-2 bg-white rounded-lg opacity-0 group-hover:opacity-100">
                             <ListFilterIcon className="w-5 h-5" />
                         </div>
                     </div>
 
                     {/* hasil search */}
-                    <div className="bg-white w-full overflow-hidden h-0 group-hover:h-[300px] group-hover:mt-4 group-hover:p-2 transition-all ease-in-out duration-300">
+                    <div className="bg-white w-full overflow-hidden h-0 group-hover:h-[300px] group-hover:mt-4 group-hover:p-2 transition-all delay-150 ease-in-out duration-300">
                         <p>Memuncul kan hasil</p>
                     </div>
                 </div>
@@ -57,7 +60,7 @@ export default function Sidebar ({sidebarOpen, activePage, setActivePage}) {
                     className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
                         activePage === "DashboardAksesTim" ? "bg-gray-200" : ""
                     }`}
-                    onClick={() => setActivePage("DashboardAksesTim")}
+                    onClick={() => router.visit(route("aksestim"))}
                 >
                     <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                         <div
@@ -84,7 +87,7 @@ export default function Sidebar ({sidebarOpen, activePage, setActivePage}) {
                             ? "bg-gray-200"
                             : ""
                     }`}
-                    onClick={() => setActivePage("DashboardPengaturan")}
+                    onClick={() => router.visit(route('pengaturan'))}
                 >
                     <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                         <div
