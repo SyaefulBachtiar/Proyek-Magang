@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import Dashboard, { DashboardState } from "../Dashboard";
-import { usePage } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 
 export default function ContentAksesTim() {
   return (
     <Dashboard>
+      <Head title="Akses Tim"/>
       <AksesTim />
     </Dashboard>
   );

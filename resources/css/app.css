@@ -17,3 +17,28 @@ html, body{
     width: 250px;
 }
 
+
+/* scrollbar */
+/* untuk Chrome, Edge, dan Safari */
+.my-scrollable-element {
+  overflow-y: auto;
+  max-height: 300px;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(120,120,120,0.4) transparent;
+}
+
+.my-scrollable-element::-webkit-scrollbar {
+  width: 1px;
+}
+
+.my-scrollable-element::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.my-scrollable-element::-webkit-scrollbar-thumb {
+  background-color: rgba(120, 120, 120, 0.4);
+  border-radius: 10px;
+}
+
+
+

@@ -1,5 +1,5 @@
 import { router } from "@inertiajs/react";
-import { House, ListFilterIcon, Search, Settings, ShieldCheck } from "lucide-react";
+import { ChevronRight, FolderKanban, House, ListFilterIcon, Search, Settings, ShieldCheck, UserRound } from "lucide-react";
 
 export default function Sidebar ({sidebarOpen, activePage}) {
     return (
@@ -10,7 +10,7 @@ export default function Sidebar ({sidebarOpen, activePage}) {
                     className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
                         activePage === "DashboardMain" ? "bg-gray-200" : ""
                     }`}
-                    onClick={() => router.visit(route('dashboard'))}
+                    onClick={() => router.visit(route("dashboard"))}
                 >
                     <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                         <div
@@ -50,8 +50,25 @@ export default function Sidebar ({sidebarOpen, activePage}) {
                     </div>
 
                     {/* hasil search */}
-                    <div className="bg-white w-full overflow-hidden h-0 group-hover:h-[300px] group-hover:mt-4 group-hover:p-2 transition-all delay-150 ease-in-out duration-300">
-                        <p>Memuncul kan hasil</p>
+                    <div className="w-full overflow-hidden h-0 group-hover:h-[300px] group-hover:mt-4 group-hover:p-2 transition-all delay-150 ease-in-out duration-300 flex flex-col gap-2">
+                        <div className=" group/chevron hover:bg-gray-200 py-2 px-1 rounded-md">
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <FolderKanban />
+                                    <h1>Proyek</h1>
+                                </div>
+                                <ChevronRight className="hidden group-hover/chevron:flex" />
+                            </div>
+                        </div>
+                        <div className=" group/chevron hover:bg-gray-200 py-2 px-1 rounded-md">
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <UserRound />
+                                    <h1>Tim</h1>
+                                </div>
+                                <ChevronRight className=" hidden group-hover/chevron:flex" />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -87,7 +104,7 @@ export default function Sidebar ({sidebarOpen, activePage}) {
                             ? "bg-gray-200"
                             : ""
                     }`}
-                    onClick={() => router.visit(route('pengaturan'))}
+                    onClick={() => router.visit(route("pengaturan"))}
                 >
                     <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                         <div
