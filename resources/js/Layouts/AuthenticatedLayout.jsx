@@ -7,6 +7,7 @@ import { useState, useEffect,  createContext, useContext, useRef } from "react";
 
 import SearchModal from '../modal/SearchModal';
 import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
+import Pengaturan from '@/Pages/Pengaturan';
 
 // untuk sidebar
 export const SidebarContext = createContext();
@@ -190,9 +191,8 @@ export default function AuthenticatedLayout({ children }) {
                                     <ul className="p-2 bg-white flex flex-col gap-2 shadow-lg rounded-md">
                                         <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
                                             <Settings className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                                            <p className="text-sm text-gray-400">
-                                                Pengaturan
-                                            </p>
+                                            <p className='text-sm text-gray-400'>
+                                                Pengatuan</p>
                                         </li>
                                         <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
                                             <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400" />
