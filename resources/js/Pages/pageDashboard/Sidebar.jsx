@@ -1,7 +1,8 @@
 import { router } from "@inertiajs/react";
 import { ChevronRight, FolderKanban, House, ListFilterIcon, Search, Settings, ShieldCheck, UserRound } from "lucide-react";
 
-export default function Sidebar ({sidebarOpen, activePage}) {
+export default function Sidebar ({sidebarOpen, activePage, id}) {
+    
     return (
         <>
             <div className="w-full flex flex-col justify-end my-10 rounded-lg gap-6">
@@ -10,7 +11,7 @@ export default function Sidebar ({sidebarOpen, activePage}) {
                     className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
                         activePage === "DashboardMain" ? "bg-gray-200" : ""
                     }`}
-                    onClick={() => router.visit(route("dashboard"))}
+                    onClick={() => router.visit(route("dashboard.with.id", {id}))}
                 >
                     <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                         <div
@@ -77,7 +78,9 @@ export default function Sidebar ({sidebarOpen, activePage}) {
                     className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
                         activePage === "DashboardAksesTim" ? "bg-gray-200" : ""
                     }`}
-                    onClick={() => router.visit(route("aksestim"))}
+                    onClick={() =>
+                        router.visit(route("aksestim", { id }))
+                    }
                 >
                     <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                         <div
@@ -104,7 +107,7 @@ export default function Sidebar ({sidebarOpen, activePage}) {
                             ? "bg-gray-200"
                             : ""
                     }`}
-                    onClick={() => router.visit(route("pengaturan"))}
+                    onClick={() => router.visit(route("pengaturan", {id}))}
                 >
                     <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                         <div

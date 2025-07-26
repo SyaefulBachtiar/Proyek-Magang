@@ -20,7 +20,7 @@ function MainDashboard () {
     const { activePage } = usePage().props;
 
     // Dasboard state
-    const { setActivePage } = DashboardState();
+    const { setActivePage, id } = DashboardState();
 
     // state untuk modal buat tim
     const [buatTimModal, setBuatTimModal] = useState(false);
@@ -30,6 +30,8 @@ function MainDashboard () {
             setActivePage(activePage);
         }
     }, [activePage]);
+
+    console.log(id)
 
     return (
         <>
@@ -52,7 +54,7 @@ function MainDashboard () {
                         {/* card proyek */}
                         <div
                             className="w-[280px] rounded-md overflow-hidden shadow-lg transition-all ease-in-out duration-300 cursor-pointer"
-                            onClick={() => router.visit(route("proyek"))}
+                            onClick={() => router.visit(route("proyek", {id}))}
                         >
                             <div className="">
                                 {/* image */}

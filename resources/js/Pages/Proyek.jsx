@@ -1,10 +1,22 @@
-import { Head } from "@inertiajs/react";
-import Dashboard from "./Dashboard";
-import { Archive, Ellipsis, Pencil, Plus } from "lucide-react";
+import { Head, router } from "@inertiajs/react";
+import Dashboard, {DashboardState} from "./Dashboard";
+import { Archive, Check, Ellipsis, Pencil, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-export default function Proyek() {
+export default function Proyek({children}) {
+   return (
+       <Dashboard>
+           <ProyekContent>{children}</ProyekContent>
+       </Dashboard>
+   );
+}
+
+function ProyekContent ({children}) {
+
+    // Dashboard state
+    const {id} = DashboardState();
+
     const [lists, setLists] = useState([
         {
             id: "1",
@@ -39,6 +51,11 @@ export default function Proyek() {
             const [removed] = reorderedLists.splice(source.index, 1);
             reorderedLists.splice(destination.index, 0, removed);
             setLists(reorderedLists);
+
+            console.log(
+                "Urutan List Sekarang:",
+                reorderedLists.map((l, index) => `${index + 1}. ${l.title}`)
+            );
         }
 
         if (type === "card") {
@@ -64,6 +81,14 @@ export default function Proyek() {
                 newLists[sourceListIndex].cards = sourceCards;
                 newLists[destListIndex].cards = destCards;
                 setLists(newLists);
+                //  Log tujuan dan urutan card
+                console.log(
+                    `Card dipindahkan ke list: ${lists[destListIndex].title}`
+                );
+                console.log(
+                    `Urutan card sekarang di "${lists[destListIndex].title}":`,
+                    destCards.map((card, idx) => `${idx + 1}. ${card.title}`)
+                );
             }
         }
     };
@@ -109,6 +134,7 @@ export default function Proyek() {
         setOpenElipsis((prev) => (prev === listId ? null : listId));
     };
 
+    // handle clickouside elipsis
     useEffect(() => {
         const handleClickOutside = (e) => {
             const clickedOutsideAll = Object.values(elipsisRef.current).every(
@@ -122,18 +148,22 @@ export default function Proyek() {
         };
     }, []);
 
-  
-    
+    //handle lihat card
+    const handleLihatCard = (cardId, cardTitle) => {
+        router.visit(
+            route("proyek.kanban.card.show", {
+                id: id, // ID dashboard
+                cardId: cardId, // ID card
+                cardTitle: cardTitle
+            })
+        );
+    };
 
     return (
-        <Dashboard>
+        <>
             <Head title="Proyek" />
-            <div
-                className="h-full w-full bg-slate-300 rounded-lg overflow-x-auto"
-            >
-                <DragDropContext
-                    onDragEnd={handleDragEnd}
-                >
+            <div className="h-full w-full bg-slate-300 rounded-lg overflow-x-auto">
+                <DragDropContext onDragEnd={handleDragEnd}>
                     <Droppable
                         droppableId="all-lists"
                         direction="horizontal"
@@ -157,7 +187,6 @@ export default function Proyek() {
                                                 {...provided.draggableProps}
                                                 className="w-[280px] flex-shrink-0 bg-white/40 px-4 pb-4 rounded-lg"
                                             >
-                                                {/* Header List */}
                                                 <div
                                                     className="w-full flex justify-between items-center my-3"
                                                     {...provided.dragHandleProps}
@@ -197,7 +226,6 @@ export default function Proyek() {
                                                             {list.title}
                                                         </h1>
                                                     )}
-                                                    {/* Elipsis */}
                                                     <div
                                                         ref={(el) =>
                                                             (elipsisRef.current[
@@ -220,15 +248,25 @@ export default function Proyek() {
                                                         </div>
                                                         {openElipsis ===
                                                             list.id && (
-                                                            <div className="bg-white w-36 p-2 absolute -right-[150px] z-50 top-0 rounded-md shadow-lg">
+                                                            <div className="bg-white w-72 p-2 absolute -right-[300px] z-50 top-0 rounded-md shadow-lg">
                                                                 <ul className="w-full">
                                                                     <li className="w-full flex gap-3 items-center hover:bg-gray-200 px-2 py-1 rounded-md cursor-pointer">
-                                                                        <Archive className="w-4 h-4" />
                                                                         Arsip
+                                                                        <Archive className="w-4 h-4" />
                                                                     </li>
                                                                     <li className="w-full flex gap-3 items-center hover:bg-gray-200 px-2 py-1 rounded-md cursor-pointer">
-                                                                        <Pencil className="w-4 h-4" />
                                                                         Edit
+                                                                        <Pencil className="w-4 h-4" />
+                                                                    </li>
+                                                                    <li className="w-full flex gap-3 items-center hover:bg-gray-200 px-2 py-1 rounded-md cursor-pointer">
+                                                                        <p>
+                                                                            Tandai
+                                                                            sudah
+                                                                            selesai
+                                                                        </p>
+                                                                        <div className="p-1 bg-green-400 rounded-md">
+                                                                            <Check className="w-4 h-4 text-white" />
+                                                                        </div>
                                                                     </li>
                                                                 </ul>
                                                             </div>
@@ -236,7 +274,7 @@ export default function Proyek() {
                                                     </div>
                                                 </div>
 
-                                                {/* Cards (with fix for empty list) */}
+                                                {/* Cards */}
                                                 <Droppable
                                                     droppableId={list.id}
                                                     type="card"
@@ -274,21 +312,38 @@ export default function Proyek() {
                                                                         }
                                                                     >
                                                                         {(
-                                                                            provided
+                                                                            provided,
+                                                                            snapshot
                                                                         ) => (
                                                                             <div
-                                                                                className="bg-white p-2 rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 border-blue-500"
-                                                                                ref={
-                                                                                    provided.innerRef
-                                                                                }
-                                                                                {...provided.draggableProps}
-                                                                                {...provided.dragHandleProps}
-                                                                            >
-                                                                                <h1 className="text-sm break-words">
-                                                                                    {
+                                                                                onClick={() => {
+                                                                                    handleLihatCard(
+                                                                                        card.id,
                                                                                         card.title
+                                                                                    );
+                                                                                }}
+                                                                            >
+                                                                                <div
+                                                                                    className={`bg-white p-2 rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 ${
+                                                                                        snapshot.isDragging
+                                                                                            ? "shadow-lg border-blue-600"
+                                                                                            : "border-blue-500"
+                                                                                    }`}
+                                                                                    ref={
+                                                                                        provided.innerRef
                                                                                     }
-                                                                                </h1>
+                                                                                    {...provided.draggableProps}
+                                                                                    {...provided.dragHandleProps}
+                                                                                >
+                                                                                    <h1 className="text-sm break-words">
+                                                                                        {
+                                                                                            card.title
+                                                                                        }
+                                                                                    </h1>
+                                                                                </div>
+                                                                                {
+                                                                                    children
+                                                                                }
                                                                             </div>
                                                                         )}
                                                                     </Draggable>
@@ -306,7 +361,7 @@ export default function Proyek() {
                                                     )}
                                                 </Droppable>
 
-                                                {/* Tambah Card */}
+                                                {/* Add Card */}
                                                 <div
                                                     onClick={() =>
                                                         handleAddCard(list.id)
@@ -337,6 +392,6 @@ export default function Proyek() {
                     </Droppable>
                 </DragDropContext>
             </div>
-        </Dashboard>
+        </>
     );
 }
