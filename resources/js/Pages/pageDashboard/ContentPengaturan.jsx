@@ -1,10 +1,11 @@
-import { usePage } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import Dashboard, {DashboardState} from "../Dashboard";
 import { useEffect, useState } from "react";
 
 export default function ContentPengaturan () {
     return (
         <Dashboard>
+            <Head title="Pengaturan" />
             <Pengaturan />
         </Dashboard>
     );
@@ -28,7 +29,6 @@ function Pengaturan () {
         name: "Kemenkes Ciloto",
         description: "Deskripsi singkat tentang perusahaan.",
         logo: "https://via.placeholder.com/150",
-        // members: ['Saeful', 'Fikri', 'Sahrul'],
     });
 
     const [editing, setEditing] = useState(false);
@@ -93,16 +93,6 @@ function Pengaturan () {
                         <p className="text-gray-700">{company.description}</p>
                     )}
                 </div>
-
-                {/* Anggota Perusahaan */}
-                {/* <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Anggota Perusahaan</label>
-          <ul className="list-disc list-inside text-gray-800">
-            {company.members.map((member, idx) => (
-              <li key={idx}>{member}</li>
-            ))}
-          </ul>
-        </div> */}
 
                 {/* Tombol Aksi */}
                 <div className="flex justify-end space-x-3">

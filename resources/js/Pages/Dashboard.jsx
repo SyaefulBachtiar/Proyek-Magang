@@ -30,7 +30,10 @@ function DashboardContent({children}){
     const sidebar = useRef(null);
 
     // ambil state dari Allstate
-    const { sidebarOpen, setSidebarOpen, buttonMenu } = useAllState();
+    const { sidebarOpen, setSidebarOpen, buttonMenu, user } = useAllState();
+
+    // id user
+    const id = user.id;
 
     // active page
     const [activePage, setActivePage] = useState("DashboardMain");
@@ -49,10 +52,9 @@ function DashboardContent({children}){
     }, []);
 
 
-
     return (
         <>
-        <DashboardContext.Provider value={{ setActivePage }}>
+        <DashboardContext.Provider value={{ setActivePage, id }}>
             <Head title="Dashboard" />
 
             <div className="h-full flex-1 flex">
@@ -67,11 +69,12 @@ function DashboardContent({children}){
                         sidebarOpen={sidebarOpen}
                         activePage={activePage}
                         setActivePage={setActivePage}
+                        id={id}
                     />
                 </div>
 
                 {/* Main content */}
-                <div className="w-full h-full flex-1 px-4 overflow-y-scroll">
+                <div className="w-full h-full flex-1 overflow-y-scroll">
                     {children}
                 </div>
             </div>

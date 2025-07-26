@@ -8,6 +8,7 @@ import { useState, useEffect,  createContext, useContext, useRef } from "react";
 import SearchModal from '../modal/SearchModal';
 import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
 
+
 // untuk sidebar
 export const SidebarContext = createContext();
 
@@ -81,6 +82,7 @@ export default function AuthenticatedLayout({ children }) {
                 search,
                 setSearch,
                 buttonMenu,
+                user,
             }}
         >
             <div className="h-screen flex flex-col overflow-hidden">
@@ -167,7 +169,9 @@ export default function AuthenticatedLayout({ children }) {
                                 className="px-4 py-2 bg-blue-400/50 rounded-lg"
                                 onClick={() => setTambahAnggotaModal(true)}
                             >
-                                <p className='text-xs sm:text-sm'>Tambah anggota</p>
+                                <p className="text-xs sm:text-sm">
+                                    Tambah anggota
+                                </p>
                             </button>
 
                             {/* Profil icon user */}
@@ -191,21 +195,21 @@ export default function AuthenticatedLayout({ children }) {
                                         <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
                                             <Settings className="w-4 h-4 flex-shrink-0 text-gray-400" />
                                             <p className="text-sm text-gray-400">
-                                                Pengaturan
+                                                Pengatuan
                                             </p>
                                         </li>
                                         <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
-                                    <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                                            <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400" />
 
-                                    <Link
-                                        href={route("logout")}
-                                        method="post"
-                                        as="button"
-                                        className="text-sm text-gray-400 text-left"
-                                    >
-                                        Log out
-                                    </Link>
-                                    </li>
+                                            <Link
+                                                href={route("logout")}
+                                                method="post"
+                                                as="button"
+                                                className="text-sm text-gray-400 text-left"
+                                            >
+                                                Log out
+                                            </Link>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
