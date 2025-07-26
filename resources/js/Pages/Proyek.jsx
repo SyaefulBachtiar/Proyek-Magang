@@ -1,21 +1,24 @@
-import { Head, router } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 import Dashboard, {DashboardState} from "./Dashboard";
 import { Archive, Check, Ellipsis, Pencil, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import Card_kanban from "./Card/Card_kanban";
 
-export default function Proyek({children}) {
+export default function Proyek() {
    return (
        <Dashboard>
-           <ProyekContent>{children}</ProyekContent>
+           <ProyekContent></ProyekContent>
        </Dashboard>
    );
 }
 
-function ProyekContent ({children}) {
+function ProyekContent () {
 
     // Dashboard state
     const {id} = DashboardState();
+
+     const { cardId, cardTitle } = usePage().props;
 
     const [lists, setLists] = useState([
         {
@@ -150,13 +153,19 @@ function ProyekContent ({children}) {
 
     //handle lihat card
     const handleLihatCard = (cardId, cardTitle) => {
-        router.visit(
-            route("proyek.kanban.card.show", {
-                id: id, // ID dashboard
-                cardId: cardId, // ID card
-                cardTitle: cardTitle
-            })
-        );
+         router.get(
+             route("proyek", { id: id }), // Kunjungi rute Proyek yang sama
+             {
+                 // Data ini akan menjadi query parameter di URL
+                 cardId: cardId,
+                 cardTitle: cardTitle,
+             },
+             {
+                 // Opsi paling penting untuk mencegah re-render!
+                 preserveState: true,
+                 preserveScroll: true,
+             }
+         );
     };
 
     return (
@@ -341,9 +350,6 @@ function ProyekContent ({children}) {
                                                                                         }
                                                                                     </h1>
                                                                                 </div>
-                                                                                {
-                                                                                    children
-                                                                                }
                                                                             </div>
                                                                         )}
                                                                     </Draggable>
@@ -392,6 +398,14 @@ function ProyekContent ({children}) {
                     </Droppable>
                 </DragDropContext>
             </div>
+
+            {cardId && (
+                <Card_kanban
+                    cardId={cardId}
+                    cardTitle={cardTitle}
+                    onClose={() => window.history.back()} // Tombol kembali akan menghapus query param
+                />
+            )}
         </>
     );
 }

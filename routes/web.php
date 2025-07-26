@@ -21,10 +21,10 @@ Route::get('/', function () {
 
 
     // Ganti nama route fallback
-    // Route::get('/dashboard', function () {
-    //     $id = Auth::id();
-    //     return redirect()->route('dashboard.with.id', ['id' => $id]); // arahkan ke dashboard/{id}
-    // })->name('dashboard.fallback');
+    Route::get('/dashboard', function () {
+        $id = Auth::id();
+        return redirect()->route('dashboard.with.id', ['id' => $id]); // arahkan ke dashboard/{id}
+    })->name('dashboard.fallback');
 
 
 
@@ -36,7 +36,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // Halaman Proyek
     Route::get('/proyek', [ProyekController::class, 'index'])->name('proyek');
     // lihat card
-    Route::get('/proyek/kanban/card/{cardId}/{cardTitle}', [ProyekController::class, 'showCard'])->name('proyek.kanban.card.show');
+    // Route::get('/proyek/kanban/card/{cardId}/{cardTitle}', [ProyekController::class, 'showCard'])->name('proyek.kanban.card.show');
 
     // Halaman Akses tim
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
