@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Dashboard, { DashboardState } from "../Dashboard";
-import { usePage } from "@inertiajs/react";
-import { Edit, Trash2 } from "lucide-react"; // ← tambahkan ini
-import { Head, usePage } from "@inertiajs/react";
+import { usePage, Head } from "@inertiajs/react";
+import { Edit, Trash2 } from "lucide-react";
 
 export default function ContentAksesTim() {
   return (

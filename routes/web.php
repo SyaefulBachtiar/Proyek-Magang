@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\ProfilePengaturanController;
 use App\Http\Controllers\AksesTimController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengaturanController;
@@ -21,10 +21,10 @@ Route::get('/', function () {
 
 
     // Ganti nama route fallback
-    // Route::get('/dashboard', function () {
-    //     $id = Auth::id();
-    //     return redirect()->route('dashboard.with.id', ['id' => $id]); // arahkan ke dashboard/{id}
-    // })->name('dashboard.fallback');
+    Route::get('/dashboard', function () {
+        $id = Auth::id();
+        return redirect()->route('dashboard.with.id', ['id' => $id]); // arahkan ke dashboard/{id}
+    })->name('dashboard.fallback');
 
 
 
@@ -43,6 +43,8 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // Halaman Pengaturan
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
+
+    Route::get('/pengaturanprofil', [ProfilePengaturanController::class, 'index'])->name('pengaturanprofil');
 });
 
 Route::middleware('auth')->group(function () {

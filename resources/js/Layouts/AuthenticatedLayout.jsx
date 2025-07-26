@@ -192,25 +192,29 @@ export default function AuthenticatedLayout({ children }) {
                                     }`}
                                 >
                                     <ul className="p-2 bg-white flex flex-col gap-2 shadow-lg rounded-md">
-                                        <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
+                                    <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
+                                        <Link
+                                            href={route("pengaturanprofil", { id: user.id })}
+                                            className="text-sm text-gray-400 text-left flex items-center gap-2"
+                                        >
                                             <Settings className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                                            <p className="text-sm text-gray-400">
-                                                Pengatuan
-                                            </p>
-                                        </li>
-                                        <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
-                                            <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                                            Pengaturan
+                                        </Link>
+                                    </li>
 
-                                            <Link
-                                                href={route("logout")}
-                                                method="post"
-                                                as="button"
-                                                className="text-sm text-gray-400 text-left"
-                                            >
-                                                Log out
-                                            </Link>
-                                        </li>
-                                    </ul>
+                                    <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
+                                        <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                                        <Link
+                                            href={route("logout")}
+                                            method="post"
+                                            as="button"
+                                            className="text-sm text-gray-400 text-left"
+                                        >
+                                            Log out
+                                        </Link>
+                                    </li>
+                                </ul>
+
                                 </div>
                             </div>
                         </div>
