@@ -13,3 +13,4 @@ class PengaturanController extends Controller
         ]);
     }
 }
+

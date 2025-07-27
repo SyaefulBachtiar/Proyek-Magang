@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\ProfilePengaturanController;
 use App\Http\Controllers\AksesTimController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengaturanController;
@@ -44,6 +44,8 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // Halaman Pengaturan
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
+
+    Route::get('/pengaturanprofil', [ProfilePengaturanController::class, 'index'])->name('pengaturanprofil');
 });
 
 // halaman lihat card
