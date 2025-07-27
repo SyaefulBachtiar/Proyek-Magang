@@ -1,29 +1,39 @@
 import AuthenticatedLayout, {
     useAllState,
 } from "@/Layouts/AuthenticatedLayout";
-import BuatTimModal from "@/modal/BuatTimModal";
 import { Head } from '@inertiajs/react';
-import { ListFilterIcon, PlusCircle, Search } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import Sidebar from "./components dashboard/Sidebar";
-import ContentMainDashboard from "./components dashboard/ContentMainDashboard";
-import ContentAksesTim from "./components dashboard/ContentAksesTim";
-import ContentPengaturan from "./components dashboard/ContentPengaturan";
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import Sidebar from "./pageDashboard/Sidebar";
+import ContentMainDashboard from "./pageDashboard/ContentMainDashboard";
+import ContentAksesTim from "./pageDashboard/ContentAksesTim";
+import ContentPengaturan from "./pageDashboard/ContentPengaturan";
 
-export default function Dashboard() {
+export default function Dashboard({children}) {
     return (
         <AuthenticatedLayout>
-            <DashboardContent/>
+            <DashboardContent>{children}</DashboardContent>
         </AuthenticatedLayout>
     );
 }
 
-function DashboardContent(){
+
+
+// untuk state dashboard
+export const DashboardContext = createContext();
+
+export const DashboardState = () => useContext(DashboardContext);
+
+
+
+function DashboardContent({children}){
     // sidebar ref
     const sidebar = useRef(null);
 
     // ambil state dari Allstate
-    const { sidebarOpen, setSidebarOpen, buttonMenu } = useAllState();
+    const { sidebarOpen, setSidebarOpen, buttonMenu, user } = useAllState();
+
+    // id user
+    const id = user.id;
 
     // active page
     const [activePage, setActivePage] = useState("DashboardMain");
@@ -39,10 +49,12 @@ function DashboardContent(){
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         }
-    }, [])
+    }, []);
+
 
     return (
         <>
+        <DashboardContext.Provider value={{ setActivePage, id }}>
             <Head title="Dashboard" />
 
             <div className="h-full flex-1 flex">
@@ -57,20 +69,16 @@ function DashboardContent(){
                         sidebarOpen={sidebarOpen}
                         activePage={activePage}
                         setActivePage={setActivePage}
+                        id={id}
                     />
                 </div>
 
                 {/* Main content */}
-                <div className="w-full h-full flex-1 px-4 overflow-y-scroll">
-                    {activePage === "DashboardMain" ? (
-                        <ContentMainDashboard setActivePage={setActivePage} />
-                    ) : activePage === "DashboardAksesTim" ? (
-                        <ContentAksesTim />
-                    ) : (
-                        activePage === "DashboardPengaturan" && (<ContentPengaturan />)
-                    )}
+                <div className="w-full h-full flex-1 overflow-y-scroll">
+                    {children}
                 </div>
             </div>
+            </DashboardContext.Provider>
         </>
     );
 }

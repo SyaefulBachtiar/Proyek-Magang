@@ -27,7 +27,7 @@ export default function BuatTimModal({onClose}) {
             <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
                 <div
                     ref={modalTimRef}
-                    className="bg-white rounded-lg p-6 px-10 shadow-lg w-[500px] h-[90%]"
+                    className="bg-white rounded-lg p-6 px-10 shadow-lg w-[500px]"
                 >
                     <div className="flex justify-end">
                         <X onClick={onClose} className="cursor-pointer" />
@@ -42,7 +42,7 @@ export default function BuatTimModal({onClose}) {
                             <Input id="deskripsi" label="Deskripsi" />
 
                             {/* Radio Button: Jenis Tim */}
-                            <div className="mt-6">
+                            <div className="mt-5 mb-5">
                                 <p className="font-bold mb-2">Jenis Tim</p>
                                 <div className="flex flex-col gap-3">
                                     <div>
@@ -107,7 +107,7 @@ export default function BuatTimModal({onClose}) {
                             </div>
 
                             {/* button submit */}
-                            <button className="py-2 px-3 bg-blue-600 text-white rounded-md w-full mt-16">
+                            <button className="py-2 px-3 bg-blue-600 text-white rounded-md w-full">
                                 Submit
                             </button>
                         </form>

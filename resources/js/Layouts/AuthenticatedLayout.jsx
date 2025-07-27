@@ -1,12 +1,13 @@
 
 import { Link, usePage } from '@inertiajs/react';
 
-import { Menu, Search, Settings, ShieldCheck } from 'lucide-react';
+import { LogOut, Menu, Search, Settings, ShieldCheck } from 'lucide-react';
 import { useState, useEffect,  createContext, useContext, useRef } from "react";
 
 
 import SearchModal from '../modal/SearchModal';
 import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
+
 
 // untuk sidebar
 export const SidebarContext = createContext();
@@ -28,6 +29,9 @@ export default function AuthenticatedLayout({ children }) {
 
     // Tambah Anggota
     const [tambahAnggotaModal, setTambahAnggotaModal] = useState(false);
+
+    // profil dropdown
+    const [profileDown, setProfileDown] = useState(false);
 
     // Users
     const users = [
@@ -51,20 +55,21 @@ export default function AuthenticatedLayout({ children }) {
         },
     ];
 
-
-    const img ="";
-    console.log("Modal: ", search);
-
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
+    
+    // profil dropdown ref
+    const profileDropDownRef = useRef(null);
+
     useEffect(() => {
         function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target) && profileDropDownRef.current && !profileDropDownRef.current.contains(event.target)) {
                 setOpen(false);
+                setProfileDown(false)
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () => {document.removeEventListener("mousedown", handleClickOutside)};
     }, []);
 
 
@@ -77,6 +82,7 @@ export default function AuthenticatedLayout({ children }) {
                 search,
                 setSearch,
                 buttonMenu,
+                user,
             }}
         >
             <div className="h-screen flex flex-col overflow-hidden">
@@ -85,7 +91,7 @@ export default function AuthenticatedLayout({ children }) {
                     <div className="flex py-2 gap-5">
                         <div className="flex items-center w-[500px] justify-between">
                             <div className="flex items-center gap-5">
-                                <div className="w-[40px] h-[40px]">
+                                <div className="w-[40px]">
                                     {/* image perusahaan */}
                                     <img
                                         src="/img/kemenkes.png"
@@ -94,8 +100,8 @@ export default function AuthenticatedLayout({ children }) {
                                     />
                                 </div>
                                 {/* Nama perusahaan */}
-                                <h1 className="text-xl text-gray-500">
-                                    Kemenkes
+                                <h1 className="text-sm text-gray-500 sm:text-sm md:text-sm lg:text-lg xl:text-xl">
+                                    Kemenkes Ciloto
                                 </h1>
                             </div>
 
@@ -163,20 +169,58 @@ export default function AuthenticatedLayout({ children }) {
                                 className="px-4 py-2 bg-blue-400/50 rounded-lg"
                                 onClick={() => setTambahAnggotaModal(true)}
                             >
-                                Tambah anggota
+                                <p className="text-xs sm:text-sm">
+                                    Tambah anggota
+                                </p>
                             </button>
 
                             {/* Profil icon user */}
-                            <div className="w-[40px] h-[40px] rounded-[50%] bg-blue-600 flex justify-center items-center text-md text-white text-xl">
-                                <p>S</p>
+                            <div ref={profileDropDownRef} className="relative">
+                                <div
+                                    onClick={() =>
+                                        setProfileDown((prev) => !prev)
+                                    }
+                                    className="w-[40px] h-[40px] rounded-[50%] bg-blue-600 flex justify-center items-center text-md text-white text-xl cursor-pointer"
+                                >
+                                    <p>{user.name.charAt(0)}</p>
+                                </div>
+
+                                {/* dropdown Profil */}
+                                <div
+                                    className={`absolute z-50 right-1 top-14 ${
+                                        profileDown ? "flex" : "hidden"
+                                    }`}
+                                >
+                                    <ul className="p-2 bg-white flex flex-col gap-2 shadow-lg rounded-md">
+                                        <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
+                                            <Settings className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                                            <p className="text-sm text-gray-400">
+                                                Pengatuan
+                                            </p>
+                                        </li>
+                                        <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
+                                            <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400" />
+
+                                            <Link
+                                                href={route("logout")}
+                                                method="post"
+                                                as="button"
+                                                className="text-sm text-gray-400 text-left"
+                                            >
+                                                Log out
+                                            </Link>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-
-                    <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6" ref={dropdownRef}>
-
-                    {/* <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6"> */}
+                    <div
+                        className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6"
+                        ref={dropdownRef}
+                    >
+                        {/* <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6"> */}
 
                         {/* Akses tim */}
                         {/* <div className="flex items-center gap-1 cursor-pointer">
@@ -185,16 +229,14 @@ export default function AuthenticatedLayout({ children }) {
                         </div> */}
 
                         {/* Pengaturan */}
+                    </div>
 
-                </div>
-
-                        {/* {/* <div className="flex items-center gap-1 cursor-pointer"> */}
-                            {/* <Settings className="w-5 text-gray-500" />
+                    {/* {/* <div className="flex items-center gap-1 cursor-pointer"> */}
+                    {/* <Settings className="w-5 text-gray-500" />
                             <p className="text-sm text-gray-500">Pengaturan</p>
                         </div> */}
                     {/* </div> */}
-                </div> 
-
+                </div>
 
                 <main className="flex-1 h-full flex flex-col overflow-hidden">
                     {children}

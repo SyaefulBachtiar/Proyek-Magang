@@ -1,7 +1,12 @@
 <?php
 
+use App\Http\Controllers\AksesTimController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProyekController;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -14,9 +19,39 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+
+    // Ganti nama route fallback
+    Route::get('/dashboard', function () {
+        $id = Auth::id();
+        return redirect()->route('dashboard.with.id', ['id' => $id]); // arahkan ke dashboard/{id}
+    })->name('dashboard.fallback');
+
+
+
+
+Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
+    // ✅ Route utama, ini yang akan digunakan untuk redirect setelah login
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard.with.id');
+
+    // Halaman Proyek
+    Route::get('/proyek', [ProyekController::class, 'index'])->name('proyek');
+    // lihat card
+    // Route::get('/proyek/kanban/card/{cardId}/{cardTitle}', [ProyekController::class, 'showCard'])->name('proyek.kanban.card.show');
+    Route::get('/proyek/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
+
+    // Halaman Akses tim
+    Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
+
+    // Halaman Pengaturan
+    Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
+});
+
+// halaman lihat card
+// Route::middleware(['auth'])->group(function () {
+//    Route::get('dashboard/{id}/proyek/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
+// });
+
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
