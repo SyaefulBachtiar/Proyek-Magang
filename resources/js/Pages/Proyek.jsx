@@ -5,20 +5,19 @@ import { useEffect, useRef, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Card_kanban from "./Card/Card_kanban";
 
-export default function Proyek() {
+export default function Proyek({children}) {
    return (
        <Dashboard>
-           <ProyekContent></ProyekContent>
+           <ProyekContent>{children}</ProyekContent>
        </Dashboard>
    );
 }
 
-function ProyekContent () {
+function ProyekContent ({children}) {
 
     // Dashboard state
     const {id} = DashboardState();
 
-     const { cardId, cardTitle } = usePage().props;
 
     const [lists, setLists] = useState([
         {
@@ -152,19 +151,19 @@ function ProyekContent () {
     }, []);
 
     //handle lihat card
-    const handleLihatCard = (cardId, cardTitle) => {
-         router.get(
-             route("proyek", { id: id }), // Kunjungi rute Proyek yang sama
-             {
-                 // Data ini akan menjadi query parameter di URL
-                 cardId: cardId,
-                 cardTitle: cardTitle,
-             },
-             {
-                 // Opsi paling penting untuk mencegah re-render!
-                 preserveState: true,
-                 preserveScroll: true,
-             }
+    const handleLihatCard = (cardId) => {
+         router.visit(
+             route("proyek.card", { id: id, cardId: cardId }) // Kunjungi rute Proyek yang sama
+            //  {
+            //      cardId: cardId,
+            //     //  cardTitle: cardTitle,
+            //  },
+            //  {
+            //      // Opsi paling penting untuk mencegah re-render!
+            //      preserveState: true,
+            //      preserveScroll: true,
+            //      replace: false,
+            //  }
          );
     };
 
@@ -398,14 +397,7 @@ function ProyekContent () {
                     </Droppable>
                 </DragDropContext>
             </div>
-
-            {cardId && (
-                <Card_kanban
-                    cardId={cardId}
-                    cardTitle={cardTitle}
-                    onClose={() => window.history.back()} // Tombol kembali akan menghapus query param
-                />
-            )}
+            {children}
         </>
     );
 }
