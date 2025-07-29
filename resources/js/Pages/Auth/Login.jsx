@@ -21,8 +21,7 @@ export default function Login({ status, canResetPassword }) {
         });
     };
 
-    // debug
-   
+
     return (
         <GuestLayout>
             <Head title="Log in" />

@@ -4,13 +4,17 @@ import AuthenticatedLayout, {
 import { Head } from '@inertiajs/react';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import Sidebar from "./pageDashboard/Sidebar";
-import ContentMainDashboard from "./pageDashboard/ContentMainDashboard";
-import ContentAksesTim from "./pageDashboard/ContentAksesTim";
-import ContentPengaturan from "./pageDashboard/ContentPengaturan";
 
-export default function Dashboard({children}) {
+
+export default function Dashboard({children, header}) {
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={
+                <div className="flex gap-2 text-sm items-center">
+                    {header}
+                </div>
+            }
+        >
             <DashboardContent>{children}</DashboardContent>
         </AuthenticatedLayout>
     );
