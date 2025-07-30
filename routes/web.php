@@ -34,10 +34,18 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // ✅ Route utama, ini yang akan digunakan untuk redirect setelah login
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.with.id');
 
-    // Halaman Proyek
-    Route::get('/proyek', [ProyekController::class, 'index'])->name('proyek');
+    // Halaman Proyek board
+    Route::get('/proyek/board', [ProyekController::class, 'index'])->name('proyek');
+    // halaman Proyek ringkas
+    Route::get('/proyek/ringkas', [ProyekController::class, 'ringkas'])->name('proyek.ringkas');
+    // halaman proyek laporan
+    Route::get('/proyek/laporan', [ProyekController::class, 'laporan'])->name('proyek.laporan');
+    // halaman proyek chat grup
+    Route::get('/proyek/chatgrup', [ProyekController::class, 'chatgrup'])->name('proyek.chatgrup');
+
+
     // lihat card
-    Route::get('/proyek/kanban/card/{cardId}/{cardTitle}', [ProyekController::class, 'showCard'])->name('proyek.kanban.card.show');
+    Route::get('/proyek/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
 
     // Halaman Akses tim
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
@@ -49,7 +57,9 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 
     Route::get('/pengaturanprofil', [ProfilePengaturanController::class, 'index'])->name('pengaturanprofil');
+});
 
+Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
