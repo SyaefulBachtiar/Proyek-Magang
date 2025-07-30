@@ -23,7 +23,7 @@
         "vite": "^6.2.4"
     },
     "dependencies": {
-        "@ckeditor/ckeditor5-build-classic": "^42.0.0",
+        "@ckeditor/ckeditor5-build-classic": "^42.0.2",
         "@ckeditor/ckeditor5-react": "^5.1.0",
         "@hello-pangea/dnd": "^18.0.1",
         "@heroicons/react": "^2.2.0",
