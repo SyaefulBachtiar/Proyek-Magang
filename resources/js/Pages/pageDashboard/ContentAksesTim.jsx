@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Dashboard, { DashboardState } from "../Dashboard";
-import { Head, usePage } from "@inertiajs/react";
+import { usePage, Head } from "@inertiajs/react";
+import { Edit, Trash2 } from "lucide-react";
 
 export default function ContentAksesTim() {
   return (
@@ -25,7 +26,6 @@ function AksesTim() {
     }
   }, [activePage]);
 
-  // Deteksi klik di luar dropdown menu
   useEffect(() => {
     function handleClickOutside(e) {
       if (
@@ -87,7 +87,6 @@ function AksesTim() {
     <div className="p-8 min-h-screen">
       <h2 className="text-xl font-semibold mb-6">Anggota Perusahaan</h2>
 
-      {/* Search Input */}
       <div className="mb-6">
         <input
           type="text"
@@ -98,7 +97,6 @@ function AksesTim() {
         />
       </div>
 
-      {/* List Anggota */}
       <div className="space-y-4 relative">
         {filteredMembers.length === 0 && (
           <p className="text-gray-500">Tidak ada anggota ditemukan.</p>
@@ -154,15 +152,17 @@ function AksesTim() {
                   <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10">
                     <button
                       onClick={() => handleEdit(member)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
                     >
-                      ✏️ Edit
+                      <Edit className="w-4 h-4" />
+                      Edit
                     </button>
                     <button
                       onClick={() => handleDelete(member)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600"
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600 flex items-center gap-2"
                     >
-                      🗑️ Hapus
+                      <Trash2 className="w-4 h-4" />
+                      Hapus
                     </button>
                   </div>
                 )}

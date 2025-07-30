@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ProyekController extends Controller
 {
  public function index($id) {
-    return Inertia::render('Proyek', [
+    return Inertia::render('pageProyek/Kanban', [
         'dashboardId' => $id,
+        'activePage' => 'tugasPage'
     ]);
 }
 
@@ -22,6 +21,28 @@ class ProyekController extends Controller
         'cardId' => $cardId,
         // 'cardTitle' => $cardTitle
         // tambahkan data lain yang dibutuhkan
+    ]);
+}
+
+public function ringkas ($id) {
+    return Inertia::render('pageProyek/Rinkas', [
+        'dashboardId' => $id,
+        'activePage' => 'ringkasPage'
+    ]);
+}
+
+
+public function chatgrup ($id) {
+    return Inertia::render('pageProyek/ChatGrup', [
+        'dashboardId' => $id,
+        'activePage' => 'chatGrupPage'
+    ]);
+}
+
+public function laporan ($id) {
+    return Inertia::render('pageProyek/Laporan', [
+        'dashboardId' => $id,
+        'activePage' => 'laporanPage'
     ]);
 }
 }

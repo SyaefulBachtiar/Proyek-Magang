@@ -14,7 +14,7 @@ export const SidebarContext = createContext();
 
 export const useAllState = () => useContext(SidebarContext);
 
-export default function AuthenticatedLayout({ children }) {
+export default function AuthenticatedLayout({ children, header }) {
     // users dari db
     const user = usePage().props.auth.user;
 
@@ -55,24 +55,23 @@ export default function AuthenticatedLayout({ children }) {
         },
     ];
 
-    const [open, setOpen] = useState(false);
-    const dropdownRef = useRef(null);
-    
     // profil dropdown ref
     const profileDropDownRef = useRef(null);
 
     useEffect(() => {
         function handleClickOutside(event) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target) && profileDropDownRef.current && !profileDropDownRef.current.contains(event.target)) {
-                setOpen(false);
-                setProfileDown(false)
+            if (
+                profileDropDownRef.current &&
+                !profileDropDownRef.current.contains(event.target)
+            ) {
+                setProfileDown(false);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
-        return () => {document.removeEventListener("mousedown", handleClickOutside)};
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
     }, []);
-
-
 
     return (
         <SidebarContext.Provider
@@ -101,7 +100,7 @@ export default function AuthenticatedLayout({ children }) {
                                 </div>
                                 {/* Nama perusahaan */}
                                 <h1 className="text-sm text-gray-500 sm:text-sm md:text-sm lg:text-lg xl:text-xl">
-                                    Kemenkes Ciloto
+                                    BBPK Ciloto
                                 </h1>
                             </div>
 
@@ -193,14 +192,20 @@ export default function AuthenticatedLayout({ children }) {
                                 >
                                     <ul className="p-2 bg-white flex flex-col gap-2 shadow-lg rounded-md">
                                         <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
-                                            <Settings className="w-4 h-4 flex-shrink-0 text-gray-400" />
-                                            <p className="text-sm text-gray-400">
-                                                Pengatuan
-                                            </p>
+                                            <Link
+                                                href={route(
+                                                    "pengaturanprofil",
+                                                    { id: user.id }
+                                                )}
+                                                className="text-sm text-gray-400 text-left flex items-center gap-2"
+                                            >
+                                                <Settings className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                                                Pengaturan
+                                            </Link>
                                         </li>
+
                                         <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
                                             <LogOut className="w-4 h-4 flex-shrink-0 text-gray-400" />
-
                                             <Link
                                                 href={route("logout")}
                                                 method="post"
@@ -216,20 +221,11 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
                     </div>
 
-                    <div
-                        className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6"
-                        ref={dropdownRef}
-                    >
-                        {/* <div className="bg-gray-600/10 w-full p-2 px-8 rounded-md flex justify-end space-x-6"> */}
-
-                        {/* Akses tim */}
-                        {/* <div className="flex items-center gap-1 cursor-pointer">
-                            <ShieldCheck className="w-5 text-gray-500" />
-                            <p className="text-sm text-gray-500">Akses tim</p>
-                        </div> */}
-
-                        {/* Pengaturan */}
-                    </div>
+                    {header && (
+                        <div className="bg-gray-200 w-full p-2 px-8 rounded-md flex justify-end space-x-6">
+                            <header>{header}</header>
+                        </div>
+                    )}
 
                     {/* {/* <div className="flex items-center gap-1 cursor-pointer"> */}
                     {/* <Settings className="w-5 text-gray-500" />

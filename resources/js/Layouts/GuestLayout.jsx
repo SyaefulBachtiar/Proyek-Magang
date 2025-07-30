@@ -2,8 +2,6 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link } from '@inertiajs/react';
 
 export default function GuestLayout({ children, register}) {
-    // debug
-    console.log("register: ", register)
     return (
         <div className="flex flex-wrap sm:flex-nowrap min-h-screen">
             <div className="w-full sm:w-[90vw] h-[20vh] sm:h-screen relative">
