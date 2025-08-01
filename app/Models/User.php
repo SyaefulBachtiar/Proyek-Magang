@@ -45,4 +45,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // relasi ke table perusahaan
+    public function perusahaan () {
+        return $this->hasOne(\app\Models\Perusahaan::class);
+    }
 }
