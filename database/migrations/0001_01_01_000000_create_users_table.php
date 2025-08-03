@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('bio_profile')->nullable();
+            $table->string('poto_profile_user')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

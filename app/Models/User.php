@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'bio_profile',
+        'poto_profile_user',
     ];
 
     /**
@@ -44,5 +46,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // relasi ke table perusahaan
+    public function perusahaan () {
+        return $this->hasOne(Perusahaan::class);
     }
 }
