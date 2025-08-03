@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'bio_profile',
+        'poto_profile_user',
     ];
 
     /**
@@ -48,6 +50,6 @@ class User extends Authenticatable
 
     // relasi ke table perusahaan
     public function perusahaan () {
-        return $this->hasOne(\app\Models\Perusahaan::class);
+        return $this->hasOne(Perusahaan::class);
     }
 }

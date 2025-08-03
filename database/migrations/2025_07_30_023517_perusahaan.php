@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('perusahaan', function (Blueprint $table) {
             $table->id();
-            $table->varchar('role', 10);
-            $table->varchar('jabatan', 20)->nullable();
+            $table->string('role', 10);
+            $table->string('jabatan', 20)->nullable();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });

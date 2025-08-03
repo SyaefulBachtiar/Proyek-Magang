@@ -193,10 +193,9 @@ export default function AuthenticatedLayout({ children, header }) {
                                     <ul className="p-2 bg-white flex flex-col gap-2 shadow-lg rounded-md">
                                         <li className="flex items-center gap-2 cursor-pointer hover:bg-gray-200 px-3 py-2 rounded-md">
                                             <Link
-                                                href={route(
-                                                    "pengaturanprofil",
-                                                    { id: user.id }
-                                                )}
+                                                href={route("profile.edit", {
+                                                    id: user.id,
+                                                })}
                                                 className="text-sm text-gray-400 text-left flex items-center gap-2"
                                             >
                                                 <Settings className="w-4 h-4 flex-shrink-0 text-gray-400" />
