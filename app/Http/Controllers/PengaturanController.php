@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Auth;
 
 class PengaturanController extends Controller
 {
-    public function index () {
+    public function index ($id) {
         // Cek apakah user sudah login
-        if (!auth()->Auth::check()) {
-            return redirect()->route('login');
+        if (Auth::id() != $id) {
+        abort(403, 'Unauthorized.');
         }
 
         $user = Auth::user();
