@@ -3,9 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Models\timPerusahaan\Anggota_tim;
+use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -17,6 +21,9 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    public $incrementing = false;
+    protected $keyType = 'string'; 
+    protected $primaryKey = 'id'; 
     protected $fillable = [
         'name',
         'email',
@@ -48,8 +55,34 @@ class User extends Authenticatable
         ];
     }
 
+     protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            // Jika belum ada ID, generate ID random
+            if (empty($model->id)) {
+                $model->id = strtoupper(Str::uuid()); // contoh: A1B2C3D4E5
+                // bisa juga pakai UUID: $model->id = (string) Str::uuid();
+            }
+        });
+    }
+
     // relasi ke table perusahaan
     public function perusahaan () {
         return $this->hasOne(Perusahaan::class);
     }
+
+    // relasi ke table anggota tim
+    public function anggotaTim()
+    {
+        return $this->hasMany(Anggota_tim::class);
+    }
+
+    // relasi ke table tim perusahaan
+    public function tim_perusahaan() 
+    {
+        return $this->hasMany(TimPerusahaan::class, 'user_id', 'id');
+    }
+    
 }

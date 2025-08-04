@@ -2,7 +2,7 @@ import Proyek from "../Proyek";
 import { useState } from "react";
 import { PieChart, Pie, Cell } from "recharts";
 
-export default function Laporan({ dashboardId, activePage }) {
+export default function Laporan({ dashboardId, activePage, tim }) {
   // Data dummy tim
   const teamData = [
     {
@@ -64,7 +64,7 @@ export default function Laporan({ dashboardId, activePage }) {
   const [selectedTab, setSelectedTab] = useState("Terlambat");
 
   return (
-    <Proyek dashboardId={dashboardId} activePage={activePage}>
+    <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
       <div className="flex w-full h-screen bg-gray-100 p-4 gap-4">
         {/* === Sidebar Tim === */}
         <div className="w-1/4 bg-white rounded-2xl shadow p-4 flex flex-col">

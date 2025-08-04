@@ -5,7 +5,7 @@ export default function Input ({
     name = "",
     value = "",
     onChange = "",
-    onBlur = ""
+    onBlur = () => {}
 }) {
     return (
         <>

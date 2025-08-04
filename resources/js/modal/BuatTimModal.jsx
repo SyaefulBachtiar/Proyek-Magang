@@ -1,10 +1,31 @@
 import { PlusCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Input from "./input/Input";
+import { useForm, usePage } from "@inertiajs/react";
 
 export default function BuatTimModal({onClose}) {
     // modal tim ref
     const modalTimRef = useRef(null);
+
+    const { auth } = usePage().props;
+
+    // use form
+    const { data, setData, post, processing, errors, reset } = useForm({
+        nama_tim: "",
+        deskripsi_tim: "",
+        jenis_tim: "",
+    });
+
+    // handle submit
+     const handleSubmit = (e) => {
+         e.preventDefault();
+         post(route("tim-perusahaan.store", { id: auth.user.id }), {
+             onSuccess: () => {
+                 reset();
+                 onClose(); // tutup modal setelah sukses
+             },
+         });
+     };
 
     // radio state
     const [jenisTim, setJenisTim] = useState("");
@@ -36,79 +57,74 @@ export default function BuatTimModal({onClose}) {
                         <div className="my-5">
                             <h1 className="text-xl font-bold">Buat Tim</h1>
                         </div>
-                        <form className="my-5">
-                            <Input id="namaTim" label="Nama Tim" />
+                        <form className="my-5" onSubmit={handleSubmit}>
+                            <Input
+                                id="namaTim"
+                                label="Nama Tim"
+                                value={data.nama_tim}
+                                onChange={(e) =>
+                                    setData("nama_tim", e.target.value)
+                                }
+                            />
+                            {errors.nama_tim && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.nama_tim}
+                                </p>
+                            )}
 
-                            <Input id="deskripsi" label="Deskripsi" />
+                            <Input
+                                id="deskripsi"
+                                label="Deskripsi"
+                                value={data.deskripsi_tim}
+                                onChange={(e) =>
+                                    setData("deskripsi_tim", e.target.value)
+                                }
+                            />
+                            {errors.deskripsi_tim && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.deskripsi_tim}
+                                </p>
+                            )}
 
-                            {/* Radio Button: Jenis Tim */}
                             <div className="mt-5 mb-5">
                                 <p className="font-bold mb-2">Jenis Tim</p>
                                 <div className="flex flex-col gap-3">
-                                    <div>
-                                        <label className="flex items-center gap-2">
+                                    {["proyek", "tim"].map((jenis) => (
+                                        <label
+                                            key={jenis}
+                                            className="flex items-center gap-2"
+                                        >
                                             <input
                                                 type="radio"
-                                                name="jenisTim"
-                                                value="proyek"
-                                                checked={jenisTim === "proyek"}
-                                                onChange={(e) =>
-                                                    setJenisTim(e.target.value)
+                                                name="jenis_tim"
+                                                value={jenis}
+                                                checked={
+                                                    data.jenis_tim === jenis
+                                                }
+                                                onChange={() =>
+                                                    setData("jenis_tim", jenis)
                                                 }
                                                 className="form-radio text-blue-600"
                                             />
-                                            <span className="text-gray-600">
-                                                Proyek
+                                            <span className="text-gray-600 capitalize">
+                                                {jenis}
                                             </span>
                                         </label>
-                                        {jenisTim === "proyek" ? (
-                                            <div className="flex justify-center">
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <PlusCircle className="text-gray-400" />
-                                                    <p className="text-gray-500 text-sm">
-                                                        Kelola Anggota
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            ""
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="flex items-center gap-2">
-                                            <input
-                                                type="radio"
-                                                name="jenisTim"
-                                                value="tim"
-                                                checked={jenisTim === "tim"}
-                                                onChange={(e) =>
-                                                    setJenisTim(e.target.value)
-                                                }
-                                                className="form-radio text-blue-600"
-                                            />
-                                            <span className="text-gray-600">
-                                                Tim
-                                            </span>
-                                        </label>
-                                        {jenisTim === "tim" ? (
-                                            <div className="flex justify-center">
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <PlusCircle className="text-gray-400" />
-                                                    <p className="text-gray-500 text-sm">
-                                                        Kelola Anggota
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            ""
-                                        )}
-                                    </div>
+                                    ))}
+                                    {errors.jenis_tim && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.jenis_tim}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* button submit */}
-                            <button className="py-2 px-3 bg-blue-600 text-white rounded-md w-full">
-                                Submit
+                            <button
+                                disabled={processing}
+                                type="submit"
+                                className="py-2 px-3 bg-blue-600 text-white rounded-md w-full"
+                            >
+                                {processing ? "Menyimpan..." : "Submit"}
                             </button>
                         </form>
                     </div>

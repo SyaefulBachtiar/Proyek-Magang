@@ -17,7 +17,15 @@ export default function ContentMainDashboard () {
 function MainDashboard () {
 
     // Props dari controller 
-    const { activePage } = usePage().props;
+    const { props } = usePage();
+    const activePage = props.activePage;
+    const role = props.role;
+    const data = props.data;
+
+    const proyekTim = data?.filter((tim) => tim.jenis_tim === "proyek") || [];
+    const timBiasa = data?.filter((tim) => tim.jenis_tim === "tim") || [];
+
+
 
     // Dasboard state
     const { setActivePage, id } = DashboardState();
@@ -31,70 +39,112 @@ function MainDashboard () {
         }
     }, [activePage]);
 
-    console.log(id)
-
     return (
         <>
             <div className="flex flex-col justify-center items-center px-5">
                 {/* buat grup */}
-                <div
-                    className="mt-10 flex flex-col justify-center items-center gap-2 cursor-pointer"
-                    onClick={() => setBuatTimModal(true)}
-                >
-                    <h1 className="text-xl text-gray-400">Buat grup</h1>
-                    <PlusCircle className="w-10 h-10 text-gray-400" />
-                </div>
-
-                {/* card grup */}
-                <div className="w-full">
-                    {/* Proyek grup*/}
-                    <div className="my-10">
-                        <h1 className="mb-4 text-4xl">Proyek</h1>
-
-                        {/* card proyek */}
+                {role === "Super User" || role === "Admin" ? (
+                    <>
                         <div
-                            className="w-[280px] rounded-md overflow-hidden shadow-lg transition-all ease-in-out duration-300 cursor-pointer"
-                            onClick={() => router.visit(route("proyek", {id}))}
+                            className="mt-10 flex flex-col justify-center items-center gap-2 cursor-pointer"
+                            onClick={() => setBuatTimModal(true)}
                         >
-                            <div className="">
-                                {/* image */}
-                                <div className="h-[80px]">
-                                    <img
-                                        src="/img/img_proyek.png"
-                                        alt="Gambar grup proyek opsional"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-
-                                <div className="px-4 h-[150px] bg-gray-100 flow-root">
-                                    {/* nama proyek */}
-                                    <div className="mt-2">
-                                        <h1 className="text-2xl">
-                                            Nama proyek
-                                        </h1>
-                                        <p className="text-sm">Deskripsi</p>
-                                    </div>
-
-                                    {/* anggota */}
-                                    <div className="mt-8 flex">
-                                        <div className="w-[30px] h-[30px] rounded-[50%] bg-blue-600 text-white flex items-center justify-center">
-                                            <p>S</p>
-                                        </div>
-                                        <div className="w-[30px] h-[30px] rounded-[50%] bg-cyan-600 text-white flex items-center justify-center">
-                                            <p>S</p>
-                                        </div>
-                                        <div className="w-[30px] h-[30px] rounded-[50%] bg-green-600 text-white flex items-center justify-center">
-                                            <p>F</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-gray-400">
-                                        Anggota
-                                    </p>
-                                </div>
-                            </div>
+                            <h1 className="text-xl text-gray-400">Buat grup</h1>
+                            <PlusCircle className="w-10 h-10 text-gray-400" />
                         </div>
-                    </div>
-                </div>
+
+                        <div className="w-full">
+                            {/* Proyek grup*/}
+                            {proyekTim.length > 0 && (
+                                <div className="my-10 w-full">
+                                    <h1 className="mb-4 text-4xl">Proyek</h1>
+                                    <div className="flex gap-5 flex-wrap">
+                                        {proyekTim.map((tim) => (
+                                            <div
+                                                key={tim.id}
+                                                className="w-[280px] rounded-md overflow-hidden shadow-lg transition-all ease-in-out duration-300 cursor-pointer"
+                                                onClick={() =>
+                                                    router.visit(
+                                                        route("proyek", {
+                                                            id: id,
+                                                            id_tim: tim.id,
+                                                        })
+                                                    )
+                                                }
+                                            >
+                                                <div className="h-[80px]">
+                                                    <img
+                                                        src="/img/img_proyek.png"
+                                                        alt="Gambar grup proyek opsional"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="px-4 h-[150px] bg-gray-100 flow-root">
+                                                    <div className="mt-2">
+                                                        <h1 className="text-2xl">
+                                                            {tim.nama_tim}
+                                                        </h1>
+                                                        <p className="text-sm">
+                                                            {tim.deskripsi_tim}
+                                                        </p>
+                                                    </div>
+                                                    <p className="text-sm text-gray-400 mt-6">
+                                                        Anggota
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {/* Tim biasa */}
+                            {timBiasa.length > 0 && (
+                                <div className="my-10 w-full">
+                                    <h1 className="mb-4 text-4xl">Tim</h1>
+                                    <div className="flex gap-5 flex-wrap">
+                                        {timBiasa.map((tim) => (
+                                            <div
+                                                key={tim.id}
+                                                className="w-[280px] rounded-md overflow-hidden shadow-lg transition-all ease-in-out duration-300 cursor-pointer"
+                                                onClick={() =>
+                                                    router.visit(
+                                                        route("proyek", {
+                                                            id: id,
+                                                            id_tim: tim.id,
+                                                        })
+                                                    )
+                                                }
+                                            >
+                                                <div className="h-[80px]">
+                                                    <img
+                                                        src="/img/img_proyek.png"
+                                                        alt="Gambar grup tim opsional"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="px-4 h-[150px] bg-gray-100 flow-root">
+                                                    <div className="mt-2">
+                                                        <h1 className="text-2xl">
+                                                            {tim.nama_tim}
+                                                        </h1>
+                                                        <p className="text-sm">
+                                                            {tim.deskripsi_tim}
+                                                        </p>
+                                                    </div>
+                                                    <p className="text-sm text-gray-400 mt-6">
+                                                        Anggota
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                ) : (
+                    ""
+                )}
             </div>
 
             {/* Tim modal */}

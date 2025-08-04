@@ -163,6 +163,7 @@ function ProfileContent({ user, userProfile }) {
                                     onChange={(e) =>
                                         setData("jabatan", e.target.value)
                                     }
+                                    placeholder="Jabatan di perusahaan"
                                     error={errors.jabatan}
                                 />
                                 <InputField
@@ -192,6 +193,7 @@ function ProfileContent({ user, userProfile }) {
                                     onChange={(e) =>
                                         setData("bio_profile", e.target.value)
                                     }
+                                    placeholder="Ceritakan tentang diri Anda"
                                     error={errors.bio_profile}
                                 />
 
@@ -230,7 +232,7 @@ function ProfileContent({ user, userProfile }) {
                                     </p>
                                 </div>
                                 <p className="text-black text-sm bg-green-400 p-2 rounded-md">
-                                    {userProfile.perusahaan?.jabatan}
+                                    {userProfile.perusahaan?.jabatan || "Tidak ada jabatan"}
                                 </p>
                                 <p className="text-gray-700 text-sm leading-relaxed bg-gray-50 my-4 rounded-lg p-4">
                                     {userProfile.bio_profile ||
@@ -256,7 +258,7 @@ function ProfileContent({ user, userProfile }) {
     );
 }
 
-function InputField({ label, icon, type, value, onChange, error }) {
+function InputField({ label, icon, type, value, onChange, error, placeholder }) {
     return (
         <div className="space-y-2">
             <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
@@ -264,6 +266,7 @@ function InputField({ label, icon, type, value, onChange, error }) {
                 {label}
             </label>
             <input
+            placeholder={placeholder}
                 type={type}
                 value={value}
                 onChange={onChange}
@@ -274,7 +277,7 @@ function InputField({ label, icon, type, value, onChange, error }) {
     );
 }
 
-function InputTextArea({ label, icon, value, onChange, error }) {
+function InputTextArea({ label, icon, value, onChange, error, placeholder }) {
     return (
         <div className="space-y-2">
             <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
@@ -282,6 +285,7 @@ function InputTextArea({ label, icon, value, onChange, error }) {
                 {label}
             </label>
             <textarea
+                placeholder={placeholder}
                 value={value}
                 onChange={onChange}
                 rows={3}
