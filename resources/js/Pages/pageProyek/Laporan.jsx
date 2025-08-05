@@ -2,7 +2,7 @@ import Proyek from "../Proyek";
 import { useState } from "react";
 import { PieChart, Pie, Cell } from "recharts";
 
-export default function Laporan({ dashboardId, activePage }) {
+export default function Laporan({ dashboardId, activePage, tim }) {
   // Data dummy tim
   const teamData = [
     {
@@ -64,38 +64,85 @@ export default function Laporan({ dashboardId, activePage }) {
   const [selectedTab, setSelectedTab] = useState("Terlambat");
 
   return (
-    <Proyek dashboardId={dashboardId} activePage={activePage}>
+    <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
       <div className="flex w-full h-screen bg-gray-100 p-4 gap-4">
         {/* === Sidebar Tim === */}
-        <div className="w-1/4 bg-white rounded-2xl shadow p-4 flex flex-col">
-          <h2 className="text-lg font-bold mb-3">Tim Jaya Abadi</h2>
-          <input
-            type="text"
-            placeholder="Cari di sini"
-            className="w-full p-2 border rounded-lg mb-3 text-sm"
-          />
-          <div className="flex flex-col gap-2 overflow-y-auto">
-            {teamData.map((member) => (
-              <div
-                key={member.id}
-                onClick={() => {
-                  setSelectedUser(member);
-                  setSelectedTab("Terlambat");
-                }}
-                className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer ${
-                  selectedUser.id === member.id
-                    ? "bg-blue-200"
-                    : "hover:bg-blue-100"
-                }`}
-              >
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                  {member.name.charAt(0)}
-                </div>
-                <span>{member.name}</span>
-              </div>
-            ))}
-          </div>
+        <div className="w-1/4 bg-white rounded-2xl shadow p-4 flex flex-col gap-4">
+  {/* Judul dan Pilih Periode */}
+  <div>
+    <h2 className="text-base font-semibold text-gray-700 mb-2">Data Realtime</h2>
+    <label className="text-sm font-medium text-gray-600 block mb-1">Pilih Periode</label>
+    <div className="relative">
+      <select className="w-full border rounded-lg p-2 text-sm appearance-none bg-white">
+        <option>Bulan Ini</option>
+        <option>Bulan Lalu</option>
+      </select>
+      <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none">⌄</span>
+    </div>
+  </div>
+
+  {/* Pilih Tim */}
+  <div>
+    <label className="text-sm font-medium text-gray-600 block mb-1">Pilih Tim :</label>
+    <div className="relative mb-2">
+      <input
+        type="text"
+        placeholder="Cari tim..."
+        className="w-full pl-8 pr-2 py-1.5 border rounded-lg text-sm"
+      />
+      <span className="absolute left-2 top-2.5 text-yellow-500">🔍</span>
+    </div>
+
+    <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+      {["HEADQUARTER BBPK CILOTO", "Tim Kerja Inovasi dan...", "Tim Kerja Pelatihan A", "Tim Kerja Pelatihan B"].map((tim, index) => (
+        <div key={index} className="flex items-center gap-2 p-2 rounded-md hover:bg-blue-50 cursor-pointer">
+          <span className="text-gray-500">🏠</span>
+          <span className="truncate text-sm text-gray-800">{tim}</span>
         </div>
+      ))}
+    </div>
+  </div>
+
+  {/* Pilih Anggota */}
+  <div>
+    <label className="text-sm font-medium text-gray-600 block mb-1">Pilih Anggota :</label>
+    <div className="relative mb-2">
+      <input
+        type="text"
+        placeholder="Cari anggota tim ini..."
+        className="w-full pl-8 pr-2 py-1.5 border rounded-lg text-sm"
+      />
+      <span className="absolute left-2 top-2.5 text-yellow-500">🔍</span>
+    </div>
+
+    <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+      {teamData.map((member) => (
+        <div
+          key={member.id}
+          onClick={() => {
+            setSelectedUser(member);
+            setSelectedTab("Terlambat");
+          }}
+          className={`flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer ${
+            selectedUser.id === member.id ? "bg-yellow-100" : "hover:bg-blue-50"
+          }`}
+        >
+          {/* Avatar */}
+          <div className="w-6 h-6 rounded-full bg-gray-300 overflow-hidden flex items-center justify-center text-xs font-semibold text-white">
+            {member.photo ? (
+              <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
+            ) : (
+              member.name.charAt(0)
+            )}
+          </div>
+          {/* Nama */}
+          <span className="text-sm truncate">{member.name}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
 
         {/* === Konten Utama === */}
         <div className="flex-1 flex flex-col gap-4">

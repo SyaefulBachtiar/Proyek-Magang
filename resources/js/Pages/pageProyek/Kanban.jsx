@@ -13,7 +13,7 @@ import Proyek from "../Proyek";
 
 
 
-export default function Kanban({ children, dashboardId, activePage }) {
+export default function Kanban({ children, dashboardId, activePage, tim }) {
     const [lists, setLists] = useState([
         {
             id: "1",
@@ -148,13 +148,13 @@ export default function Kanban({ children, dashboardId, activePage }) {
     //handle lihat card
     const handleLihatCard = (cardId) => {
         router.visit(
-            route("proyek.card", { id: dashboardId, cardId: cardId }) // Kunjungi rute Proyek yang sama
+            route("proyek.card", { id: dashboardId, cardId: cardId, id_tim: tim.id }) // Kunjungi rute Proyek yang sama
         );
     };
 
     return (
         <>
-            <Proyek dashboardId={dashboardId} activePage={activePage}>
+            <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
                 <Head title="Proyek" />
                 <div className="h-full w-full bg-slate-300 rounded-lg overflow-x-auto">
                     <DragDropContext onDragEnd={handleDragEnd}>

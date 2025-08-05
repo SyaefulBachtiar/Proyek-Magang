@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProyekController;
+use App\Http\Controllers\Tim\Tim_perusahaanController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -35,17 +36,17 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.with.id');
 
     // Halaman Proyek board
-    Route::get('/proyek/board', [ProyekController::class, 'index'])->name('proyek');
+    Route::get('/proyek/{id_tim}/board', [ProyekController::class, 'index'])->name('proyek');
     // halaman Proyek ringkas
-    Route::get('/proyek/ringkas', [ProyekController::class, 'ringkas'])->name('proyek.ringkas');
+    Route::get('/proyek/{id_tim}/ringkas', [ProyekController::class, 'ringkas'])->name('proyek.ringkas');
     // halaman proyek laporan
-    Route::get('/proyek/laporan', [ProyekController::class, 'laporan'])->name('proyek.laporan');
+    Route::get('/proyek/{id_tim}/laporan', [ProyekController::class, 'laporan'])->name('proyek.laporan');
     // halaman proyek chat grup
-    Route::get('/proyek/chatgrup', [ProyekController::class, 'chatgrup'])->name('proyek.chatgrup');
+    Route::get('/proyek/{id_tim}/chatgrup', [ProyekController::class, 'chatgrup'])->name('proyek.chatgrup');
 
 
     // lihat card
-    Route::get('/proyek/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
+    Route::get('/proyek/{id_tim}/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
 
     // Halaman Akses tim
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
@@ -61,7 +62,14 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Route::get('/pengaturanprofil', [ProfilePengaturanController::class, 'index'])->name('pengaturanprofil');
+    // tambah anggota tim
+    Route::post('/tim-perusahaan', [Tim_perusahaanController::class, 'store'])->name('tim-perusahaan.store');
+});
+
+
+    Route::middleware('auth')->group(function () {
+    
+    Route::get('/users', [Tim_perusahaanController::class, 'getUsers']); // untuk modal
 });
 
 // Route::middleware('auth')->group(function () {

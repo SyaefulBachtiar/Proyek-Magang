@@ -20,7 +20,7 @@ function ProfileContent({ user, userProfile }) {
         email: user.email || "",
         jabatan: userProfile.perusahaan?.jabatan || "",
         bio_profile: userProfile.bio_profile || "",
-        poto_profile_user: null,
+        poto_profile_user: userProfile.poto_profile_user || null,
     });
 
     const [editMode, setEditMode] = useState(false);
@@ -33,17 +33,24 @@ function ProfileContent({ user, userProfile }) {
             email: user.email || "",
             jabatan: userProfile.perusahaan?.jabatan || "",
             bio_profile: userProfile.bio_profile || "",
-            poto_profile_user: null,
+            poto_profile_user: userProfile.poto_profile_user || null,
         }),
         [user, userProfile]
     );
 
     useEffect(() => {
-        const dataToCompare = { ...data, poto_profile_user: null };
-        setIsDirty(
-            JSON.stringify(dataToCompare) !== JSON.stringify(initialData)
-        );
-    }, [data, initialData]);
+        const isImageChanged =
+            data.poto_profile_user instanceof File || previewImage !== null;
+
+        const otherDataChanged =
+            data.name !== initialData.name ||
+            data.email !== initialData.email ||
+            data.jabatan !== initialData.jabatan ||
+            data.bio_profile !== initialData.bio_profile;
+
+        setIsDirty(isImageChanged || otherDataChanged);
+    }, [data, previewImage, initialData]);
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -163,6 +170,7 @@ function ProfileContent({ user, userProfile }) {
                                     onChange={(e) =>
                                         setData("jabatan", e.target.value)
                                     }
+                                    placeholder="Jabatan di perusahaan"
                                     error={errors.jabatan}
                                 />
                                 <InputField
@@ -192,6 +200,7 @@ function ProfileContent({ user, userProfile }) {
                                     onChange={(e) =>
                                         setData("bio_profile", e.target.value)
                                     }
+                                    placeholder="Ceritakan tentang diri Anda"
                                     error={errors.bio_profile}
                                 />
 
@@ -230,7 +239,7 @@ function ProfileContent({ user, userProfile }) {
                                     </p>
                                 </div>
                                 <p className="text-black text-sm bg-green-400 p-2 rounded-md">
-                                    {userProfile.perusahaan?.jabatan}
+                                    {userProfile.perusahaan?.jabatan || "Tidak ada jabatan"}
                                 </p>
                                 <p className="text-gray-700 text-sm leading-relaxed bg-gray-50 my-4 rounded-lg p-4">
                                     {userProfile.bio_profile ||
@@ -256,7 +265,7 @@ function ProfileContent({ user, userProfile }) {
     );
 }
 
-function InputField({ label, icon, type, value, onChange, error }) {
+function InputField({ label, icon, type, value, onChange, error, placeholder }) {
     return (
         <div className="space-y-2">
             <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
@@ -264,6 +273,7 @@ function InputField({ label, icon, type, value, onChange, error }) {
                 {label}
             </label>
             <input
+            placeholder={placeholder}
                 type={type}
                 value={value}
                 onChange={onChange}
@@ -274,7 +284,7 @@ function InputField({ label, icon, type, value, onChange, error }) {
     );
 }
 
-function InputTextArea({ label, icon, value, onChange, error }) {
+function InputTextArea({ label, icon, value, onChange, error, placeholder }) {
     return (
         <div className="space-y-2">
             <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
@@ -282,6 +292,7 @@ function InputTextArea({ label, icon, value, onChange, error }) {
                 {label}
             </label>
             <textarea
+                placeholder={placeholder}
                 value={value}
                 onChange={onChange}
                 rows={3}
