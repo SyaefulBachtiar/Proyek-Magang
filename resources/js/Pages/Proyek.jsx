@@ -6,95 +6,96 @@ import Kanban from "./pageProyek/Kanban";
 import { router } from "@inertiajs/react";
 
 
-export default function Proyek({children, dashboardId, activePage}) {
-    // console.log(dashboardId);
-
-    // console.log(activePage);
-   return (
-       <Dashboard
-           header={
-               <>
-                   {/* Ringkasan */}
-                   <div
-                       className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
-                       onClick={() =>
-                           router.visit(
-                               route("proyek.ringkas", { id: dashboardId })
-                           )
-                       }
-                   >
-                       <div className="flex items-center gap-2">
-                           <AppWindow size={20} />
-                           <h1>Ringkasan</h1>
-                       </div>
-                       <div
-                           className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
-                               activePage === "ringkasPage" ? "w-full" : "w-0"
-                           }`}
-                       ></div>
-                   </div>
-                   <div
-                       className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
-                       onClick={() =>
-                           router.visit(route("proyek", { id: dashboardId }))
-                       }
-                   >
-                       <div className="flex items-center gap-2">
-                           <LayoutList size={20} />
-                           <h1>Tugas</h1>
-                       </div>
-                       <div
-                           className={`bg-[#A8E038] h-1 left-0 absolute ${
-                               activePage === "tugasPage" ? "w-full" : ""
-                           }`}
-                       ></div>
-                   </div>
-                   <div
-                       className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
-                       onClick={() =>
-                           router.visit(
-                               route("proyek.chatgrup", { id: dashboardId })
-                           )
-                       }
-                   >
-                       <div className="flex items-center gap-2">
-                           <MessageSquare size={20} />
-                           <h1>Chat grup</h1>
-                       </div>
-                       <div
-                           className={`bg-[#A8E038] h-1 left-0 absolute ${
-                               activePage === "chatGrupPage" ? "w-full" : ""
-                           }`}
-                       ></div>
-                   </div>
-                   <div
-                       className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
-                       onClick={() =>
-                           router.visit(
-                               route("proyek.laporan", { id: dashboardId })
-                           )
-                       }
-                   >
-                       <div className="flex items-center gap-2">
-                           <AlignEndHorizontal size={20} />
-                           <h1>Laporan</h1>
-                       </div>
-                       <div
-                           className={`bg-[#A8E038] h-1 left-0 absolute ${
-                               activePage === "laporanPage" ? "w-full" : ""
-                           }`}
-                       ></div>
-                   </div>
-               </>
-           }
-       >
-           <ProyekContent>{children}</ProyekContent>
-       </Dashboard>
-   );
+export default function Proyek({ children, dashboardId, activePage, tim }) {
+    
+    return (
+        <Dashboard
+            header={
+                <>
+                    {/* Ringkasan */}
+                    <div
+                        className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                        onClick={() =>
+                            router.visit(
+                                route("proyek.ringkas", {
+                                    id: dashboardId,
+                                    id_tim: tim.id,
+                                })
+                            )
+                        }
+                    >
+                        <div className="flex items-center gap-2">
+                            <AppWindow size={20} />
+                            <h1>Ringkasan</h1>
+                        </div>
+                        <div
+                            className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
+                                activePage === "ringkasPage" ? "w-full" : "w-0"
+                            }`}
+                        ></div>
+                    </div>
+                    <div
+                        className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                        onClick={() =>
+                            router.visit(route("proyek", { id: dashboardId, id_tim: tim.id }))
+                        }
+                    >
+                        <div className="flex items-center gap-2">
+                            <LayoutList size={20} />
+                            <h1>Tugas</h1>
+                        </div>
+                        <div
+                            className={`bg-[#A8E038] h-1 left-0 absolute ${
+                                activePage === "tugasPage" ? "w-full" : ""
+                            }`}
+                        ></div>
+                    </div>
+                    <div
+                        className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                        onClick={() =>
+                            router.visit(
+                                route("proyek.chatgrup", { id: dashboardId, id_tim: tim.id })
+                            )
+                        }
+                    >
+                        <div className="flex items-center gap-2">
+                            <MessageSquare size={20} />
+                            <h1>Chat grup</h1>
+                        </div>
+                        <div
+                            className={`bg-[#A8E038] h-1 left-0 absolute ${
+                                activePage === "chatGrupPage" ? "w-full" : ""
+                            }`}
+                        ></div>
+                    </div>
+                    <div
+                        className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                        onClick={() =>
+                            router.visit(
+                                route("proyek.laporan", { id: dashboardId, id_tim: tim.id })
+                            )
+                        }
+                    >
+                        <div className="flex items-center gap-2">
+                            <AlignEndHorizontal size={20} />
+                            <h1>Laporan</h1>
+                        </div>
+                        <div
+                            className={`bg-[#A8E038] h-1 left-0 absolute ${
+                                activePage === "laporanPage" ? "w-full" : ""
+                            }`}
+                        ></div>
+                    </div>
+                </>
+            }
+        >
+            <ProyekContent>{children}</ProyekContent>
+        </Dashboard>
+    );
 }
 
 function ProyekContent ({children}) {
-    const {id} = DashboardState();
+
     return(
         <>
         {children} 

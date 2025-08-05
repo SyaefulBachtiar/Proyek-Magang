@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
 import Proyek from "../Proyek";
 
-export default function ChatGrup({ dashboardId, activePage }) {
+export default function ChatGrup({ dashboardId, activePage, tim }) {
     const { messages, user } = usePage().props;
     const [message, setMessage] = useState('');
 
@@ -43,7 +43,7 @@ export default function ChatGrup({ dashboardId, activePage }) {
 
 
     return (
-        <Proyek dashboardId={dashboardId} activePage={activePage}>
+        <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
             <div className="p-4 bg-slate-100 min-h-screen">
                 <h1 className="text-2xl font-bold text-center mb-4">Halaman Chat Grup</h1>
 
