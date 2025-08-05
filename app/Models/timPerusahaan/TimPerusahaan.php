@@ -44,9 +44,9 @@ class TimPerusahaan extends Model
     }
 
     // relasi ke table anggota tim one to many
-    public function anggota()
+    public function anggota_tim_perusahaan()
     {
-        return $this->hasMany(Anggota_tim::class);
+        return $this->hasMany(Anggota_tim::class, 'id_tim_perusahaan', 'id');
     }
 
     // relasi ke table user one to one

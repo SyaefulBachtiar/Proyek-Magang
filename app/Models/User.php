@@ -74,9 +74,9 @@ class User extends Authenticatable
     }
 
     // relasi ke table anggota tim
-    public function anggotaTim()
+    public function anggota_tim()
     {
-        return $this->hasMany(Anggota_tim::class);
+        return $this->hasMany(Anggota_tim::class, 'id_users', 'id');
     }
 
     // relasi ke table tim perusahaan

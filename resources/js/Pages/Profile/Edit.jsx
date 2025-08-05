@@ -20,7 +20,7 @@ function ProfileContent({ user, userProfile }) {
         email: user.email || "",
         jabatan: userProfile.perusahaan?.jabatan || "",
         bio_profile: userProfile.bio_profile || "",
-        poto_profile_user: null,
+        poto_profile_user: userProfile.poto_profile_user || null,
     });
 
     const [editMode, setEditMode] = useState(false);
@@ -33,17 +33,24 @@ function ProfileContent({ user, userProfile }) {
             email: user.email || "",
             jabatan: userProfile.perusahaan?.jabatan || "",
             bio_profile: userProfile.bio_profile || "",
-            poto_profile_user: null,
+            poto_profile_user: userProfile.poto_profile_user || null,
         }),
         [user, userProfile]
     );
 
     useEffect(() => {
-        const dataToCompare = { ...data, poto_profile_user: null };
-        setIsDirty(
-            JSON.stringify(dataToCompare) !== JSON.stringify(initialData)
-        );
-    }, [data, initialData]);
+        const isImageChanged =
+            data.poto_profile_user instanceof File || previewImage !== null;
+
+        const otherDataChanged =
+            data.name !== initialData.name ||
+            data.email !== initialData.email ||
+            data.jabatan !== initialData.jabatan ||
+            data.bio_profile !== initialData.bio_profile;
+
+        setIsDirty(isImageChanged || otherDataChanged);
+    }, [data, previewImage, initialData]);
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
