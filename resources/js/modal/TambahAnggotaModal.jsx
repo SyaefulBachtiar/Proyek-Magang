@@ -5,6 +5,7 @@ export default function TambahAnggotaModal({ onclick }) {
     const modalOutside = useRef(null);
     const [email, setEmail] = useState("");
     const [divisi, setDivisi] = useState("");
+    const [daftarDivisi, setDaftarDivisi] = useState([]);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -19,6 +20,14 @@ export default function TambahAnggotaModal({ onclick }) {
         };
     }, []);
 
+    // Ambil daftar divisi dari backend
+    useEffect(() => {
+        fetch("/divisi")
+            .then(res => res.json())
+            .then(data => setDaftarDivisi(data))
+            .catch(err => console.error("Gagal fetch divisi:", err));
+    }, []);
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!email || !divisi) {
@@ -26,7 +35,6 @@ export default function TambahAnggotaModal({ onclick }) {
             return;
         }
 
-        // Simulasi kirim undangan
         console.log("Mengundang:", { email, divisi });
 
         setEmail("");
@@ -47,7 +55,7 @@ export default function TambahAnggotaModal({ onclick }) {
                 <div>
                     <h1 className="text-3xl font-bold mb-6 text-gray-800">Tambah Anggota</h1>
                     <form className="space-y-6" onSubmit={handleSubmit}>
-                    <div className="flex items-center bg-gray-100 rounded-xl px-4 py-3 space-x-3">
+                        <div className="flex items-center bg-gray-100 rounded-xl px-4 py-3 space-x-3">
                             <Mail className="text-gray-400" />
                             <input
                                 type="email"
@@ -64,10 +72,11 @@ export default function TambahAnggotaModal({ onclick }) {
                                 required
                             >
                                 <option value="" hidden>Pilih divisi</option>
-                                <option value="Marketing">HR</option>
-                                <option value="Admin">Admin</option>
-                                <option value="HR">HR</option>
-                                <option value="Finance">Finance</option>
+                                {daftarDivisi.map((item) => (
+                                    <option key={item.id} value={item.nama_tim}>
+                                        {item.nama_tim}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 

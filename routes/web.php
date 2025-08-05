@@ -64,6 +64,11 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // tambah anggota tim
     Route::post('/tim-perusahaan', [Tim_perusahaanController::class, 'store'])->name('tim-perusahaan.store');
+    
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/divisi', [Tim_perusahaanController::class, 'getDivisi']);
 });
 
 

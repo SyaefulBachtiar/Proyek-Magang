@@ -36,4 +36,19 @@ class Tim_perusahaanController extends Controller
 
         return redirect()->back()->with('success', 'Tim berhasil dibuat.');
     }
+
+    public function getDivisi()
+{
+    $user = Auth::user();
+
+    if (!$user->perusahaan) {
+        return response()->json(['error' => 'User tidak terkait dengan perusahaan.'], 403);
+    }
+
+    $divisi = TimPerusahaan::where('perusahaan_id', $user->perusahaan->id)
+                ->select('id', 'nama_tim')
+                ->get();
+
+    return response()->json($divisi);
+}
 }
