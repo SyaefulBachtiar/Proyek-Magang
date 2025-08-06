@@ -30,6 +30,15 @@ return new class extends Migration
             $table->foreign('id_users')->references('id')->on('users')->onDelete('cascade');
             $table->string('id_tim_perusahaan', 36);
             $table->foreign('id_tim_perusahaan')->references('id')->on('tim_perusahaan')->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        // board
+        Schema::create('board_tim', function (Blueprint $table){
+            $table->string('id', 36)->primary();
+            $table->string('id_team', 36);
+            $table->foreign('id_team')->references('id')->on('tim_perusahaan')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
@@ -40,5 +49,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('tim_perusahaan');
         Schema::dropIfExists('anggota_tim');
+        Schema::dropIfExists('board_tim');
     }
 };

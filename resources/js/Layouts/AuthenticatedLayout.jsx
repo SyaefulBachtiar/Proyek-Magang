@@ -129,7 +129,7 @@ export default function AuthenticatedLayout({ children, header }) {
                             </div>
                         </div>
 
-                        <div className="w-full flex justify-end items-center gap-5">
+                        <div className="w-full justify-end items-center hidden gap-5 sm:hidden md:hidden lg:hidden xl:flex">
                             {/* Users */}
                             <div className="flex">
                                 {users.map((user, i) => (

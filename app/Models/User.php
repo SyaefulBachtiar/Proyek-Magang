@@ -82,7 +82,12 @@ class User extends Authenticatable
     // relasi ke table tim perusahaan
     public function tim_perusahaan() 
     {
-        return $this->hasMany(TimPerusahaan::class, 'user_id', 'id');
+         return $this->belongsToMany(
+        \App\Models\timPerusahaan\TimPerusahaan::class,
+        'anggota_tim',
+        'id_users',
+        'id_tim_perusahaan'
+    );
     }
     
 }

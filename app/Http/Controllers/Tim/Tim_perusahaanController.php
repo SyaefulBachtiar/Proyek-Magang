@@ -34,6 +34,21 @@ class Tim_perusahaanController extends Controller
             'user_id' => $user->id,
         ]);
 
+        // Tambahkan user ke anggota tim
+        $tim->anggota_tim_perusahaan()->create([
+            'id' => (string) Str::uuid(),
+            'id_users' => $user->id,
+            'id_tim_perusahaan' => $tim->id,
+        ]);
+
         return redirect()->back()->with('success', 'Tim berhasil dibuat.');
+    }
+
+    public function destroy($id, $id_tim)
+    {
+        $tim = TimPerusahaan::findOrFail($id_tim);
+        $tim->delete();
+
+        return redirect()->back()->with('success', 'Tim berhasil dihapus.');
     }
 }

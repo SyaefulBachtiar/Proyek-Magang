@@ -41,7 +41,7 @@ class Anggota_tim extends Model
     // relasi ke table user
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_users', 'id');
+        return $this->belongsTo(User::class, 'id_users');
     }
 
 
