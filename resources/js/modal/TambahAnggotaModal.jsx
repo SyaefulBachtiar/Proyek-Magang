@@ -1,11 +1,12 @@
+import { router } from "@inertiajs/react";
 import { X, Mail } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function TambahAnggotaModal({ onclick }) {
     const modalOutside = useRef(null);
     const [email, setEmail] = useState("");
-    const [divisi, setDivisi] = useState("");
-    const [daftarDivisi, setDaftarDivisi] = useState([]);
+    const [role, setrole] = useState("");
+    const [daftarrole, setDaftarrole] = useState([]);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -21,20 +22,26 @@ export default function TambahAnggotaModal({ onclick }) {
     }, []);
 
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!email || !divisi) {
-            setError("Email dan divisi wajib diisi.");
-            return;
-        }
+   const handleSubmit = (e) => {
+    e.preventDefault();
 
-        console.log("Mengundang:", { email, divisi });
+    if (!email || !role) {
+        setError("Email dan role wajib diisi.");
+        return;
+    }
 
-        setEmail("");
-        setDivisi("");
-        setError("");
-        onclick();
-    };
+    router.post('/undangan', { email, role }, {
+        onSuccess: () => {
+            setEmail("");
+            setrole("");
+            setError("");
+            onclick();
+        },
+        onError: (errors) => {
+            setError(errors.email || errors.role || "Terjadi kesalahan.");
+        },
+    });
+};
 
     return (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -60,8 +67,8 @@ export default function TambahAnggotaModal({ onclick }) {
                             />
                             <select
                                 className="bg-white border border-gray-300 text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-0 pr-7"
-                                value={divisi}
-                                onChange={(e) => setDivisi(e.target.value)}
+                                value={role}
+                                onChange={(e) => setrole(e.target.value)}
                                 required
                             >
                                 <option value="" hidden>Pilih Role</option>
@@ -79,9 +86,9 @@ export default function TambahAnggotaModal({ onclick }) {
                         {error && <p className="text-red-500 text-sm">{error}</p>}
                         <button
                             type="submit"
-                            disabled={!email || !divisi}
+                            disabled={!email || !role}
                             className={`w-full py-3 text-white font-medium rounded-lg transition 
-                                ${email && divisi ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"}`}
+                                ${email && role ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"}`}
                         >
                             Invite
                         </button>
