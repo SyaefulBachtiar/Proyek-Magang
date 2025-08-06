@@ -33,8 +33,6 @@ export default function AuthenticatedLayout({ children, header }) {
     // profil dropdown
     const [profileDown, setProfileDown] = useState(false);
 
-    console.log(user);
-
     // Users
     const users = [
         {

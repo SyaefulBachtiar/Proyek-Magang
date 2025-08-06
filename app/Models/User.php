@@ -30,6 +30,8 @@ class User extends Authenticatable
         'password',
         'bio_profile',
         'poto_profile_user',
+        'id_perusahaan',
+        'remember_token',
     ];
 
     /**

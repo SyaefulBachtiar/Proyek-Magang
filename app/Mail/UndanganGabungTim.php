@@ -15,11 +15,11 @@ class UndanganGabungTim extends Mailable
 
     public $email, $role, $undanganId;
 
-    public function __construct($email, $role, $undanganId)
+    public function __construct($email, $role, $signedUrl)
     {
         $this->email = $email;
         $this->role = $role;
-        $this->undanganId = $undanganId;
+        $this->undanganId = $signedUrl;
         
     }
 

@@ -24,10 +24,12 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
         return Inertia::render('Auth/Register', [
             'register' => Route::has('register'),
+            // PERBAIKAN 2: Ambil kode 'undangan' dari URL dan kirimkan sebagai prop ke view
+            'kodeUndangan' => $request->query('undangan'),
         ]);
     }
 
@@ -42,12 +44,13 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'undangan' => 'nullable|string|exists:undangan,id',
         ]);
 
         // Gunakan DB Transaction untuk memastikan konsistensi data
         $user = DB::transaction(function () use ($request) {
             $idPerusahaan = null;
-            $kodeUndangan = $request->query('undangan');
+            $kodeUndangan = $request->input('undangan');
 
             // Logika untuk pendaftaran via undangan
             if (!empty($kodeUndangan)) {
@@ -69,15 +72,12 @@ class RegisteredUserController extends Controller
                     $undangan->delete(); // Hapus undangan agar tidak bisa dipakai ulang
                 }
             }
-
             // Buat user baru. id_perusahaan akan diisi jika dari undangan.
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'id_perusahaan' => $idPerusahaan,
-                // PERBAIKAN: Tetapkan role saat user dibuat. 'Super User' jika daftar mandiri.
-                'role' => $userRole ?? 'Super User', 
             ]);
 
             // Jika user daftar mandiri (tanpa undangan), buat perusahaan baru
@@ -85,13 +85,20 @@ class RegisteredUserController extends Controller
                 $perusahaan = Perusahaan::create([
                     'id' => strtoupper(Str::random(20)),
                     'user_id' => $user->id,
-                    'role' => 'Super User',
+                    'role' => 'Super User', // Gunakan role dari undangan jika ada, atau default ke Super User
                     'jabatan' => null,
                 ]);
 
                 // Update user dengan id_perusahaan dari perusahaan baru
                 $user->id_perusahaan = $perusahaan->id;
                 $user->save();
+            }else{
+                $perusahaan = Perusahaan::create([
+                    'id' => strtoupper(Str::random(20)),
+                    'user_id' => $user->id,
+                    'role' => $userRole, // Gunakan role dari undangan jika ada, atau default ke Super User
+                    'jabatan' => null,
+                ]);
             }
             
             return $user;

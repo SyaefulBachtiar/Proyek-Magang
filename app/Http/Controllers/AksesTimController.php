@@ -9,12 +9,20 @@ use Inertia\Inertia;
 class AksesTimController extends Controller
 {
     public function index () {
-         $user = User::with('perusahaan')->findOrFail(Auth::id());
-         
-        $data = $user->perusahaan()->with()->get();
-        dd($data);
+        $user = Auth::user();
+
+           $tim = User::join('perusahaan', 'users.id_perusahaan', '=', 'perusahaan.id')
+                   ->where('users.id_perusahaan', $user->id_perusahaan)
+                   ->select(
+                       'users.id', 
+                       'users.name', 
+                       'users.email', 
+                       'perusahaan.role' // Ambil kolom 'role' dari tabel 'perusahaan'
+                    )
+                   ->get();
         return Inertia::render('pageDashboard/ContentAksesTim', [
-        'activePage' => 'DashboardAksesTim'
+        'activePage' => 'DashboardAksesTim',
+        'tim' => $tim,
         ]
     );
     }

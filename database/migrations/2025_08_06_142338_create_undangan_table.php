@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('undangan', function (Blueprint $table) {
-        $table->id();
+        $table->string('id', 36)->primary();
         $table->string('email');
         $table->string('role');
         $table->string('id_perusahaan', 36); // tambahkan kolom ini
