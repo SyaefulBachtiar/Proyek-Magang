@@ -5,6 +5,7 @@ export default function TambahAnggotaModal({ onclick }) {
     const modalOutside = useRef(null);
     const [email, setEmail] = useState("");
     const [divisi, setDivisi] = useState("");
+    const [daftarDivisi, setDaftarDivisi] = useState([]);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -19,6 +20,7 @@ export default function TambahAnggotaModal({ onclick }) {
         };
     }, []);
 
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!email || !divisi) {
@@ -26,7 +28,6 @@ export default function TambahAnggotaModal({ onclick }) {
             return;
         }
 
-        // Simulasi kirim undangan
         console.log("Mengundang:", { email, divisi });
 
         setEmail("");
@@ -47,7 +48,7 @@ export default function TambahAnggotaModal({ onclick }) {
                 <div>
                     <h1 className="text-3xl font-bold mb-6 text-gray-800">Tambah Anggota</h1>
                     <form className="space-y-6" onSubmit={handleSubmit}>
-                    <div className="flex items-center bg-gray-100 rounded-xl px-4 py-3 space-x-3">
+                        <div className="flex items-center bg-gray-100 rounded-xl px-4 py-3 space-x-3">
                             <Mail className="text-gray-400" />
                             <input
                                 type="email"
@@ -58,16 +59,20 @@ export default function TambahAnggotaModal({ onclick }) {
                                 required
                             />
                             <select
-                                className="bg-white border border-gray-300 text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-0"
+                                className="bg-white border border-gray-300 text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-0 pr-7"
                                 value={divisi}
                                 onChange={(e) => setDivisi(e.target.value)}
                                 required
                             >
-                                <option value="" hidden>Pilih divisi</option>
-                                <option value="Marketing">HR</option>
-                                <option value="Admin">Admin</option>
-                                <option value="HR">HR</option>
-                                <option value="Finance">Finance</option>
+                                <option value="" hidden>Pilih Role</option>
+
+                                    <option value="Member">
+                                        Member
+                                    </option>
+                                    <option value="Admin">
+                                        Admin
+                                    </option>
+
                             </select>
                         </div>
 

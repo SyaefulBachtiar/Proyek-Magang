@@ -26,7 +26,7 @@ function Pengaturan () {
     }, [activePage]);
 
     const [company, setCompany] = useState({
-        name: "Kemenkes Ciloto",
+        name: "BBPK Ciloto",
         description: "Deskripsi singkat tentang perusahaan.",
         logo: "https://via.placeholder.com/150",
     });

@@ -33,6 +33,8 @@ export default function AuthenticatedLayout({ children, header }) {
     // profil dropdown
     const [profileDown, setProfileDown] = useState(false);
 
+    console.log(user);
+
     // Users
     const users = [
         {
@@ -221,7 +223,7 @@ export default function AuthenticatedLayout({ children, header }) {
                     </div>
 
                     {header && (
-                        <div className="bg-gray-200 w-full p-2 px-8 rounded-md flex justify-end space-x-6">
+                        <div className="w-full p-2 px-8 rounded-md flex justify-end space-x-6">
                             <header>{header}</header>
                         </div>
                     )}

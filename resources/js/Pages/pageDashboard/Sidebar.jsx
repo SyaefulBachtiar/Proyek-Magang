@@ -150,7 +150,7 @@ export default function Sidebar ({sidebarOpen, activePage, id}) {
                                 />
                             </div>
                         </div>
-                        <p className="w-[80px] flex-shrink-0">Pengaturan</p>
+                        <p className="w-[80px] flex-shrink-0">Leaderboard</p>
                     </div>
                 </div>
             </div>
