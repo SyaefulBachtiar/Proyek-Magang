@@ -13,12 +13,14 @@ class UndanganGabungTim extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $email, $role;
+    public $email, $role, $undanganId;
 
-    public function __construct($email, $role)
+    public function __construct($email, $role, $undanganId)
     {
         $this->email = $email;
         $this->role = $role;
+        $this->undanganId = $undanganId;
+        
     }
 
     

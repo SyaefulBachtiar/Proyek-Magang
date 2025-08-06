@@ -11,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('id_perusahaan', 36)->nullable()->after('email');
-            $table->foreign('id_perusahaan')->references('id')->on('perusahaan')->onDelete('set null');
-        });
+       Schema::table('users', function (Blueprint $table) {
+        // Jika sebelumnya nullable, ubah menjadi tidak nullable
+        $table->string('id_perusahaan', 36)->nullable()->after('email');
+        $table->foreign('id_perusahaan')
+              ->references('id')
+              ->on('perusahaan')
+              ->onDelete('cascade'); // atau set null jika ingin fleksibel
+    });
     }
 
     public function down(): void
