@@ -14,7 +14,7 @@ class Undangan extends Model
     protected $fillable = [
         'email',
         'role',
-        'id_perusahaan'
+        'nama_perusahaan',
     ];
 
      protected static function boot()

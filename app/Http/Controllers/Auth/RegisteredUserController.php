@@ -49,7 +49,7 @@ class RegisteredUserController extends Controller
 
         // Gunakan DB Transaction untuk memastikan konsistensi data
         $user = DB::transaction(function () use ($request) {
-            $idPerusahaan = null;
+            $namaPerusahaan = null;
             $kodeUndangan = $request->input('undangan');
 
             // Logika untuk pendaftaran via undangan
@@ -64,7 +64,7 @@ class RegisteredUserController extends Controller
                 }
                 
                 if ($undangan) {
-                    $idPerusahaan = $undangan->id_perusahaan;
+                    $namaPerusahaan = $undangan->nama_perusahaan;
                     // PERBAIKAN: Simpan role dari undangan untuk ditetapkan ke user baru.
                     // Ini memperbaiki bug di mana role dari undangan tidak digunakan.
                     // Asumsi: Tabel 'users' memiliki kolom 'role' untuk menyimpan peran pengguna.
@@ -72,29 +72,28 @@ class RegisteredUserController extends Controller
                     $undangan->delete(); // Hapus undangan agar tidak bisa dipakai ulang
                 }
             }
+
             // Buat user baru. id_perusahaan akan diisi jika dari undangan.
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'id_perusahaan' => $idPerusahaan,
             ]);
 
             // Jika user daftar mandiri (tanpa undangan), buat perusahaan baru
-            if (!$idPerusahaan) {
+            if (!$namaPerusahaan) {
                 $perusahaan = Perusahaan::create([
                     'id' => strtoupper(Str::random(20)),
+                    'nama_perusahaan' => null,
                     'user_id' => $user->id,
                     'role' => 'Super User', // Gunakan role dari undangan jika ada, atau default ke Super User
                     'jabatan' => null,
                 ]);
 
-                // Update user dengan id_perusahaan dari perusahaan baru
-                $user->id_perusahaan = $perusahaan->id;
-                $user->save();
             }else{
-                $perusahaan = Perusahaan::create([
+                Perusahaan::create([
                     'id' => strtoupper(Str::random(20)),
+                    'nama_perusahaan' => $namaPerusahaan,
                     'user_id' => $user->id,
                     'role' => $userRole, // Gunakan role dari undangan jika ada, atau default ke Super User
                     'jabatan' => null,

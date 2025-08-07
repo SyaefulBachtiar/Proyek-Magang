@@ -16,6 +16,7 @@ class Perusahaan extends Model
         'role',
         'jabatan',
         'user_id',
+        'nama_perusahaan',
     ];
 
     // generate id secara otomatis saat membuat model

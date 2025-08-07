@@ -30,7 +30,7 @@ class User extends Authenticatable
         'password',
         'bio_profile',
         'poto_profile_user',
-        'id_perusahaan',
+        'nama_perusahaan',
         'remember_token',
     ];
 
@@ -72,7 +72,7 @@ class User extends Authenticatable
 
     // relasi ke table perusahaan
     public function perusahaan () {
-        return $this->hasOne(Perusahaan::class);
+        return $this->hasOne(Perusahaan::class, 'user_id', 'id');
     }
 
     // relasi ke table anggota tim

@@ -70,6 +70,9 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // edit tim
     Route::put('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'update'])->name('tim-perusahaan.update');
 
+    // perusahaan update
+    Route::put('/perusahaan', [DashboardController::class, 'update_perusahaan'])->name('perusahaan.update');
+
 });
 
 

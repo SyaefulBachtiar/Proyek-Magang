@@ -15,14 +15,8 @@ return new class extends Migration
         $table->string('id', 36)->primary();
         $table->string('email');
         $table->string('role');
-        $table->string('id_perusahaan', 36); // tambahkan kolom ini
+        $table->string('nama_perusahaan', 100)->nullable(); // tambahkan kolom ini
         $table->timestamps();
-
-        // Relasi foreign key ke tabel perusahaan
-        $table->foreign('id_perusahaan')
-            ->references('id')
-            ->on('perusahaan')
-            ->onDelete('cascade');
     });
     }
 

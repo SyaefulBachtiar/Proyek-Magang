@@ -1,6 +1,6 @@
 import BuatTimModal from "@/modal/BuatTimModal";
-import { router, usePage } from "@inertiajs/react";
-import { ChevronRight, EllipsisVertical, PlusCircle } from "lucide-react";
+import { router, useForm, usePage } from "@inertiajs/react";
+import { AlertCircle, CheckCircle, ChevronRight, EllipsisVertical, Loader2, PlusCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import Dashboard, { DashboardState } from "../Dashboard";
 
@@ -22,6 +22,7 @@ function MainDashboard() {
     const activePage = props.activePage;
     const role = props.role;
     const data = props.data;
+    const perusahaan = props.perusahaan;
 
     const [dropdownProyek, setDropdownProyek] = useState(true);
     const [dropdownTim, setDropdownTim] = useState(true);
@@ -42,8 +43,6 @@ function MainDashboard() {
         setActiveEllipsisId(activeEllipsisId === timId ? null : timId);
     };
 
-
-
     // Function untuk close dropdown ketika click di luar
     useEffect(() => {
         const handleClickOutside = () => {
@@ -59,12 +58,151 @@ function MainDashboard() {
             setActivePage(activePage);
         }
     }, [activePage]);
+    
+
+    // ✅ useForm untuk form perusahaan (UPDATE)
+    const {
+        data: formData,
+        setData,
+        put, // Gunakan PUT untuk update
+        processing,
+        errors,
+        reset,
+        wasSuccessful,
+        recentlySuccessful,
+        isDirty, // Cek apakah ada perubahan
+    } = useForm({
+        nama_perusahaan: '', // Set nilai awal dari data existing
+    });
+
+    // Handle form submission untuk UPDATE
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        // Update data ke Laravel backend
+        put(route("perusahaan.update", { id: id }), {
+            preserveScroll: true,
+            onSuccess: () => {
+                console.log("Perusahaan berhasil diupdate");
+                // Tidak perlu reset karena ini update, bukan create
+            },
+            onError: (errors) => {
+                console.log("Error:", errors);
+            },
+        });
+    };
 
     return (
         <>
             <div className="flex flex-col justify-center items-center ">
-                {/* buat grup */}
-                {role === "Super User" || role === "Admin" ? (
+                {!perusahaan ? (
+                    <div className="flex flex-col justify-center items-center w-full mt-10">
+                        {/* ✅ Form dengan useForm yang sudah diperbaiki */}
+                        <form
+                            onSubmit={handleSubmit}
+                            className="w-full max-w-md bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4 border border-gray-100"
+                        >
+                            {/* Header Form */}
+                            <div className="mb-6 text-center">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                                    Masukan Nama Perusahaan
+                                </h2>
+                            </div>
+
+                            {/* Success Message */}
+                            {recentlySuccessful && (
+                                <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
+                                    <CheckCircle size={16} />
+                                    <span className="text-sm">
+                                        Perusahaan berhasil di tambahkan!
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Input Field */}
+                            <div className="mb-6">
+                                <label
+                                    htmlFor="nama_perusahaan"
+                                    className="block text-gray-700 text-sm font-semibold mb-3"
+                                >
+                                    Nama Perusahaan{" "}
+                                    <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="nama_perusahaan"
+                                    name="nama_perusahaan"
+                                    value={formData.nama_perusahaan}
+                                    onChange={(e) =>
+                                        setData(
+                                            "nama_perusahaan",
+                                            e.target.value
+                                        )
+                                    }
+                                    className={`w-full py-3 px-4 border rounded-lg text-gray-700 leading-tight focus:outline-none focus:ring-2 transition-all duration-200 ${
+                                        errors.nama_perusahaan
+                                            ? "border-red-400 focus:ring-red-400 bg-red-50"
+                                            : "border-gray-300 focus:ring-blue-400 focus:border-blue-400 bg-white"
+                                    }`}
+                                    placeholder="PT. Contoh Perusahaan"
+                                    required
+                                    disabled={processing}
+                                />
+
+                                {/* Error Message */}
+                                {errors.nama_perusahaan && (
+                                    <p className="mt-2 text-red-600 text-sm flex items-center gap-1">
+                                        <AlertCircle size={14} />
+                                        {errors.nama_perusahaan}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Submit Button */}
+                            <div className="flex items-center justify-center">
+                                <button
+                                    type="submit"
+                                    disabled={
+                                        processing ||
+                                        !formData.nama_perusahaan.trim() ||
+                                        !isDirty
+                                    }
+                                    className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 ${
+                                        processing ||
+                                        !formData.nama_perusahaan.trim() ||
+                                        !isDirty
+                                            ? "bg-gray-400 cursor-not-allowed"
+                                            : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transform hover:scale-[1.02]"
+                                    }`}
+                                >
+                                    {processing ? (
+                                        <>
+                                            <Loader2
+                                                size={18}
+                                                className="animate-spin"
+                                            />
+                                            Mengupdate...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle size={18} />
+                                            Update Perusahaan
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Form Info */}
+                            <div className="mt-4 text-center">
+                                <p className="text-xs text-gray-500">
+                                    {isDirty
+                                        ? "Anda memiliki perubahan yang belum disimpan"
+                                        : "Tidak ada perubahan"}
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                ) : role === "Super User" || role === "Admin" ? (
                     <div
                         className="flex mt-10 p-2 rounded-lg bg-blue-600 text-white justify-center items-center gap-2 cursor-pointer"
                         onClick={() => setBuatTimModal(true)}

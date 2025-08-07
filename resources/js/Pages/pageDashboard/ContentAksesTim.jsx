@@ -51,6 +51,7 @@ function AksesTim() {
     const filteredMembers = (tim || []).filter((member) =>
         member.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+    console.log(filteredMembers);
 
     const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "");
 

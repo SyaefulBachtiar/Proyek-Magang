@@ -17,7 +17,10 @@ class DashboardController extends Controller
     }
     // ambil role user
         $user = User::with('tim_perusahaan')->findOrFail(Auth::id());
-        $role = optional($user->perusahaan)->role;  
+        $role = optional($user->perusahaan)->role;
+
+        $perusahaan = optional($user->perusahaan)->nama_perusahaan;
+
 
         $data = $user->tim_perusahaan()->with('anggota_tim_perusahaan.user')->get();
 
@@ -26,6 +29,26 @@ class DashboardController extends Controller
             'activePage' => 'DashboardMain',
             'role' => $role,
             'data' => $data,
+            'perusahaan' => $perusahaan,
         ]);
+    }
+
+    public function update_perusahaan(Request $request, $id)
+    {
+        $request->validate([
+            'nama_perusahaan' => 'required|string|max:255'
+        ]);
+
+        // Update di tabel users
+        $user = User::findOrFail($id);
+
+        // Update di tabel perusahaan (jika ada relasi)
+        if ($user->perusahaan) {
+            $user->perusahaan->update([
+                'nama_perusahaan' => $request->nama_perusahaan
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Nama perusahaan berhasil diperbarui');
     }
 }

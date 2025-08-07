@@ -21,13 +21,16 @@ class UndanganController extends Controller
     ]);
 
     $user = Auth::user();
-
+    $perusahaan = optional($user->perusahaan)->nama_perusahaan;
     $undangan = Undangan::create([
         'id' => strtoupper(Str::random(20)),
         'email' => $request->email,
         'role' => $request->role,
-        'id_perusahaan' => $user->id_perusahaan, // ambil dari user yang login
+        'nama_perusahaan' => $perusahaan, // ambil dari user yang login
     ]);
+
+        // 1. SIMPAN UNDUANGAN KE DATABASE
+        // Sudah dilakukan di atas dengan Undangan::create()
 
     // 2. BUAT URL YANG SUDAH DITANDATANGANI DAN BERLAKU 7 HARI
         $signedUrl = URL::temporarySignedRoute(
