@@ -55,4 +55,10 @@ class TimPerusahaan extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
+    // relasi ke board
+    public function board_tim()
+{
+    return $this->hasMany(BoardModel::class, 'id_team');
+}
+
 }

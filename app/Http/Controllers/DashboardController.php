@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Perusahaan;
 use App\Models\timPerusahaan\Anggota_tim;
+use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,6 +20,9 @@ class DashboardController extends Controller
     // ambil role user
         $user = User::with('tim_perusahaan')->findOrFail(Auth::id());
         $role = optional($user->perusahaan)->role;
+         // Ambil semua id board yang berelasi ke tim_perusahaan user
+
+        $id_board = BoardModel::whereIn('id_team', $user->tim_perusahaan->pluck('id'))->value('id');
 
         $perusahaan = optional($user->perusahaan)->nama_perusahaan;
 
@@ -30,6 +35,8 @@ class DashboardController extends Controller
             'role' => $role,
             'data' => $data,
             'perusahaan' => $perusahaan,
+            'id_board' => $id_board,
+
         ]);
     }
 

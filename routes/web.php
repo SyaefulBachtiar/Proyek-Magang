@@ -37,7 +37,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.with.id');
 
     // Halaman Proyek board
-    Route::get('/proyek/{id_tim}/board', [ProyekController::class, 'index'])->name('proyek');
+    Route::get('/proyek/{id_tim}/board/{id_board}', [ProyekController::class, 'index'])->name('proyek');
     // halaman Proyek ringkas
     Route::get('/proyek/{id_tim}/ringkas', [ProyekController::class, 'ringkas'])->name('proyek.ringkas');
     // halaman proyek laporan

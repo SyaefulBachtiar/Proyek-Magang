@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,11 +37,47 @@ class HandleInertiaRequests extends Middleware
                         'id' => $request->user()->id,
                         'name' => $request->user()->name,
                         'email' => $request->user()->email,
-                        'photo_url' => $request->user()->photo_url,
-                        'position' => $request->user()->position,
                     ]
                     : null,
             ],
-        ]);
+             'perusahaan' => function () use ($request) {
+                $user = $request->user();
+                return $user && $user->perusahaan 
+                    ? $user->perusahaan->nama_perusahaan
+                    : null;
+                },
+                'timLayout' => function () use ($request) {
+                    // 1. Ambil user yang sedang login beserta relasi perusahaannya
+                    $currentUser = $request->user();
+
+                    // 2. Pastikan user dan relasi perusahaannya ada
+                    if (! $currentUser || ! $currentUser->perusahaan) {
+                        return []; // Sudah benar, kembalikan array kosong
+                    }
+
+                    // 3. Ambil nama perusahaan dari user yang login
+                    $namaPerusahaan = $currentUser->perusahaan->nama_perusahaan;
+
+                    // 4. Cari semua user yang berada di perusahaan yang sama menggunakan relasi
+                    // Ini adalah cara yang jauh lebih bersih dan aman
+                    return User::whereHas('perusahaan', function ($query) use ($namaPerusahaan) {
+                        $query->where('nama_perusahaan', $namaPerusahaan);
+                    })
+                    ->with('perusahaan:id,user_id,role') // Eager load hanya kolom yang perlu
+                    ->get()
+                    ->map(function ($user) {
+                        // 5. Bentuk data secara manual agar struktur outputnya pasti dan tidak bocor
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            // Gunakan null-safe di sini untuk keamanan ekstra
+                            'role' => $user->perusahaan?->role, 
+                            'jabatan' => $user->perusahaan?->jabatan, // Tambahkan jabatan jika ada
+                        ];
+                    });
+                }
+
+                    ]);
     }
 }

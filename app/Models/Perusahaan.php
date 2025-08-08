@@ -47,4 +47,6 @@ class Perusahaan extends Model
     public function timPerusahaan() {
         return $this->hasMany(TimPerusahaan::class);
     }
+
+
 }

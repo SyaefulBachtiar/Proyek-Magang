@@ -7,7 +7,7 @@ use Inertia\Inertia;
 
 class ProyekController extends Controller
 {
- public function index($id, $id_tim) {
+ public function index($id, $id_tim, $id_board) {
 
     $tim = TimPerusahaan::findOrFail($id_tim);
 

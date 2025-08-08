@@ -152,6 +152,7 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
         );
     };
 
+
     return (
         <>
             <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>

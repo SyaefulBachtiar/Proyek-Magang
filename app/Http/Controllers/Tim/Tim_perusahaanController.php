@@ -41,6 +41,11 @@ class Tim_perusahaanController extends Controller
             'id_tim_perusahaan' => $tim->id,
         ]);
 
+        $tim->board_tim()->create([
+            'id' => (string) Str::uuid(),
+            'id_team' => $tim->id,
+        ]);
+
         return redirect()->back()->with('success', 'Tim berhasil dibuat.');
     }
 

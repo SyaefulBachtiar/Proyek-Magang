@@ -18,6 +18,12 @@ export default function AuthenticatedLayout({ children, header }) {
     // users dari db
     const user = usePage().props.auth.user;
 
+    const { perusahaan, timLayout } = usePage().props;
+
+    const timArray = Array.isArray(timLayout) ? timLayout : [];
+
+    console.log(timArray);
+
     // sidebar state
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -33,27 +39,13 @@ export default function AuthenticatedLayout({ children, header }) {
     // profil dropdown
     const [profileDown, setProfileDown] = useState(false);
 
+
     // Users
-    const users = [
-        {
-            nama: "Syaeful",
-            role: "Super User",
-            jabatan: "Manager",
-            color: "bg-blue-700",
-        },
-        {
-            nama: "Sahrul",
-            role: "Admin",
-            jabatan: "Manager",
-            color: "bg-cyan-700",
-        },
-        {
-            nama: "Fikri",
-            role: "Admin",
-            jabatan: "Manager",
-            color: "bg-green-900",
-        },
-    ];
+    const users = timArray.map((member) => ({
+        nama: member.name,
+        role: member.role,
+        jabatan: member.jabatan,
+    }));
 
     // profil dropdown ref
     const profileDropDownRef = useRef(null);
@@ -99,8 +91,8 @@ export default function AuthenticatedLayout({ children, header }) {
                                     />
                                 </div>
                                 {/* Nama perusahaan */}
-                                <h1 className="text-sm text-gray-500 sm:text-sm md:text-sm lg:text-lg xl:text-xl">
-                                    BBPK Ciloto
+                                <h1 className="text-sm text-gray-500 sm:text-sm md:text-sm lg:text-lg xl:text-xl uppercase">
+                                    {perusahaan || 'Belum ada nama perusahaan'}
                                 </h1>
                             </div>
 
@@ -139,7 +131,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                     >
                                         {/* Avatar */}
                                         <div
-                                            className={`w-[30px] h-[30px] rounded-[50%] ${user.color} cursor-pointer flex items-center justify-center text-white`}
+                                            className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
                                         >
                                             <p>{user.nama.charAt(0)}</p>
                                         </div>

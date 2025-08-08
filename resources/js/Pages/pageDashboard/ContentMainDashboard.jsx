@@ -23,6 +23,9 @@ function MainDashboard() {
     const role = props.role;
     const data = props.data;
     const perusahaan = props.perusahaan;
+    const idBoard = props.id_board;
+
+    console.log(idBoard);
 
     const [dropdownProyek, setDropdownProyek] = useState(true);
     const [dropdownTim, setDropdownTim] = useState(true);
@@ -351,6 +354,8 @@ function MainDashboard() {
                                                                             {
                                                                                 id: id,
                                                                                 id_tim: tim.id,
+                                                                                id_board:
+                                                                                    idBoard,
                                                                             }
                                                                         )
                                                                     )
@@ -569,6 +574,8 @@ function MainDashboard() {
                                                                                 {
                                                                                     id: id,
                                                                                     id_tim: tim.id,
+                                                                                    id_board:
+                                                                                        idBoard,
                                                                                 }
                                                                             )
                                                                         )
