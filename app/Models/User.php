@@ -84,5 +84,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(TimPerusahaan::class, 'user_id', 'id');
     }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
     
 }

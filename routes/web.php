@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProyekController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Tim\Tim_perusahaanController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
@@ -72,6 +73,22 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::get('/users', [Tim_perusahaanController::class, 'getUsers']); // untuk modal
 });
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/chat/{dashboardId}', [ChatController::class, 'index'])->name('chat.tim');
+    Route::post('/chat/store', [ChatController::class, 'store'])->name('chat.store');
+    Route::get('/chat/tim/{timId}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
+});
+
+Route::middleware(['auth', 'dashboard.access'])->group(function () {
+    // Halaman chat grup
+    Route::get('/chat/{dashboardId}', [ChatController::class, 'index'])->name('chat.index');
+    
+    // API untuk kirim pesan
+    Route::post('/chat/store', [ChatController::class, 'store'])->name('chat.store');
+    
+    // API untuk ambil pesan terbaru
+    Route::get('/chat/{dashboardId}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
+});
 // Route::middleware('auth')->group(function () {
 //     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 //     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
