@@ -26,7 +26,7 @@ function Pengaturan () {
     }, [activePage]);
 
     const [company, setCompany] = useState({
-        name: "Kemenkes Ciloto",
+        name: "BBPK Ciloto",
         description: "Deskripsi singkat tentang perusahaan.",
         logo: "https://via.placeholder.com/150",
     });
@@ -55,8 +55,8 @@ function Pengaturan () {
                 {/* Logo dan Nama */}
                 <div className="flex items-center space-x-4">
                     <img
-                        src={editing ? form.logo : company.logo}
-                        alt="Logo Perusahaan"
+                        src="https://images.seeklogo.com/logo-png/44/1/kemenkes-logo-png_seeklogo-447836.png"
+                        alt="BBPK Ciloto"
                         className="w-20 h-20 rounded-full object-cover border"
                     />
                     {editing ? (

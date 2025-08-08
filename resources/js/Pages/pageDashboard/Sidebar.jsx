@@ -1,5 +1,5 @@
 import { router } from "@inertiajs/react";
-import { ChevronRight, FolderKanban, House, ListFilterIcon, Search, Settings, ShieldCheck, UserRound } from "lucide-react";
+import { ChevronRight, FolderKanban, House, ListFilterIcon, Search, Settings, ShieldCheck, UserRound, Medal } from "lucide-react";
 
 export default function Sidebar ({sidebarOpen, activePage, id}) {
     
@@ -124,6 +124,33 @@ export default function Sidebar ({sidebarOpen, activePage, id}) {
                             </div>
                         </div>
                         <p className="w-[80px] flex-shrink-0">Pengaturan</p>
+                    </div>
+                </div>
+
+                {/* leaderboard sidebar */}
+                <div
+                    className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
+                        activePage === "DashboardLeaderboard"
+                            ? "bg-gray-200"
+                            : ""
+                    }`}
+                    onClick={() => router.visit(route("leaderboard", {id}))}
+                >
+                    <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
+                        <div
+                            className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                        >
+                            <div className="w-8 h-8 flex justify-center items-center">
+                                <Medal
+                                    className={`w-6 h-6 flex-shrink-0 ${
+                                        activePage === "DashboardLeaderboard"
+                                            ? "text-black"
+                                            : "text-gray-400"
+                                    }`}
+                                />
+                            </div>
+                        </div>
+                        <p className="w-[80px] flex-shrink-0">Leaderboard</p>
                     </div>
                 </div>
             </div>
