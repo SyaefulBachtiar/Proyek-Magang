@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->string('jenis_tim', 20)->nullable();
             $table->string('perusahaan_id', 36);
-            $table->uuid('user_id')->nullable();
+            $table->string('user_id', 36);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('perusahaan_id')->references('id')->on('perusahaan')->onDelete('cascade');
             $table->timestamps();
         });

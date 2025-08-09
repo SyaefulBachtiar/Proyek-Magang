@@ -25,7 +25,7 @@ function MainDashboard() {
     const perusahaan = props.perusahaan;
     const idBoard = props.id_board;
 
-    console.log(idBoard);
+    // console.log(idBoard);
 
     const [dropdownProyek, setDropdownProyek] = useState(true);
     const [dropdownTim, setDropdownTim] = useState(true);
