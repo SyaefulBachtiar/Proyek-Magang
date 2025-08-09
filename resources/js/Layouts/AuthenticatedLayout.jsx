@@ -22,7 +22,6 @@ export default function AuthenticatedLayout({ children, header }) {
 
     const timArray = Array.isArray(timLayout) ? timLayout : [];
 
-    console.log(timArray);
 
     // sidebar state
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,7 +45,6 @@ export default function AuthenticatedLayout({ children, header }) {
         role: member.role,
         jabatan: member.jabatan,
     }));
-
     // profil dropdown ref
     const profileDropDownRef = useRef(null);
 
@@ -92,7 +90,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                 </div>
                                 {/* Nama perusahaan */}
                                 <h1 className="text-sm text-gray-500 sm:text-sm md:text-sm lg:text-lg xl:text-xl uppercase">
-                                    {perusahaan || 'Belum ada nama perusahaan'}
+                                    {perusahaan || "Belum ada nama perusahaan"}
                                 </h1>
                             </div>
 
@@ -121,20 +119,33 @@ export default function AuthenticatedLayout({ children, header }) {
                             </div>
                         </div>
 
-                        <div className="w-full justify-end items-center hidden gap-5 sm:hidden md:hidden lg:hidden xl:flex">
+                        <div className="w-full justify-end items-center hidden gap-5 sm:flex md:flex lg:flex xl:flex">
                             {/* Users */}
                             <div className="flex">
-                                {users.map((user, i) => (
+                                {timArray.map((user, i) => (
                                     <div
                                         key={i}
                                         className="relative group mx-1"
                                     >
                                         {/* Avatar */}
-                                        <div
-                                            className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
-                                        >
-                                            <p>{user.nama.charAt(0)}</p>
-                                        </div>
+
+                                        {user.poto_profile_user ? (
+                                            <div
+                                                className={`w-[30px] h-[30px] rounded-[50%] cursor-pointer flex items-center justify-center overflow-hidden`}
+                                            >
+                                                <img
+                                                    src={`/storage/${user.poto_profile_user}`}
+                                                    alt="Foto Profil"
+                                                    className="object-cover h-full"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div
+                                                className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
+                                            >
+                                                <p>{user.name.charAt(0)}</p>
+                                            </div>
+                                        )}
 
                                         {/* Status bulat hijau */}
                                         <div className="w-[10px] h-[10px] bg-green-500 rounded-[50%] absolute right-0 top-[25px]"></div>
@@ -142,7 +153,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                         {/* Hover modal/info box */}
                                         <div className="absolute top-[40px] left-1/2 -translate-x-1/2 z-10 w-max px-3 py-2 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                                             <p className="text-sm font-semibold">
-                                                {user.nama}
+                                                {user.name}
                                             </p>
                                             <p className="text-xs text-gray-600">
                                                 {user.jabatan}
@@ -167,14 +178,29 @@ export default function AuthenticatedLayout({ children, header }) {
 
                             {/* Profil icon user */}
                             <div ref={profileDropDownRef} className="relative">
-                                <div
-                                    onClick={() =>
-                                        setProfileDown((prev) => !prev)
-                                    }
-                                    className="w-[40px] h-[40px] rounded-[50%] bg-blue-600 flex justify-center items-center text-md text-white text-xl cursor-pointer"
-                                >
-                                    <p>{user.name.charAt(0)}</p>
-                                </div>
+                                {user.poto_profile_user ? (
+                                    <div
+                                        onClick={() =>
+                                            setProfileDown((prev) => !prev)
+                                        }
+                                        className="w-[40px] h-[40px] rounded-[50%] flex justify-center items-center text-md text-white text-xl overflow-hidden cursor-pointer"
+                                    >
+                                        <img
+                                            src={`/storage/${user.poto_profile_user}`}
+                                            alt="profile"
+                                            className="object-cover w-full"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div
+                                        onClick={() =>
+                                            setProfileDown((prev) => !prev)
+                                        }
+                                        className="w-[40px] h-[40px] rounded-[50%] flex bg-blue-500 justify-center items-center text-md text-white text-xl overflow-hidden cursor-pointer"
+                                    >
+                                        <p>{user?.name?.charAt(0)}</p>
+                                    </div>
+                                )}
 
                                 {/* dropdown Profil */}
                                 <div

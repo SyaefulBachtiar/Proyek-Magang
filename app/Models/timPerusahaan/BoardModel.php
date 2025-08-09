@@ -17,6 +17,7 @@ class BoardModel extends Model
     ];
 
    public function tim_perusahaan () {
-        return $this->belongsTo(TimPerusahaan::class);
+        return $this->belongsTo(TimPerusahaan::class, 'id_team', 'id');
     }
+    
 }

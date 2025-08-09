@@ -20,9 +20,13 @@ class DashboardController extends Controller
     // ambil role user
         $user = User::with('tim_perusahaan')->findOrFail(Auth::id());
         $role = optional($user->perusahaan)->role;
-         // Ambil semua id board yang berelasi ke tim_perusahaan user
 
-        $id_board = BoardModel::whereIn('id_team', $user->tim_perusahaan->pluck('id'))->value('id');
+       $id_anggota = $user->tim_perusahaan
+        ->flatMap->anggota_tim_perusahaan
+        ->pluck('id_tim_perusahaan');
+
+
+        $id_board = BoardModel::whereIn('id_team', $id_anggota)->value('id');
 
         $perusahaan = optional($user->perusahaan)->nama_perusahaan;
 

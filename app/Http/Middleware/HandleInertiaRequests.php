@@ -37,6 +37,7 @@ class HandleInertiaRequests extends Middleware
                         'id' => $request->user()->id,
                         'name' => $request->user()->name,
                         'email' => $request->user()->email,
+                        'poto_profile_user' => $request->user()->poto_profile_user,
                     ]
                     : null,
             ],
@@ -63,7 +64,7 @@ class HandleInertiaRequests extends Middleware
                     return User::whereHas('perusahaan', function ($query) use ($namaPerusahaan) {
                         $query->where('nama_perusahaan', $namaPerusahaan);
                     })
-                    ->with('perusahaan:id,user_id,role') // Eager load hanya kolom yang perlu
+                    ->with('perusahaan:id,user_id,role,jabatan') // Eager load hanya kolom yang perlu
                     ->get()
                     ->map(function ($user) {
                         // 5. Bentuk data secara manual agar struktur outputnya pasti dan tidak bocor
@@ -71,6 +72,7 @@ class HandleInertiaRequests extends Middleware
                             'id' => $user->id,
                             'name' => $user->name,
                             'email' => $user->email,
+                            'poto_profile_user' => $user->poto_profile_user,
                             // Gunakan null-safe di sini untuk keamanan ekstra
                             'role' => $user->perusahaan?->role, 
                             'jabatan' => $user->perusahaan?->jabatan, // Tambahkan jabatan jika ada
