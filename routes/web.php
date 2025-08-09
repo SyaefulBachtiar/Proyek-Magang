@@ -51,6 +51,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // Halaman Akses tim
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
+    Route::put('/aksestim/{user}/update-role', [AksesTimController::class, 'updateRole'])->name('aksestim.updateRole');
 
     // Halaman Pengaturan
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
