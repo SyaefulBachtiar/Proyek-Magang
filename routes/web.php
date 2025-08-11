@@ -74,6 +74,13 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // perusahaan update
     Route::put('/perusahaan', [DashboardController::class, 'update_perusahaan'])->name('perusahaan.update');
 
+    // Tambahkan di web.php atau routes file Anda
+    Route::post('/proyek/update-list-order', [ProyekController::class, 'updateListOrder'])
+        ->name('proyek.update-list-order');
+
+    Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])
+        ->name('proyek.update-card-order');
+
 });
 
 

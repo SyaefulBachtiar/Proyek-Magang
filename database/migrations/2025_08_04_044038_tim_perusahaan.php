@@ -28,6 +28,7 @@ return new class extends Migration
         Schema::create('anggota_tim', function (Blueprint $table) {
             $table->string('id', 36)->primary();
             $table->string('id_users', 36)->nullable();
+            $table->string('role_anggota')->nullable();
             $table->foreign('id_users')->references('id')->on('users')->onDelete('cascade');
             $table->string('id_tim_perusahaan', 36);
             $table->foreign('id_tim_perusahaan')->references('id')->on('tim_perusahaan')->onDelete('cascade');

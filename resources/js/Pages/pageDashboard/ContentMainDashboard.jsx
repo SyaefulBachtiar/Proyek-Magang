@@ -23,7 +23,6 @@ function MainDashboard() {
     const role = props.role;
     const data = props.data;
     const perusahaan = props.perusahaan;
-    const idBoard = props.id_board;
 
     // console.log(idBoard);
 
@@ -354,8 +353,7 @@ function MainDashboard() {
                                                                             {
                                                                                 id: id,
                                                                                 id_tim: tim.id,
-                                                                                id_board:
-                                                                                    idBoard,
+                                                                                id_board: tim.board_tim?.id,
                                                                             }
                                                                         )
                                                                     )
@@ -574,8 +572,7 @@ function MainDashboard() {
                                                                                 {
                                                                                     id: id,
                                                                                     id_tim: tim.id,
-                                                                                    id_board:
-                                                                                        idBoard,
+                                                                                    id_board: tim.board_tim?.id,
                                                                                 }
                                                                             )
                                                                         )

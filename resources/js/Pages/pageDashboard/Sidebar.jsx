@@ -167,8 +167,8 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                     <div
                         className={`w-full overflow-hidden transition-all delay-150 ease-in-out duration-300 flex flex-col gap-2 ${
                             isSearchFocused || searchQuery
-                                ? "h-auto mt-4 p-2"
-                                : "h-0 group-hover:min-h-[100px] group-hover:mt-4 group-hover:p-2"
+                                ? "min-h-auto mt-4 p-2"
+                                : "hidden group-hover:min-h-[100px] group-hover:flex group-hover:mt-4 group-hover:p-2"
                         }`}
                     >
                         {/* Show no results message */}

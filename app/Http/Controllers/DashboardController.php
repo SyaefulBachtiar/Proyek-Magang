@@ -21,17 +21,14 @@ class DashboardController extends Controller
         $user = User::with('tim_perusahaan')->findOrFail(Auth::id());
         $role = optional($user->perusahaan)->role;
 
-    //    $id_anggota = $user->tim_perusahaan
-    //     ->flatMap->anggota_tim_perusahaan
-    //     ->pluck('id_tim_perusahaan');
-
-
-    //     $id_board = BoardModel::whereIn('id_team', $id_anggota)->value('id');
-
         $perusahaan = optional($user->perusahaan)->nama_perusahaan;
 
+         $user = User::with([
+        'tim_perusahaan.anggota_tim_perusahaan.user',
+        'tim_perusahaan.board_tim.listBoards' // kalau mau langsung list_board nya juga
+            ])->findOrFail(Auth::id());
 
-        $data = $user->tim_perusahaan()->with('anggota_tim_perusahaan.user')->get();
+        $data =  $data = $user->tim_perusahaan;
 
 
         return Inertia::render('pageDashboard/ContentMainDashboard', [

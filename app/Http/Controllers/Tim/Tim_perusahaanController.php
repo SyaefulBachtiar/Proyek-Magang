@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Tim;
 
 use App\Http\Controllers\Controller;
+use App\Models\timPerusahaan\Card_listModel;
+use App\Models\timPerusahaan\List_boardModel;
 use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,10 +43,47 @@ class Tim_perusahaanController extends Controller
             'id_tim_perusahaan' => $tim->id,
         ]);
 
-        $tim->board_tim()->create([
+        $board = $tim->board_tim()->create([
             'id' => (string) Str::uuid(),
             'id_team' => $tim->id,
         ]);
+
+        // Default List & Card
+        $defaultLists = [
+            'Ngurek' => [
+                ['nama_card' => 'Ngurek isuk', 'pembuat' => $user->name],
+                ['nama_card' => 'Ngruek beurang', 'pembuat' => $user->name],
+            ],
+            'Eukeur' => [
+                ['nama_card' => 'Ngurek sore', 'pembuat' => $user->name],
+            ],
+            'Anngeus' => [
+                ['nama_card' => 'Ngurek peuting', 'pembuat' => $user->name],
+            ]
+        ];
+
+        $posisiList = 1;
+
+        foreach ($defaultLists as $judulList => $cards) {
+            // Buat list_board
+            $listBoard = List_boardModel::create([
+                'id' => (string) Str::uuid(),
+                'urutan_posisi' => $posisiList++,
+                'judul' => $judulList,
+                'id_board' => $board->id,
+            ]);
+            // Buat card_list untuk setiap list_board
+            foreach ($cards as $index => $card) {
+                Card_listModel::create([
+                    'id' => (string) Str::uuid(),
+                    'nama_card' => $card['nama_card'],
+                    'pembuat' => $card['pembuat'],
+                    'image' => null, // default kosong
+                    'id_list' => $listBoard->id,
+                    'urutan' => $index + 1,
+                ]);
+            }
+        }
 
         return redirect()->back()->with('success', 'Tim berhasil dibuat.');
     }

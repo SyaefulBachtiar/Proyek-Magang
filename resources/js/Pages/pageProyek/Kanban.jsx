@@ -1,4 +1,4 @@
-import { Head, router } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 import {
     Archive,
     Check,
@@ -13,33 +13,31 @@ import Proyek from "../Proyek";
 
 
 
-export default function Kanban({ children, dashboardId, activePage, tim }) {
-    const [lists, setLists] = useState([
-        {
-            id: "1",
-            title: "To do list",
-            cards: [
-                { id: "101", title: "Tugas Kuliah" },
-                { id: "102", title: "Meeting dengan tim" },
-            ],
-        },
-        {
-            id: "2",
-            title: "In Progress",
-            cards: [{ id: "103", title: "Proyek magang" }],
-        },
-        {
-            id: "3",
-            title: "Selesai",
-            cards: [],
-        },
-    ]);
+export default function Kanban({ children, dashboardId, activePage, tim, dataBoard }) {
+
+    const user = usePage().props.auth.user;
+
+    const [lists, setLists] = useState([]);
+
+    useEffect(() => {
+        if (dataBoard) {
+            const mappedLists = dataBoard.map((list) => ({
+                id: list.id.toString(),
+                title: list.judul,
+                cards: list.cards.map((card) => ({
+                    id: card.id.toString(),
+                    title: card.nama_card,
+                })),
+            }));
+            setLists(mappedLists);
+        }
+    }, [dataBoard]);
 
     const [editingListId, setEditingListId] = useState(null);
     const [openElipsis, setOpenElipsis] = useState(null);
     const elipsisRef = useRef({});
 
-    const handleDragEnd = (result) => {
+    const handleDragEnd = async (result) => {
         const { source, destination, type } = result;
         if (!destination) return;
 
@@ -48,6 +46,30 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
             const [removed] = reorderedLists.splice(source.index, 1);
             reorderedLists.splice(destination.index, 0, removed);
             setLists(reorderedLists);
+
+            // Update urutan di database
+            const updatedLists = reorderedLists.map((list, index) => ({
+                id: list.id,
+                urutan_posisi: index + 1,
+            }));
+
+            try {
+                await router.post(
+                    route("proyek.update-list-order", {id: user.id}),
+                    {
+                        lists: updatedLists,
+                    },
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                        only: [],
+                    }
+                );
+            } catch (error) {
+                console.error("Error updating list order:", error);
+                // Rollback jika error
+                // setLists(originalLists);
+            }
 
             console.log(
                 "Urutan List Sekarang:",
@@ -67,18 +89,44 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
             const destCards = Array.from(lists[destListIndex].cards);
             const [movedCard] = sourceCards.splice(source.index, 1);
 
+            let updatedCards = [];
+
             if (sourceListIndex === destListIndex) {
+                // Pindah dalam list yang sama
                 sourceCards.splice(destination.index, 0, movedCard);
                 const newLists = [...lists];
                 newLists[sourceListIndex].cards = sourceCards;
                 setLists(newLists);
+
+                // Update urutan cards dalam list yang sama
+                updatedCards = sourceCards.map((card, index) => ({
+                    id: card.id,
+                    urutan: index + 1,
+                    id_list: source.droppableId,
+                }));
             } else {
+                // Pindah ke list berbeda
                 destCards.splice(destination.index, 0, movedCard);
                 const newLists = [...lists];
                 newLists[sourceListIndex].cards = sourceCards;
                 newLists[destListIndex].cards = destCards;
                 setLists(newLists);
-                //  Log tujuan dan urutan card
+
+                // Update urutan untuk kedua list
+                const sourceUpdates = sourceCards.map((card, index) => ({
+                    id: card.id,
+                    urutan: index + 1,
+                    id_list: source.droppableId,
+                }));
+
+                const destUpdates = destCards.map((card, index) => ({
+                    id: card.id,
+                    urutan: index + 1,
+                    id_list: destination.droppableId,
+                }));
+
+                updatedCards = [...sourceUpdates, ...destUpdates];
+
                 console.log(
                     `Card dipindahkan ke list: ${lists[destListIndex].title}`
                 );
@@ -86,6 +134,24 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
                     `Urutan card sekarang di "${lists[destListIndex].title}":`,
                     destCards.map((card, idx) => `${idx + 1}. ${card.title}`)
                 );
+            }
+
+            // Kirim update ke database
+            try {
+                await router.post(
+                    route("proyek.update-card-order", { id: user.id }),
+                    {
+                        cards: updatedCards,
+                    },
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                        only: [],
+                    }
+                );
+            } catch (error) {
+                console.error("Error updating card order:", error);
+                // Rollback jika error
             }
         }
     };
@@ -148,10 +214,13 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
     //handle lihat card
     const handleLihatCard = (cardId) => {
         router.visit(
-            route("proyek.card", { id: dashboardId, cardId: cardId, id_tim: tim.id }) // Kunjungi rute Proyek yang sama
+            route("proyek.card", {
+                id: dashboardId,
+                cardId: cardId,
+                id_tim: tim.id,
+            }) // Kunjungi rute Proyek yang sama
         );
     };
-
 
     return (
         <>
