@@ -9,6 +9,7 @@ use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable
@@ -90,6 +91,11 @@ class User extends Authenticatable
         'id_users',
         'id_tim_perusahaan'
     );
+    }
+
+    public function isOnline(): bool
+    {
+        return Cache::has('user-is-online-' . $this->id);
     }
     
 }

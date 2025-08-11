@@ -1,7 +1,7 @@
 
 import { Link, usePage } from '@inertiajs/react';
 
-import { LogOut, Menu, Search, Settings, ShieldCheck } from 'lucide-react';
+import { LogOut, Menu, Search, Settings, ShieldCheck, UserRoundPlus } from 'lucide-react';
 import { useState, useEffect,  createContext, useContext, useRef } from "react";
 
 
@@ -20,9 +20,6 @@ export default function AuthenticatedLayout({ children, header }) {
 
     const { perusahaan, timLayout } = usePage().props;
 
-    const timArray = Array.isArray(timLayout) ? timLayout : [];
-
-
     // sidebar state
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -38,13 +35,9 @@ export default function AuthenticatedLayout({ children, header }) {
     // profil dropdown
     const [profileDown, setProfileDown] = useState(false);
 
+    const onlineUsers = timLayout.filter((member) => member.is_online);
+    const offlineUsers = timLayout.filter((member) => !member.is_online);
 
-    // Users
-    const users = timArray.map((member) => ({
-        nama: member.name,
-        role: member.role,
-        jabatan: member.jabatan,
-    }));
     // profil dropdown ref
     const profileDropDownRef = useRef(null);
 
@@ -122,55 +115,103 @@ export default function AuthenticatedLayout({ children, header }) {
                         <div className="w-full justify-end items-center hidden gap-5 sm:flex md:flex lg:flex xl:flex">
                             {/* Users */}
                             <div className="flex">
-                                {timArray.map((user, i) => (
-                                    <div
-                                        key={i}
-                                        className="relative group mx-1"
-                                    >
-                                        {/* Avatar */}
+                                {onlineUsers
+                                    ? onlineUsers.map((user, i) => (
+                                          <div
+                                              key={i}
+                                              className="relative group mx-1"
+                                          >
+                                              {/* Avatar */}
 
-                                        {user.poto_profile_user ? (
-                                            <div
-                                                className={`w-[30px] h-[30px] rounded-[50%] cursor-pointer flex items-center justify-center overflow-hidden`}
-                                            >
-                                                <img
-                                                    src={`/storage/${user.poto_profile_user}`}
-                                                    alt="Foto Profil"
-                                                    className="object-cover h-full"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div
-                                                className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
-                                            >
-                                                <p>{user.name.charAt(0)}</p>
-                                            </div>
-                                        )}
+                                              {user.poto_profile_user ? (
+                                                  <div
+                                                      className={`w-[30px] h-[30px] rounded-[50%] cursor-pointer flex items-center justify-center overflow-hidden`}
+                                                  >
+                                                      <img
+                                                          src={`/storage/${user.poto_profile_user}`}
+                                                          alt="Foto Profil"
+                                                          className="object-cover h-full"
+                                                      />
+                                                  </div>
+                                              ) : (
+                                                  <div
+                                                      className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
+                                                  >
+                                                      <p>
+                                                          {user.name.charAt(0)}
+                                                      </p>
+                                                  </div>
+                                              )}
 
-                                        {/* Status bulat hijau */}
-                                        <div className="w-[10px] h-[10px] bg-green-500 rounded-[50%] absolute right-0 top-[25px]"></div>
+                                              {/* Status bulat hijau */}
+                                              <div className="w-[10px] h-[10px] bg-green-500 rounded-[50%] absolute right-0 top-[25px]"></div>
 
-                                        {/* Hover modal/info box */}
-                                        <div className="absolute top-[40px] left-1/2 -translate-x-1/2 z-10 w-max px-3 py-2 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                                            <p className="text-sm font-semibold">
-                                                {user.name}
-                                            </p>
-                                            <p className="text-xs text-gray-600">
-                                                {user.jabatan}
-                                            </p>
-                                            <p className="text-xs text-gray-400">
-                                                {user.role}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
+                                              {/* Hover modal/info box */}
+                                              <div className="absolute top-[40px] left-1/2 -translate-x-1/2 z-10 w-max px-3 py-2 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                                  <p className="text-sm font-semibold">
+                                                      {user.name}
+                                                  </p>
+                                                  <p className="text-xs text-gray-600">
+                                                      {user.jabatan}
+                                                  </p>
+                                                  <p className="text-xs text-gray-400">
+                                                      {user.role}
+                                                  </p>
+                                              </div>
+                                          </div>
+                                      ))
+                                    : offlineUsers.map((user, i) => (
+                                          <div
+                                              key={i}
+                                              className="relative group mx-1"
+                                          >
+                                              {/* Avatar */}
+
+                                              {user.poto_profile_user ? (
+                                                  <div
+                                                      className={`w-[30px] h-[30px] rounded-[50%] cursor-pointer flex items-center justify-center overflow-hidden`}
+                                                  >
+                                                      <img
+                                                          src={`/storage/${user.poto_profile_user}`}
+                                                          alt="Foto Profil"
+                                                          className="object-cover h-full"
+                                                      />
+                                                  </div>
+                                              ) : (
+                                                  <div
+                                                      className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
+                                                  >
+                                                      <p>
+                                                          {user.name.charAt(0)}
+                                                      </p>
+                                                  </div>
+                                              )}
+
+                                              {/* Status bulat hijau */}
+                                              <div className="w-[10px] h-[10px] bg-green-500 rounded-[50%] absolute right-0 top-[25px]"></div>
+
+                                              {/* Hover modal/info box */}
+                                              <div className="absolute top-[40px] left-1/2 -translate-x-1/2 z-10 w-max px-3 py-2 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                                  <p className="text-sm font-semibold">
+                                                      {user.name}
+                                                  </p>
+                                                  <p className="text-xs text-gray-600">
+                                                      {user.jabatan}
+                                                  </p>
+                                                  <p className="text-xs text-gray-400">
+                                                      {user.role}
+                                                  </p>
+                                              </div>
+                                          </div>
+                                      ))}
                             </div>
 
                             {/* button tambah anggota */}
                             <button
-                                className="px-4 py-2 bg-blue-400/50 rounded-lg"
+                                className="px-4 py-2 bg-blue-400/50 rounded-lg flex items-center text-gray-600 gap-2"
                                 onClick={() => setTambahAnggotaModal(true)}
                             >
+                                <UserRoundPlus />
                                 <p className="text-xs sm:text-sm">
                                     Tambah anggota
                                 </p>

@@ -6,10 +6,6 @@
 html, body{
   height: 100%;
 }
-.hover-sidebar{
-    width: 60px;
-    flex: none;
-}
 .hover-sidebar:hover{
     width: 250px;
 }

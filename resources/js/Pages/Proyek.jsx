@@ -3,11 +3,11 @@ import Dashboard, {DashboardState} from "./Dashboard";
 import { AlignEndHorizontal, AppWindow, LayoutList, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import Kanban from "./pageProyek/Kanban";
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 
 
 export default function Proyek({ children, dashboardId, activePage, tim }) {
-    
+    const {id_board} = usePage().props;
     return (
         <Dashboard
             header={
@@ -37,7 +37,13 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                     <div
                         className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
                         onClick={() =>
-                            router.visit(route("proyek", { id: dashboardId, id_tim: tim.id }))
+                            router.visit(
+                                route("proyek", {
+                                    id: dashboardId,
+                                    id_tim: tim.id,
+                                    id_board: id_board,
+                                })
+                            )
                         }
                     >
                         <div className="flex items-center gap-2">
@@ -54,7 +60,10 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                         className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
                         onClick={() =>
                             router.visit(
-                                route("proyek.chatgrup", { id: dashboardId, id_tim: tim.id })
+                                route("proyek.chatgrup", {
+                                    id: dashboardId,
+                                    id_tim: tim.id,
+                                })
                             )
                         }
                     >
@@ -72,7 +81,10 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                         className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
                         onClick={() =>
                             router.visit(
-                                route("proyek.laporan", { id: dashboardId, id_tim: tim.id })
+                                route("proyek.laporan", {
+                                    id: dashboardId,
+                                    id_tim: tim.id,
+                                })
                             )
                         }
                     >

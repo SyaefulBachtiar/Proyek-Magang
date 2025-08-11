@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\timPerusahaan\BoardModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -76,6 +77,7 @@ class HandleInertiaRequests extends Middleware
                             // Gunakan null-safe di sini untuk keamanan ekstra
                             'role' => $user->perusahaan?->role, 
                             'jabatan' => $user->perusahaan?->jabatan, // Tambahkan jabatan jika ada
+                            'is_online' => $user->isOnline()
                         ];
                     });
                 },
@@ -88,6 +90,21 @@ class HandleInertiaRequests extends Middleware
 
                     return $user->tim_perusahaan()->with('anggota_tim_perusahaan.user')->get();
                 },
+                'id_board' => function () use ($request) {
+                    $user = $request->user();
+
+                    if(!$user){
+                        return null;
+                    }
+
+                    $id_anggota = $user->tim_perusahaan
+                    ->flatMap->anggota_tim_perusahaan
+                    ->pluck('id_tim_perusahaan');
+
+                    $id_board = BoardModel::whereIn('id_team', $id_anggota)->value('id');
+
+                    return $id_board;
+                }
 
                     ]);
     }

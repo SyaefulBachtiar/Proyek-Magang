@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('bio_profile')->nullable();
             $table->string('poto_profile_user')->nullable();
             $table->rememberToken();
+            $table->boolean('is_online')->default(false);
+            $table->timestamp('last_seen')->nullable();
             $table->timestamps();
         });
 

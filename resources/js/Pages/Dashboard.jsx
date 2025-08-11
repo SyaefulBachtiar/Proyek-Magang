@@ -58,30 +58,30 @@ function DashboardContent({children}){
 
     return (
         <>
-        <DashboardContext.Provider value={{ setActivePage, id }}>
-            <Head title="Dashboard" />
+            <DashboardContext.Provider value={{ setActivePage, id }}>
+                <Head title="Dashboard" />
 
-            <div className="h-full flex-1 flex">
-                {/* Sidebar */}
-                <div
-                    ref={sidebar}
-                    className={`bg-gray-200/30 hover-sidebar transition-all delay-150 overflow-hidden ease-in-out duration-300 px-2 hover:px-4 ${
-                        sidebarOpen ? "sidebar-click px-4" : ""
-                    }`}
-                >
-                    <Sidebar
-                        sidebarOpen={sidebarOpen}
-                        activePage={activePage}
-                        setActivePage={setActivePage}
-                        id={id}
-                    />
-                </div>
+                <div className="h-full flex-1 flex">
+                    {/* Sidebar */}
+                    <div
+                        ref={sidebar}
+                        className={`bg-gray-200/30 hover-sidebar transition-all group delay-150 overflow-hidden overflow-y-auto ease-in-out duration-300 px-2 w-[60px] hover:px-4 my-scrollable-element ${
+                            sidebarOpen ? "sidebar-click px-4" : ""
+                        }`}
+                    >
+                        <Sidebar
+                            sidebarOpen={sidebarOpen}
+                            activePage={activePage}
+                            setActivePage={setActivePage}
+                            id={id}
+                        />
+                    </div>
 
-                {/* Main content */}
-                <div className="w-full h-full flex-1 overflow-y-scroll">
-                    {children}
+                    {/* Main content */}
+                    <div className="w-full h-full flex-1 overflow-y-scroll">
+                        {children}
+                    </div>
                 </div>
-            </div>
             </DashboardContext.Provider>
         </>
     );

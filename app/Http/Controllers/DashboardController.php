@@ -21,12 +21,12 @@ class DashboardController extends Controller
         $user = User::with('tim_perusahaan')->findOrFail(Auth::id());
         $role = optional($user->perusahaan)->role;
 
-       $id_anggota = $user->tim_perusahaan
-        ->flatMap->anggota_tim_perusahaan
-        ->pluck('id_tim_perusahaan');
+    //    $id_anggota = $user->tim_perusahaan
+    //     ->flatMap->anggota_tim_perusahaan
+    //     ->pluck('id_tim_perusahaan');
 
 
-        $id_board = BoardModel::whereIn('id_team', $id_anggota)->value('id');
+    //     $id_board = BoardModel::whereIn('id_team', $id_anggota)->value('id');
 
         $perusahaan = optional($user->perusahaan)->nama_perusahaan;
 
@@ -39,8 +39,6 @@ class DashboardController extends Controller
             'role' => $role,
             'data' => $data,
             'perusahaan' => $perusahaan,
-            'id_board' => $id_board,
-
         ]);
     }
 
