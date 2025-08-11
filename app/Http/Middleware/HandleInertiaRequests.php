@@ -78,7 +78,16 @@ class HandleInertiaRequests extends Middleware
                             'jabatan' => $user->perusahaan?->jabatan, // Tambahkan jabatan jika ada
                         ];
                     });
-                }
+                },
+                'timPerusahaan' => function () use ($request) {
+                    $user = $request->user();
+
+                    if(!$user){
+                        return [];
+                    }
+
+                    return $user->tim_perusahaan()->with('anggota_tim_perusahaan.user')->get();
+                },
 
                     ]);
     }
