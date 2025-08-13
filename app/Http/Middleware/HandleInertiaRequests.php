@@ -91,18 +91,13 @@ class HandleInertiaRequests extends Middleware
                     return $user->tim_perusahaan()->with('anggota_tim_perusahaan.user')->get();
                 },
                 'id_board' => function () use ($request) {
-                    $user = $request->user();
+                    $id_tim = $request->route('id_tim');
 
-                    if(!$user){
+                    if(!$id_tim){
                         return null;
                     }
 
-                    $id_anggota = $user->tim_perusahaan
-                    ->flatMap->anggota_tim_perusahaan
-                    ->pluck('id_tim_perusahaan');
-
-                    $id_board = BoardModel::whereIn('id_team', $id_anggota)->value('id');
-
+                    $id_board = BoardModel::where('id_team', $id_tim)->value('id');
                     return $id_board;
                 }
 
