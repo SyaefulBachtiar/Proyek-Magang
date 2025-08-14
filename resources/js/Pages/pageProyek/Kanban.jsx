@@ -9,6 +9,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Proyek from "../Proyek";
+import TambahCard from "@/modal/Proyek/TambahCard";
+import TambahList from "@/modal/Proyek/TambahList";
 
 
 
@@ -16,6 +18,10 @@ import Proyek from "../Proyek";
 export default function Kanban({ children, dashboardId, activePage, tim, dataBoard }) {
 
     const user = usePage().props.auth.user;
+    const {id_board} = usePage().props;
+
+    const [tambahCard, setTambahCard] = useState("");
+    const [tambahList, setTambahList] = useState(false);
 
     const [lists, setLists] = useState([]);
 
@@ -27,6 +33,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                 cards: list.cards.map((card) => ({
                     id: card.id.toString(),
                     title: card.nama_card,
+                    image: card.image
                 })),
             }));
             setLists(mappedLists);
@@ -156,33 +163,37 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
         }
     };
 
-    const handleAddList = () => {
-        const title = prompt("Masukkan judul list:");
-        if (!title?.trim()) return;
-        const newList = {
-            id: Date.now().toString(),
-            title: title.trim(),
-            cards: [],
-        };
-        setLists((prev) => [...prev, newList]);
-    };
+    // const handleAddList = () => {
+    //     const title = prompt("Masukkan judul list:");
+    //     if (!title?.trim()) return;
+    //     const newList = {
+    //         id: Date.now().toString(),
+    //         title: title.trim(),
+    //         cards: [],
+    //     };
+    //     setLists((prev) => [...prev, newList]);
+    // };
 
     const handleAddCard = (listId) => {
-        const title = prompt("Masukkan judul card:");
-        if (!title?.trim()) return;
-        const newCard = {
-            id: Date.now().toString(),
-            title: title.trim(),
-        };
-
-        setLists((prev) =>
-            prev.map((list) =>
-                list.id === listId
-                    ? { ...list, cards: [...list.cards, newCard] }
-                    : list
-            )
-        );
+        setTambahCard(listId);
     };
+
+    //    const handleAddCard = (listId) => {
+    //        const title = prompt("Masukkan judul card:");
+    //        if (!title?.trim()) return;
+    //        const newCard = {
+    //            id: Date.now().toString(),
+    //            title: title.trim(),
+    //        };
+
+    //        setLists((prev) =>
+    //            prev.map((list) =>
+    //                list.id === listId
+    //                    ? { ...list, cards: [...list.cards, newCard] }
+    //                    : list
+    //            )
+    //        );
+    //    };
 
     const handleUpdateListTitle = (listId, newTitle) => {
         setLists((prev) =>
@@ -384,16 +395,9 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                 provided,
                                                                                 snapshot
                                                                             ) => (
-                                                                                <div
-                                                                                    onClick={() => {
-                                                                                        handleLihatCard(
-                                                                                            card.id,
-                                                                                            card.title
-                                                                                        );
-                                                                                    }}
-                                                                                >
+                                                                                <div>
                                                                                     <div
-                                                                                        className={`bg-white p-2 rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 ${
+                                                                                        className={`bg-white p-2 group rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 relative ${
                                                                                             snapshot.isDragging
                                                                                                 ? "shadow-lg border-blue-600"
                                                                                                 : "border-blue-500"
@@ -404,11 +408,39 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                         {...provided.draggableProps}
                                                                                         {...provided.dragHandleProps}
                                                                                     >
-                                                                                        <h1 className="text-sm break-words">
-                                                                                            {
-                                                                                                card.title
+                                                                                        <Ellipsis
+                                                                                            className="absolute top-0 right-0 m-2 hidden group-hover:flex cursor-pointer"
+                                                                                            size={
+                                                                                                18
                                                                                             }
-                                                                                        </h1>
+                                                                                        />
+                                                                                        {card.image ? (
+                                                                                            <img
+                                                                                                src={`/storage/${
+                                                                                                    card.image ||
+                                                                                                    ""
+                                                                                                }`}
+                                                                                                alt="image"
+                                                                                                className="w-full object-cover mb-5 mt-5"
+                                                                                            />
+                                                                                        ) : (
+                                                                                            ""
+                                                                                        )}
+                                                                                        <div
+                                                                                            onClick={() => {
+                                                                                                handleLihatCard(
+                                                                                                    card.id,
+                                                                                                    card.title
+                                                                                                );
+                                                                                            }}
+                                                                                            className="cursor-pointer hover:underline"
+                                                                                        >
+                                                                                            <h1 className="text-sm break-words">
+                                                                                                {
+                                                                                                    card.title
+                                                                                                }
+                                                                                            </h1>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             )}
@@ -447,7 +479,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
 
                                     {/* Tambah List */}
                                     <div
-                                        onClick={handleAddList}
+                                        onClick={() => setTambahList(true)}
                                         className="w-[280px] flex-shrink-0 bg-white/40 px-4 py-4 rounded-lg cursor-pointer hover:bg-white/60"
                                     >
                                         <div className="flex gap-2 items-center text-sm text-gray-700">
@@ -460,8 +492,23 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                         </Droppable>
                     </DragDropContext>
                 </div>
+
                 {children}
             </Proyek>
+            {tambahList && (
+                <TambahList
+                    id={user.id}
+                    close={() => setTambahList(false)}
+                    id_board={id_board}
+                />
+            )}
+            {tambahCard && (
+                <TambahCard
+                    id_list={tambahCard}
+                    id={user.id}
+                    close={() => setTambahCard("")}
+                />
+            )}
         </>
     );
 }

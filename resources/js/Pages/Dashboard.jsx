@@ -78,7 +78,7 @@ function DashboardContent({children}){
                     </div>
 
                     {/* Main content */}
-                    <div className="w-full h-full flex-1 overflow-y-scroll">
+                    <div className="w-full h-full flex-1 overflow-y-auto my-scrollable-element">
                         {children}
                     </div>
                 </div>

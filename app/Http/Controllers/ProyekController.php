@@ -6,10 +6,14 @@ use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\List_boardModel;
 use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class ProyekController extends Controller
 {
+
+    // kanban
  public function index($id, $id_tim, $id_board) {
 
     $tim = TimPerusahaan::findOrFail($id_tim);
@@ -32,7 +36,79 @@ class ProyekController extends Controller
         'tim' => $tim,
         'dataBoard' => $board_data,
     ]);
-}
+    }
+
+    // kanban store
+
+    // card store
+    public function storeCard(Request $request, $id){
+    
+    // Validasi input
+    $request->validate([
+        'nama_tugas' => 'required|string|max:50',
+        'id_list' => 'required|string|max:36|exists:list_board,id',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
+
+    try {
+        // Generate ID unik
+        $cardId = (string) Str::uuid();
+
+        // Hitung urutan card selanjutnya dalam list
+        $maxUrutan = Card_listModel::where('id_list', $request->id_list)->max('urutan');
+        $urutan = $maxUrutan ? $maxUrutan + 1 : 1;
+
+        // Handle upload gambar jika ada
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('card-images', 'public');
+        }
+
+        // Insert card baru
+        Card_listModel::create([
+            'id' => $cardId,
+            'nama_card' => $request->nama_tugas,
+            'pembuat' => Auth::user()->name, // Atau sesuaikan dengan field user
+            'image' => $imagePath,
+            'id_list' => $request->id_list,
+            'urutan' => $urutan,
+        ]);
+
+        return redirect()->back()->with('success', 'Berhasil Menambahkan Card');
+
+    } catch (\Exception $e) {
+        return redirect()->back()->with('gagal', 'Gagal Menambahkan Card: '. $e);
+    }
+    }
+
+
+     // list store
+    public function storeList (Request $request, $id) {
+         $request->validate([
+        'nama_list' => 'required|string|max:50',
+        'id_board' => 'required|string|max:36|exists:board_tim,id',
+    ]);
+
+
+    try{
+
+        $listId = (string) Str::uuid();
+
+        $maxUrutan = List_boardModel::where('id_board', $request->id_board)->max('urutan_posisi');
+        $urutan = $maxUrutan ? $maxUrutan + 1 : 1 + 1;
+
+        List_boardModel::create([
+            'id' => $listId,
+            'urutan_posisi' => $urutan,
+            'judul' => $request->nama_list,
+            'id_board' => $request->id_board,
+        ]);
+
+        return redirect()->back()->with('success', 'Berhasil tambah list');
+    }catch(\Exception $e){
+        return redirect()->back()->with('gagal', 'Gaga Menambahkan list: '. $e);
+    }
+    }
 
     public function showCard($id, $id_tim,  $cardId ) {
     $tim = TimPerusahaan::findOrFail($id_tim);
@@ -46,6 +122,8 @@ class ProyekController extends Controller
         // tambahkan data lain yang dibutuhkan
     ]);
 }
+
+
 
 public function ringkas ($id, $id_tim) {
 

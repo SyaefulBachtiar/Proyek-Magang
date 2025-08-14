@@ -81,6 +81,12 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])
         ->name('proyek.update-card-order');
 
+    // tambah card
+    Route::post('/proyek/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
+
+    // tambah list
+    Route::post('/proyek/list', [ProyekController::class, 'storeList'])->name('proyek.list.store');
+
 });
 
 
