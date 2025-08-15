@@ -22,81 +22,52 @@ Route::get('/', function () {
     ]);
 });
 
-
-    // Ganti nama route fallback
-    Route::get('/dashboard', function () {
-        $id = Auth::id();
-        return redirect()->route('dashboard.with.id', ['id' => $id]); // arahkan ke dashboard/{id}
-    })->name('dashboard.fallback');
-
-
-
+Route::get('/dashboard', function () {
+    $id = Auth::id();
+    return redirect()->route('dashboard.with.id', ['id' => $id]);
+})->name('dashboard.fallback');
 
 Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
-    // ✅ Route utama, ini yang akan digunakan untuk redirect setelah login
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.with.id');
 
-    // Halaman Proyek board
+    // Halaman Proyek
     Route::get('/proyek/{id_tim}/board/{id_board}', [ProyekController::class, 'index'])->name('proyek');
-    // halaman Proyek ringkas
     Route::get('/proyek/{id_tim}/ringkas', [ProyekController::class, 'ringkas'])->name('proyek.ringkas');
-    // halaman proyek laporan
     Route::get('/proyek/{id_tim}/laporan', [ProyekController::class, 'laporan'])->name('proyek.laporan');
-    // halaman proyek chat grup
     Route::get('/proyek/{id_tim}/chatgrup', [ProyekController::class, 'chatgrup'])->name('proyek.chatgrup');
-
-
-    // lihat card
     Route::get('/proyek/{id_tim}/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
+    
+    // Aksi Proyek (POST/PUT/DELETE)
+    Route::post('/proyek/update-list-order', [ProyekController::class, 'updateListOrder'])->name('proyek.update-list-order');
+    Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])->name('proyek.update-card-order');
+    Route::post('/proyek/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
+    Route::post('/proyek/list', [ProyekController::class, 'storeList'])->name('proyek.list.store');
+    
+    //  MENAMBAH ANGGOTA TIM
+    Route::post('/proyek/{id_tim}/anggota', [ProyekController::class, 'tambahAnggota'])->name('proyek.anggota.store');
 
-    // Halaman Akses tim
+    // Halaman lain
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
     Route::put('/aksestim/{user}/update-role', [AksesTimController::class, 'updateRole'])->name('aksestim.updateRole');
-
-    // Halaman Pengaturan
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
-
-    // Halaman LeaderBoard
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 
-    // profile pengaturan
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // tambah tim
+    // Manajemen Tim & Perusahaan
     Route::post('/tim-perusahaan', [Tim_perusahaanController::class, 'store'])->name('tim-perusahaan.store');
-    // hapus tim
     Route::delete('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'destroy'])->name('tim-perusahaan.destroy');
-    // edit tim
     Route::put('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'update'])->name('tim-perusahaan.update');
-
-    // perusahaan update
     Route::put('/perusahaan', [DashboardController::class, 'update_perusahaan'])->name('perusahaan.update');
-
-    // Tambahkan di web.php atau routes file Anda
-    Route::post('/proyek/update-list-order', [ProyekController::class, 'updateListOrder'])
-        ->name('proyek.update-list-order');
-
-    Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])
-        ->name('proyek.update-card-order');
-
-    // tambah card
-    Route::post('/proyek/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
-
-    // tambah list
-    Route::post('/proyek/list', [ProyekController::class, 'storeList'])->name('proyek.list.store');
-
 });
 
-
-    Route::middleware('auth')->group(function () {
-    
+Route::middleware('auth')->group(function () {
     Route::get('/users', [Tim_perusahaanController::class, 'getUsers']); // untuk modal
 });
 
-    // kirim undangan    
-    Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim'); 
-
+Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim');
 
 require __DIR__.'/auth.php';

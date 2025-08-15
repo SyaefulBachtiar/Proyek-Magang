@@ -3,7 +3,8 @@ import { X, Search, Plus } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 
 export default function TambahAnggotaBoard({ close }) {
-    const { anggota_tim, anggota_board } = usePage().props;
+    // Ambil 'tim' dan 'auth' dari props
+    const { anggota_tim, anggota_board, tim, auth } = usePage().props;
 
     // State untuk search dan role
     const [searchQuery, setSearchQuery] = useState("");
@@ -12,14 +13,12 @@ export default function TambahAnggotaBoard({ close }) {
 
     // Filter anggota tim berdasarkan search query saja (tetap tampilkan semua)
     const filteredAnggotaTim = useMemo(() => {
-        // Buat set ID anggota yang sudah ada di board untuk styling
         const anggotaBoardIds = new Set(
             anggota_board.map((anggota) => anggota.id)
         );
 
         return anggota_tim
             .filter((anggota) => {
-                // Filter berdasarkan search query
                 if (searchQuery.trim()) {
                     const query = searchQuery.toLowerCase();
                     return (
@@ -28,12 +27,11 @@ export default function TambahAnggotaBoard({ close }) {
                             anggota.email.toLowerCase().includes(query))
                     );
                 }
-
                 return true;
             })
             .map((anggota) => ({
                 ...anggota,
-                isInBoard: anggotaBoardIds.has(anggota.id), // Tambah flag untuk styling
+                isInBoard: anggotaBoardIds.has(anggota.id),
             }));
     }, [anggota_tim, anggota_board, searchQuery]);
 
@@ -45,16 +43,22 @@ export default function TambahAnggotaBoard({ close }) {
     // Handle tambah anggota ke board
     const handleTambahAnggota = useCallback(
         async (anggota) => {
-            // Cek jika anggota sudah ada di board
             if (anggota.isInBoard) {
                 alert("Anggota sudah ada di board");
                 return;
             }
 
+            // Validasi di sisi frontend untuk memastikan data tim dan auth ada
+            if (!tim || !tim.id || !auth || !auth.user || !auth.user.id) {
+                console.error("ID Tim atau ID User tidak ditemukan di props!");
+                alert("Gagal menambahkan anggota: Data sesi tidak lengkap.");
+                return;
+            }
+
             setIsAdding(true);
             try {
-                // Implementasi API call untuk menambah anggota
-                const response = await fetch("/api/board/anggota", {
+                // URL diperbaiki agar sepenuhnya dinamis
+                const response = await fetch(`/dashboard/${auth.user.id}/proyek/${tim.id}/anggota`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -63,27 +67,29 @@ export default function TambahAnggotaBoard({ close }) {
                             .getAttribute("content"),
                     },
                     body: JSON.stringify({
-                        user_id: anggota.id,
-                        role: selectedRole,
+                        id_users: anggota.id,
+                        role_anggota: selectedRole,
                     }),
                 });
 
                 if (response.ok) {
-                    // Refresh halaman atau update state
-                    window.location.reload(); // Atau gunakan Inertia.reload()
+                    window.location.reload();
                 } else {
-                    console.error("Gagal menambahkan anggota");
+                    const errorData = await response.json();
+                    alert(errorData.message || "Gagal menambahkan anggota");
+                    console.error("Gagal menambahkan anggota:", errorData);
                 }
             } catch (error) {
                 console.error("Error:", error);
+                alert("Terjadi kesalahan saat menambahkan anggota.");
             } finally {
                 setIsAdding(false);
             }
         },
-        [selectedRole]
+        [selectedRole, tim, auth] // Tambahkan 'auth' sebagai dependency
     );
 
-    // Handle hapus anggota dari board
+    // Handle hapus anggota dari board (Fungsi ini tidak diubah)
     const handleHapusAnggota = useCallback(async (anggotaId) => {
         try {
             const response = await fetch(`/api/board/anggota/${anggotaId}`, {
@@ -116,8 +122,6 @@ export default function TambahAnggotaBoard({ close }) {
 
                 <div className="mt-4">
                     <h1 className="text-xl font-semibold">Tambahkan Anggota</h1>
-
-                    {/* Search Input dan Role Selector */}
                     <div className="flex gap-3 mt-5">
                         <div className="relative flex-1">
                             <Search
@@ -143,7 +147,6 @@ export default function TambahAnggotaBoard({ close }) {
                         </select>
                     </div>
 
-                    {/* Anggota Board (yang sudah ditambahkan) */}
                     {anggota_board.length > 0 && (
                         <div className="mt-6">
                             <h2 className="font-medium text-gray-700 mb-3">
@@ -157,32 +160,19 @@ export default function TambahAnggotaBoard({ close }) {
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
-                                                {anggota.name
-                                                    .charAt(0)
-                                                    .toUpperCase()}
+                                                {anggota.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium">
-                                                    {anggota.name}
-                                                </p>
-                                                <p className="text-xs text-gray-500">
-                                                    {anggota.role}
-                                                </p>
+                                                <p className="text-sm font-medium">{anggota.name}</p>
+                                                <p className="text-xs text-gray-500">{anggota.role}</p>
                                             </div>
                                         </div>
                                         {anggota.role !== "owner" && (
                                             <button
-                                                onClick={() =>
-                                                    handleHapusAnggota(
-                                                        anggota.id
-                                                    )
-                                                }
+                                                onClick={() => handleHapusAnggota(anggota.id)}
                                                 className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 rounded transition-opacity"
                                             >
-                                                <X
-                                                    size={14}
-                                                    className="text-red-500"
-                                                />
+                                                <X size={14} className="text-red-500"/>
                                             </button>
                                         )}
                                     </div>
@@ -191,7 +181,6 @@ export default function TambahAnggotaBoard({ close }) {
                         </div>
                     )}
 
-                    {/* Anggota Perusahaan (yang bisa ditambahkan) */}
                     <div className="mt-6">
                         <h2 className="font-medium text-gray-700 mb-3">
                             Anggota Perusahaan
@@ -201,7 +190,6 @@ export default function TambahAnggotaBoard({ close }) {
                                 </span>
                             )}
                         </h2>
-
                         <div className="space-y-2 max-h-60 overflow-y-auto">
                             {filteredAnggotaTim.length > 0 ? (
                                 filteredAnggotaTim.map((anggota) => (
@@ -213,21 +201,16 @@ export default function TambahAnggotaBoard({ close }) {
                                                 : "hover:bg-gray-50"
                                         }`}
                                         onClick={() =>
-                                            !anggota.isInBoard &&
-                                            handleTambahAnggota(anggota)
+                                            !anggota.isInBoard && handleTambahAnggota(anggota)
                                         }
                                     >
                                         <div className="flex items-center gap-3">
                                             <div
                                                 className={`w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-medium ${
-                                                    anggota.isInBoard
-                                                        ? "bg-green-600"
-                                                        : "bg-gray-600"
+                                                    anggota.isInBoard ? "bg-green-600" : "bg-gray-600"
                                                 }`}
                                             >
-                                                {anggota.name
-                                                    .charAt(0)
-                                                    .toUpperCase()}
+                                                {anggota.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
                                                 <h3 className="text-sm font-medium flex items-center gap-2">
@@ -239,9 +222,7 @@ export default function TambahAnggotaBoard({ close }) {
                                                     )}
                                                 </h3>
                                                 {anggota.email && (
-                                                    <p className="text-xs text-gray-500">
-                                                        {anggota.email}
-                                                    </p>
+                                                    <p className="text-xs text-gray-500">{anggota.email}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -250,19 +231,12 @@ export default function TambahAnggotaBoard({ close }) {
                                                 disabled={isAdding}
                                                 className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 rounded transition-opacity disabled:opacity-50"
                                             >
-                                                <Plus
-                                                    size={16}
-                                                    className="text-blue-500"
-                                                />
+                                                <Plus size={16} className="text-blue-500"/>
                                             </button>
                                         )}
                                         {anggota.isInBoard && (
                                             <div className="text-green-600">
-                                                <svg
-                                                    className="w-4 h-4"
-                                                    fill="currentColor"
-                                                    viewBox="0 0 20 20"
-                                                >
+                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                     <path
                                                         fillRule="evenodd"
                                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -277,13 +251,8 @@ export default function TambahAnggotaBoard({ close }) {
                                 <div className="text-center py-8 text-gray-500">
                                     {searchQuery ? (
                                         <div>
-                                            <p>
-                                                Tidak ada anggota yang cocok
-                                                dengan pencarian
-                                            </p>
-                                            <p className="text-sm mt-1">
-                                                "{searchQuery}"
-                                            </p>
+                                            <p>Tidak ada anggota yang cocok dengan pencarian</p>
+                                            <p className="text-sm mt-1">"{searchQuery}"</p>
                                         </div>
                                     ) : (
                                         <p>Tidak ada anggota perusahaan</p>
@@ -292,8 +261,6 @@ export default function TambahAnggotaBoard({ close }) {
                             )}
                         </div>
                     </div>
-
-                    {/* Loading state */}
                     {isAdding && (
                         <div className="mt-4 text-center text-sm text-gray-500">
                             Menambahkan anggota...
