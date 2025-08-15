@@ -18,7 +18,7 @@ export default function AuthenticatedLayout({ children, header }) {
     // users dari db
     const user = usePage().props.auth.user;
 
-    const { perusahaan, timLayout } = usePage().props;
+    const { perusahaan, timLayout, role } = usePage().props;
 
     // sidebar state
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -207,15 +207,20 @@ export default function AuthenticatedLayout({ children, header }) {
                             </div>
 
                             {/* button tambah anggota */}
-                            <button
-                                className="px-4 py-2 bg-blue-400/50 rounded-lg flex items-center text-gray-600 gap-2"
-                                onClick={() => setTambahAnggotaModal(true)}
-                            >
-                                <UserRoundPlus />
-                                <p className="text-xs sm:text-sm">
-                                    Tambah anggota
-                                </p>
-                            </button>
+                            {role !== "Super User" ||
+                                (role !== "Admin" && (
+                                    <button
+                                        className="px-4 py-2 bg-blue-400/50 rounded-lg flex items-center text-gray-600 gap-2"
+                                        onClick={() =>
+                                            setTambahAnggotaModal(true)
+                                        }
+                                    >
+                                        <UserRoundPlus />
+                                        <p className="text-xs sm:text-sm">
+                                            Tambah anggota
+                                        </p>
+                                    </button>
+                                ))}
 
                             {/* Profil icon user */}
                             <div ref={profileDropDownRef} className="relative">

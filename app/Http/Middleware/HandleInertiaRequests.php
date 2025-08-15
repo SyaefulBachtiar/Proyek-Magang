@@ -99,6 +99,57 @@ class HandleInertiaRequests extends Middleware
 
                     $id_board = BoardModel::where('id_team', $id_tim)->value('id');
                     return $id_board;
+                },
+                'role' => function () use ($request) {
+                    $user = $request->user();
+                     if(!$user){
+                        return [];
+                    }
+
+                    $role = optional($user->perusahaan)->role;
+                    return $role;
+                },
+                'anggota_tim' => function () use ($request) {
+                    $user = $request->user();
+                    if(!$user){
+                        return null;
+                    }
+
+                    $tim = User::leftJoin('perusahaan', 'users.id', '=', 'perusahaan.user_id')
+                    ->where('perusahaan.nama_perusahaan', $user->perusahaan->nama_perusahaan)
+                    ->select(
+                        'users.id',
+                        'users.name',
+                        'users.email',
+                        'perusahaan.role'
+                    )
+                    ->get();
+
+                    return $tim;
+                },
+                'anggota_board' => function () use ($request) {
+                $user = $request->user();
+                $id_tim = $request->route('id_tim');
+
+                if(!$user || !$id_tim){
+                    return null;
+                }
+                    
+                // Cari tim sesuai id_tim yang ada di parameter
+                    $tim = $user->tim_perusahaan->firstWhere('id', $id_tim);
+
+                    // Kalau tim ditemukan, ambil nama anggotanya
+                    $data = [];
+                    if ($tim) {
+                        $data = $tim->anggota_tim_perusahaan
+                            ->map(fn($anggota) => [
+                                'id' => $anggota->user->id ?? null,
+                                'name' => $anggota->user->name ?? ''
+                            ])
+                            ->toArray();
+                    }
+                    
+                return $data;
                 }
 
                     ]);

@@ -86,7 +86,7 @@ class User extends Authenticatable
     public function tim_perusahaan() 
     {
          return $this->belongsToMany(
-        \App\Models\timPerusahaan\TimPerusahaan::class,
+        TimPerusahaan::class,
         'anggota_tim',
         'id_users',
         'id_tim_perusahaan'

@@ -28,7 +28,7 @@ class DashboardController extends Controller
         'tim_perusahaan.board_tim.listBoards' // kalau mau langsung list_board nya juga
             ])->findOrFail(Auth::id());
 
-        $data =  $data = $user->tim_perusahaan;
+        $data = $user->tim_perusahaan;
 
 
         return Inertia::render('pageDashboard/ContentMainDashboard', [

@@ -16,7 +16,7 @@ import {
 import { useState } from "react";
 
 export default function Sidebar({ sidebarOpen, activePage, id }) {
-    const { timPerusahaan, id_board } = usePage().props;
+    const { timPerusahaan, id_board, role } = usePage().props;
 
     const proyekTim =
         timPerusahaan?.filter((tim) => tim.jenis_tim === "proyek") || [];
@@ -333,85 +333,105 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                         )}
                     </div>
                 </div>
-
-                {/* akses tim sidebar */}
-                <div
-                    className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
-                        activePage === "DashboardAksesTim" ? "bg-gray-200" : ""
-                    }`}
-                    onClick={() => router.visit(route("aksestim", { id }))}
-                >
-                    <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
+                {role !== "Super User" || role !== "Admin" && (
+                    <>
+                        {/* akses tim sidebar */}
                         <div
-                            className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                            className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
+                                activePage === "DashboardAksesTim"
+                                    ? "bg-gray-200"
+                                    : ""
+                            }`}
+                            onClick={() =>
+                                router.visit(route("aksestim", { id }))
+                            }
                         >
-                            <div className="w-8 h-8 flex justify-center items-center">
-                                <ShieldCheck
-                                    className={`w-6 h-6 flex-shrink-0 ${
-                                        activePage === "DashboardAksesTim"
-                                            ? "text-black"
-                                            : "text-gray-400"
-                                    }`}
-                                />
+                            <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
+                                <div
+                                    className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                                >
+                                    <div className="w-8 h-8 flex justify-center items-center">
+                                        <ShieldCheck
+                                            className={`w-6 h-6 flex-shrink-0 ${
+                                                activePage ===
+                                                "DashboardAksesTim"
+                                                    ? "text-black"
+                                                    : "text-gray-400"
+                                            }`}
+                                        />
+                                    </div>
+                                </div>
+                                <p className="w-[80px] flex-shrink-0">
+                                    Akses Tim
+                                </p>
                             </div>
                         </div>
-                        <p className="w-[80px] flex-shrink-0">Akses Tim</p>
-                    </div>
-                </div>
 
-                {/* Pengaturan sidebar */}
-                <div
-                    className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
-                        activePage === "DashboardPengaturan"
-                            ? "bg-gray-200"
-                            : ""
-                    }`}
-                    onClick={() => router.visit(route("pengaturan", { id }))}
-                >
-                    <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
+                        {/* Pengaturan sidebar */}
                         <div
-                            className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                            className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
+                                activePage === "DashboardPengaturan"
+                                    ? "bg-gray-200"
+                                    : ""
+                            }`}
+                            onClick={() =>
+                                router.visit(route("pengaturan", { id }))
+                            }
                         >
-                            <div className="w-8 h-8 flex justify-center items-center">
-                                <Settings
-                                    className={`w-6 h-6 flex-shrink-0 ${
-                                        activePage === "DashboardPengaturan"
-                                            ? "text-black"
-                                            : "text-gray-400"
-                                    }`}
-                                />
+                            <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
+                                <div
+                                    className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                                >
+                                    <div className="w-8 h-8 flex justify-center items-center">
+                                        <Settings
+                                            className={`w-6 h-6 flex-shrink-0 ${
+                                                activePage ===
+                                                "DashboardPengaturan"
+                                                    ? "text-black"
+                                                    : "text-gray-400"
+                                            }`}
+                                        />
+                                    </div>
+                                </div>
+                                <p className="w-[80px] flex-shrink-0">
+                                    Pengaturan
+                                </p>
                             </div>
                         </div>
-                        <p className="w-[80px] flex-shrink-0">Pengaturan</p>
-                    </div>
-                </div>
 
-                {/* leaderboard sidebar */}
-                <div
-                    className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
-                        activePage === "DashboardLeaderboard"
-                            ? "bg-gray-200"
-                            : ""
-                    }`}
-                    onClick={() => router.visit(route("leaderboard", { id }))}
-                >
-                    <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
+                        {/* leaderboard sidebar */}
                         <div
-                            className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                            className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
+                                activePage === "DashboardLeaderboard"
+                                    ? "bg-gray-200"
+                                    : ""
+                            }`}
+                            onClick={() =>
+                                router.visit(route("leaderboard", { id }))
+                            }
                         >
-                            <div className="w-8 h-8 flex justify-center items-center">
-                                <Medal
-                                    className={`w-6 h-6 flex-shrink-0 ${
-                                        activePage === "DashboardLeaderboard"
-                                            ? "text-black"
-                                            : "text-gray-400"
-                                    }`}
-                                />
+                            <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
+                                <div
+                                    className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                                >
+                                    <div className="w-8 h-8 flex justify-center items-center">
+                                        <Medal
+                                            className={`w-6 h-6 flex-shrink-0 ${
+                                                activePage ===
+                                                "DashboardLeaderboard"
+                                                    ? "text-black"
+                                                    : "text-gray-400"
+                                            }`}
+                                        />
+                                    </div>
+                                </div>
+                                <p className="w-[80px] flex-shrink-0">
+                                    Leaderboard
+                                </p>
                             </div>
                         </div>
-                        <p className="w-[80px] flex-shrink-0">Leaderboard</p>
-                    </div>
-                </div>
+                    </>
+                )}
             </div>
         </>
     );

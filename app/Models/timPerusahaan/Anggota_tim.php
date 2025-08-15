@@ -16,6 +16,7 @@ class Anggota_tim extends Model
         'id',
         'id_users',
         'id_tim_perusahaan',
+        'role_anggota'
     ];
 
      // generate id secara otomatis saat membuat model
@@ -42,6 +43,10 @@ class Anggota_tim extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'id_users');
+    }
+
+    public function anggota_card () {
+        return $this->hasMany(Anggota_card::class, 'id_anggota_tim');
     }
 
 

@@ -16,6 +16,7 @@ function AksesTim() {
     const { props } = usePage();
     // Pastikan 'auth' diambil dari props
     const { activePage, tim, auth } = props; 
+
     const { setActivePage } = DashboardState();
 
     const [menuOpen, setMenuOpen] = useState(null);

@@ -40,6 +40,7 @@ class Tim_perusahaanController extends Controller
         $tim->anggota_tim_perusahaan()->create([
             'id' => (string) Str::uuid(),
             'id_users' => $user->id,
+            'role_anggota' => 'Ketua tim',
             'id_tim_perusahaan' => $tim->id,
         ]);
 

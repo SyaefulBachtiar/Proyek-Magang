@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\List_boardModel;
 use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -111,15 +113,29 @@ class ProyekController extends Controller
     }
 
     public function showCard($id, $id_tim,  $cardId ) {
-    $tim = TimPerusahaan::findOrFail($id_tim);
-    // $id = dashboard id (parent)
-    // $cardId = id dari card yang ingin ditampilkan
+
+         // Ambil hanya nama user dari anggota tim
+        $user = User::with([
+            'tim_perusahaan.anggota_tim_perusahaan.user'
+        ])->findOrFail($id);
+        
+       // Cari tim sesuai id_tim yang ada di parameter
+        $tim = $user->tim_perusahaan->firstWhere('id', $id_tim);
+
+          // Kalau tim ditemukan, ambil nama anggotanya
+        $data = [];
+        if ($tim) {
+            $data = $tim->anggota_tim_perusahaan
+                ->map(fn($anggota) => [
+                    'id' => $anggota->user->id ?? null,
+                    'name' => $anggota->user->name ?? ''
+                ])
+                ->toArray();
+        }
+
+
     return inertia('Card/Card_kanban', [
-        'dashboardId' => $id,
-        'cardId' => $cardId,
-        'tim' => $tim,
-        // 'cardTitle' => $cardTitle
-        // tambahkan data lain yang dibutuhkan
+        'anggota_tim' => $data
     ]);
 }
 
