@@ -55,4 +55,36 @@ class TimPerusahaan extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
+    // Leader tim
+    public function leader()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Messages chat grup
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'tim_id');
+    }
+
+    // Ambil messages terbaru
+    public function latestMessages($limit = 50)
+    {
+        return $this->messages()
+                    ->with('user')
+                    ->orderBy('created_at', 'desc')
+                    ->limit($limit)
+                    ->get()
+                    ->reverse(); // balik urutan, dari lama ke baru
+    }
+
+    // Count unread messages
+    public function unreadCount($userId)
+    {
+        return $this->messages()
+                    ->where('user_id', '!=', $userId)
+                    ->where('is_read', false)
+                    ->count();
+    }
+
 }

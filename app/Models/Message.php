@@ -1,5 +1,7 @@
 <?php
 
+// app/Models/Message.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,49 +13,32 @@ class Message extends Model
 
     protected $fillable = [
         'user_id',
-        'tim_perusahaan_id',
-        'message'
+        'tim_id',
+        'pesan',
+        'is_read'
     ];
 
-    protected $with = ['user']; // Eager load user otomatis
-
-    /**
-     * Relasi ke User (pengirim pesan)
-     */
+    // Relasi ke User
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Relasi ke Tim Perusahaan (grup chat)
-     */
-    public function timPerusahaan()
+    // Relasi ke Tim
+    public function tim()
     {
-        return $this->belongsTo(TimPerusahaan::class);
+        return $this->belongsTo(TimPerusahaan::class, 'tim_id');
     }
 
-    /**
-     * Scope untuk ambil pesan berdasarkan tim
-     */
-    public function scopeByTim($query, $timId)
+    // Format waktu untuk display
+    public function getWaktuAttribute()
     {
-        return $query->where('tim_perusahaan_id', $timId);
+        return $this->created_at->format('H:i');
     }
 
-    /**
-     * Scope untuk ambil pesan terbaru
-     */
-    public function scopeLatest($query)
+    // Format tanggal untuk display
+    public function getTanggalAttribute()
     {
-        return $query->orderBy('created_at', 'desc');
-    }
-
-    /**
-     * Scope untuk ambil pesan lama ke baru
-     */
-    public function scopeOldest($query)
-    {
-        return $query->orderBy('created_at', 'asc');
+        return $this->created_at->format('d/m/Y');
     }
 }

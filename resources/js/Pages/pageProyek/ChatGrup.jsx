@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { usePage } from '@inertiajs/react';
 import Proyek from "../Proyek";
 
-export default function ChatGrup({ timId, activePage, tim }) {
+const ChatGrup = ({ timId, activePage, tim }) => {
     const { messages: initialMessages, user } = usePage().props;
     const [message, setMessage] = useState('');
     const [chatMessages, setChatMessages] = useState(initialMessages || []);
@@ -11,31 +11,46 @@ export default function ChatGrup({ timId, activePage, tim }) {
     const chatContainerRef = useRef(null);
     const pollIntervalRef = useRef(null);
 
-    // Scroll ke bawah saat ada pesan baru
+    // Safety check untuk props
+    if (!tim) {
+        return (
+            <Proyek timId={timId} activePage={activePage} tim={null}>
+                <div className="p-4 bg-slate-100 min-h-screen">
+                    <div className="text-center text-red-500">
+                        Error: Data tim tidak ditemukan
+                    </div>
+                </div>
+            </Proyek>
+        );
+    }
+
+    // Auto scroll ke bawah
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
     }, [chatMessages]);
 
-    // Polling untuk pesan baru (alternatif sebelum implementasi WebSocket)
+    // Polling pesan baru setiap 3 detik
     useEffect(() => {
-        const pollMessages = async () => {
+        if (!tim?.id) return;
+        
+        const pollNewMessages = async () => {
             try {
                 const lastMessageId = chatMessages.length > 0 
-                    ? Math.max(...chatMessages.map(msg => msg.id))
+                    ? Math.max(...chatMessages.map(msg => msg?.id || 0))
                     : 0;
 
-                const response = await fetch(`/chat/tim/${timId}/messages?last_id=${lastMessageId}`, {
+                const response = await fetch(`/chat/tim/${tim.id}/baru?last_id=${lastMessageId}`, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
+                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]')?.content || '',
                     },
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.success && data.messages.length > 0) {
+                    if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
                         setChatMessages(prev => [...prev, ...data.messages]);
                     }
                 }
@@ -44,65 +59,14 @@ export default function ChatGrup({ timId, activePage, tim }) {
             }
         };
 
-        // Poll setiap 3 detik
-        pollIntervalRef.current = setInterval(pollMessages, 3000);
+        pollIntervalRef.current = setInterval(pollNewMessages, 3000);
 
         return () => {
             if (pollIntervalRef.current) {
                 clearInterval(pollIntervalRef.current);
             }
         };
-    }, [timId, chatMessages]);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (!message.trim()) return;
-
-        setIsLoading(true);
-        setError('');
-
-        try {
-            const response = await fetch('/chat/store', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
-                },
-                body: JSON.stringify({ 
-                    message: message.trim(),
-                    tim_id: timId 
-                }),
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // Tambah pesan baru ke state
-                setChatMessages(prev => [...prev, data.message]);
-                setMessage('');
-            } else {
-                setError(data.message || 'Gagal mengirim pesan');
-            }
-        } catch (error) {
-            console.error('Error sending message:', error);
-            setError('Terjadi kesalahan saat mengirim pesan');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const formatTime = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('id-ID', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-    };
-
-    const isMyMessage = (messageUserId) => {
-        return messageUserId === user.id;
-    };
+    }, [tim?.id, chatMessages]);
 
     return (
         <Proyek timId={timId} activePage={activePage} tim={tim}>
@@ -126,39 +90,60 @@ export default function ChatGrup({ timId, activePage, tim }) {
                         id="chatContainer"
                     >
                         {chatMessages?.length > 0 ? (
-                            chatMessages.map((msg) => (
-                                <div 
-                                    key={msg.id} 
-                                    className={`flex ${isMyMessage(msg.user_id) ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    <div className={`max-w-xs lg:max-w-md ${isMyMessage(msg.user_id) ? 'order-2' : ''}`}>
-                                        {/* Nama pengirim (hanya untuk pesan orang lain) */}
-                                        {!isMyMessage(msg.user_id) && (
-                                            <div className="text-xs text-gray-500 mb-1 px-1">
-                                                {msg.user_name}
-                                            </div>
-                                        )}
-                                        
-                                        {/* Bubble Pesan */}
-                                        <div className={`px-4 py-2 rounded-2xl text-sm break-words ${
-                                            isMyMessage(msg.user_id)
-                                                ? 'bg-blue-500 text-white rounded-br-md'
-                                                : 'bg-gray-200 text-gray-800 rounded-bl-md'
-                                        }`}>
-                                            <div>{msg.text}</div>
+                            chatMessages.map((msg, index) => {
+                                // Safety check untuk setiap message
+                                if (!msg || typeof msg !== 'object') {
+                                    return null;
+                                }
+                                
+                                const messageId = msg.id || `msg-${index}`;
+                                const userId = msg.user_id;
+                                const isOwn = userId === user?.id;
+                                
+                                return (
+                                    <div 
+                                        key={messageId} 
+                                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                        <div className={`max-w-xs lg:max-w-md ${isOwn ? 'order-2' : ''}`}>
+                                            {/* Nama pengirim (hanya untuk pesan orang lain) */}
+                                            {!isOwn && (
+                                                <div className="text-xs text-gray-500 mb-1 px-1">
+                                                    {msg.user_name || 'Anonymous'}
+                                                </div>
+                                            )}
                                             
-                                            {/* Waktu */}
-                                            <div className={`text-xs mt-1 ${
-                                                isMyMessage(msg.user_id) 
-                                                    ? 'text-blue-100' 
-                                                    : 'text-gray-500'
+                                            {/* Bubble Pesan */}
+                                            <div className={`px-4 py-2 rounded-2xl text-sm break-words ${
+                                                isOwn
+                                                    ? 'bg-blue-500 text-white rounded-br-md'
+                                                    : 'bg-gray-200 text-gray-800 rounded-bl-md'
                                             }`}>
-                                                {formatTime(msg.created_at)}
+                                                <div>{msg.text || msg.pesan || '[Pesan tidak dapat ditampilkan]'}</div>
+                                                
+                                                {/* Waktu */}
+                                                <div className={`text-xs mt-1 ${
+                                                    isOwn
+                                                        ? 'text-blue-100' 
+                                                        : 'text-gray-500'
+                                                }`}>
+                                                    {(() => {
+                                                        try {
+                                                            const date = new Date(msg.created_at);
+                                                            return date.toLocaleTimeString('id-ID', { 
+                                                                hour: '2-digit', 
+                                                                minute: '2-digit' 
+                                                            });
+                                                        } catch (error) {
+                                                            return '--:--';
+                                                        }
+                                                    })()}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         ) : (
                             <div className="text-center text-gray-500 py-8">
                                 Belum ada pesan. Mulai percakapan!
@@ -173,8 +158,51 @@ export default function ChatGrup({ timId, activePage, tim }) {
                         </div>
                     )}
 
-                    {/* Form Input */}
-                    <form onSubmit={handleSubmit} className="p-4 border-t bg-gray-50 rounded-b-lg">
+                    {/* Form Input - MENGGUNAKAN INLINE FUNCTION */}
+                    <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        
+                        if (!message.trim()) {
+                            return;
+                        }
+
+                        setIsLoading(true);
+                        setError('');
+
+                        try {
+                            const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content;
+                            
+                            if (!csrfToken) {
+                                throw new Error('CSRF token not found');
+                            }
+
+                            const response = await fetch('/chat/kirim', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                },
+                                body: JSON.stringify({ 
+                                    pesan: message.trim(),
+                                    tim_id: tim?.id 
+                                }),
+                            });
+
+                            const data = await response.json();
+
+                            if (data.success && data.message) {
+                                setChatMessages(prev => [...prev, data.message]);
+                                setMessage('');
+                            } else {
+                                setError(data.message || 'Gagal mengirim pesan');
+                            }
+                        } catch (error) {
+                            console.error('Error sending message:', error);
+                            setError('Terjadi kesalahan saat mengirim pesan');
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    }} className="p-4 border-t bg-gray-50 rounded-b-lg">
                         <div className="flex gap-2">
                             <input
                                 type="text"
@@ -212,7 +240,7 @@ export default function ChatGrup({ timId, activePage, tim }) {
                                     className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
                                 >
                                     {member.name}
-                                    {member.id === user.id && ' (Anda)'}
+                                    {member.id === user?.id && ' (Anda)'}
                                 </span>
                             ))}
                         </div>
@@ -221,4 +249,7 @@ export default function ChatGrup({ timId, activePage, tim }) {
             </div>
         </Proyek>
     );
-}
+};
+
+// Pastikan export default
+export default ChatGrup;

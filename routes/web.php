@@ -7,6 +7,7 @@ use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProyekController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ProfilePerusahaanController;
 use App\Http\Controllers\Tim\Tim_perusahaanController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
@@ -79,16 +80,40 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/chat/tim/{timId}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
 });
 
-Route::middleware(['auth', 'dashboard.access'])->group(function () {
+Route::middleware(['auth'])->prefix('chat')->name('chat.')->group(function () {
     // Halaman chat grup
-    Route::get('/chat/{dashboardId}', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('/tim/{timId}', [ChatController::class, 'index'])->name('tim');
     
-    // API untuk kirim pesan
-    Route::post('/chat/store', [ChatController::class, 'store'])->name('chat.store');
+    // API kirim pesan
+    Route::post('/kirim', [ChatController::class, 'store'])->name('kirim');
     
-    // API untuk ambil pesan terbaru
-    Route::get('/chat/{dashboardId}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
+    // API ambil pesan baru
+    Route::get('/tim/{timId}/baru', [ChatController::class, 'getNewMessages'])->name('baru');
 });
+
+Route::middleware(['auth'])->group(function () {
+    // Routes untuk pengaturan perusahaan utama
+    Route::get('/pengaturan', [ProfilePerusahaanController::class, 'index'])->name('pengaturan.index');
+    Route::put('/pengaturan', [ProfilePerusahaanController::class, 'update'])->name('pengaturan.update');
+    Route::post('/pengaturan/upload-logo', [ProfilePerusahaanController::class, 'uploadLogo'])->name('pengaturan.upload-logo');
+    
+    // Routes untuk mengelola profile perusahaan spesifik
+    Route::get('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'show'])->name('profile-perusahaan.show');
+    Route::put('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'update'])->name('profile-perusahaan.update');
+    Route::post('/profile-perusahaan/{id}/upload-logo', [ProfilePerusahaanController::class, 'uploadLogo'])->name('profile-perusahaan.upload-logo');
+    
+    // Route khusus untuk update dari frontend React
+    Route::put('/pengaturan/frontend', [ProfilePerusahaanController::class, 'updateFromFrontend'])->name('pengaturan.update-frontend');
+    Route::put('/profile-perusahaan/{id}/frontend', [ProfilePerusahaanController::class, 'updateFromFrontend'])->name('profile-perusahaan.update-frontend');
+});
+
+Route::middleware(['auth:sanctum'])->prefix('api')->group(function () {
+    Route::get('/profile-perusahaan', [ProfilePerusahaanController::class, 'apiIndex']);
+    Route::get('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'apiShow']);
+    Route::put('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'updateFromFrontend']);
+    Route::post('/profile-perusahaan/{id}/logo', [ProfilePerusahaanController::class, 'uploadLogo']);
+});
+
 // Route::middleware('auth')->group(function () {
 //     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 //     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
