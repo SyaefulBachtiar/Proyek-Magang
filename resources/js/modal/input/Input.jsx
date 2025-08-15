@@ -5,7 +5,8 @@ export default function Input ({
     name = "",
     value = "",
     onChange = "",
-    onBlur = () => {}
+    onBlur = () => {},
+    placeholder = ""
 }) {
     return (
         <>
@@ -18,6 +19,7 @@ export default function Input ({
                     value={value}
                     onChange={onChange}
                     onBlur={onBlur}
+                    placeholder={placeholder}
                     className={`${
                         className ? className : ""
                     } w-full rounded-lg border border-gray-300`}

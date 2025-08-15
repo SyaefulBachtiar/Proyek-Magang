@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Perusahaan;
 use App\Models\timPerusahaan\Anggota_tim;
+use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,26 +18,43 @@ class DashboardController extends Controller
         abort(403, 'Unauthorized.');
     }
     // ambil role user
-        $user = Auth::user();
+        $user = User::with('tim_perusahaan')->findOrFail(Auth::id());
         $role = optional($user->perusahaan)->role;
-        $idTimPerusahaan = $user->tim_perusahaan->pluck('id')->toArray();
 
-        
-        $anggotaTim_id_users = Anggota_tim::whereIn('id_tim_perusahaan', $idTimPerusahaan)
-            ->pluck('id_users')
-            ->toArray();
-        
-        $anggotaTim = User::whereIn('id', $anggotaTim_id_users)
-            ->pluck('name')
-            ->toArray();
+        $perusahaan = optional($user->perusahaan)->nama_perusahaan;
 
-        $data = $user->tim_perusahaan->toArray();
+         $user = User::with([
+        'tim_perusahaan.anggota_tim_perusahaan.user',
+        'tim_perusahaan.board_tim.listBoards' // kalau mau langsung list_board nya juga
+            ])->findOrFail(Auth::id());
+
+        $data = $user->tim_perusahaan;
+
 
         return Inertia::render('pageDashboard/ContentMainDashboard', [
             'activePage' => 'DashboardMain',
             'role' => $role,
             'data' => $data,
-            'anggotaTim' => $anggotaTim,
+            'perusahaan' => $perusahaan,
         ]);
+    }
+
+    public function update_perusahaan(Request $request, $id)
+    {
+        $request->validate([
+            'nama_perusahaan' => 'required|string|max:255'
+        ]);
+
+        // Update di tabel users
+        $user = User::findOrFail($id);
+
+        // Update di tabel perusahaan (jika ada relasi)
+        if ($user->perusahaan) {
+            $user->perusahaan->update([
+                'nama_perusahaan' => $request->nama_perusahaan
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Nama perusahaan berhasil diperbarui');
     }
 }

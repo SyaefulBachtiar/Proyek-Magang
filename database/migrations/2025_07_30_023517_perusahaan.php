@@ -14,6 +14,7 @@ return new class extends Migration
         // table perusaan
         Schema::create('perusahaan', function (Blueprint $table) {
             $table->string('id', 36)->primary();
+            $table->string('nama_perusahaan', 100)->nullable();
             $table->string('role', 10)->nullable();
             $table->string('jabatan', 20)->nullable();
             $table->string('user_id', 36);
@@ -24,7 +25,6 @@ return new class extends Migration
         // table profile perusahaan
         Schema::create('profile_perusahaan', function (Blueprint $table) {
             $table->string('id', 36)->primary();
-            $table->string('nama_perusahaan', 100)->nullable();
             $table->string('foto_profile_perusahaan')->nullable();
             $table->text('deskripsi')->nullable();
             $table->string('role_perusahaan', 20)->nullable();

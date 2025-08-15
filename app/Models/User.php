@@ -9,6 +9,7 @@ use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable
@@ -30,6 +31,8 @@ class User extends Authenticatable
         'password',
         'bio_profile',
         'poto_profile_user',
+        'nama_perusahaan',
+        'remember_token',
     ];
 
     /**
@@ -70,7 +73,7 @@ class User extends Authenticatable
 
     // relasi ke table perusahaan
     public function perusahaan () {
-        return $this->hasOne(Perusahaan::class);
+        return $this->hasOne(Perusahaan::class, 'user_id', 'id');
     }
 
     // relasi ke table anggota tim
@@ -82,7 +85,17 @@ class User extends Authenticatable
     // relasi ke table tim perusahaan
     public function tim_perusahaan() 
     {
-        return $this->hasMany(TimPerusahaan::class, 'user_id', 'id');
+         return $this->belongsToMany(
+        TimPerusahaan::class,
+        'anggota_tim',
+        'id_users',
+        'id_tim_perusahaan'
+    );
+    }
+
+    public function isOnline(): bool
+    {
+        return Cache::has('user-is-online-' . $this->id);
     }
 
     public function messages()

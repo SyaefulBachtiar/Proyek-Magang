@@ -46,45 +46,13 @@ class TimPerusahaan extends Model
     // relasi ke table anggota tim one to many
     public function anggota_tim_perusahaan()
     {
-        return $this->hasMany(Anggota_tim::class, 'id_tim_perusahaan', 'id');
+        return $this->hasMany(Anggota_tim::class, 'id_tim_perusahaan',);
     }
 
     // relasi ke table user one to one
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
-    }
-
-    // Leader tim
-    public function leader()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    // Messages chat grup
-    public function messages()
-    {
-        return $this->hasMany(Message::class, 'tim_id');
-    }
-
-    // Ambil messages terbaru
-    public function latestMessages($limit = 50)
-    {
-        return $this->messages()
-                    ->with('user')
-                    ->orderBy('created_at', 'desc')
-                    ->limit($limit)
-                    ->get()
-                    ->reverse(); // balik urutan, dari lama ke baru
-    }
-
-    // Count unread messages
-    public function unreadCount($userId)
-    {
-        return $this->messages()
-                    ->where('user_id', '!=', $userId)
-                    ->where('is_read', false)
-                    ->count();
     }
 
 }

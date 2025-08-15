@@ -1,4 +1,4 @@
-import { Head, router } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 import {
     Archive,
     Check,
@@ -9,37 +9,42 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Proyek from "../Proyek";
+import TambahCard from "@/modal/Proyek/TambahCard";
+import TambahList from "@/modal/Proyek/TambahList";
 
 
 
 
-export default function Kanban({ children, dashboardId, activePage, tim }) {
-    const [lists, setLists] = useState([
-        {
-            id: "1",
-            title: "To do list",
-            cards: [
-                { id: "101", title: "Tugas Kuliah" },
-                { id: "102", title: "Meeting dengan tim" },
-            ],
-        },
-        {
-            id: "2",
-            title: "In Progress",
-            cards: [{ id: "103", title: "Proyek magang" }],
-        },
-        {
-            id: "3",
-            title: "Selesai",
-            cards: [],
-        },
-    ]);
+export default function Kanban({ children, dashboardId, activePage, tim, dataBoard }) {
+
+    const user = usePage().props.auth.user;
+    const {id_board} = usePage().props;
+
+    const [tambahCard, setTambahCard] = useState("");
+    const [tambahList, setTambahList] = useState(false);
+
+    const [lists, setLists] = useState([]);
+
+    useEffect(() => {
+        if (dataBoard) {
+            const mappedLists = dataBoard.map((list) => ({
+                id: list.id.toString(),
+                title: list.judul,
+                cards: list.cards.map((card) => ({
+                    id: card.id.toString(),
+                    title: card.nama_card,
+                    image: card.image
+                })),
+            }));
+            setLists(mappedLists);
+        }
+    }, [dataBoard]);
 
     const [editingListId, setEditingListId] = useState(null);
     const [openElipsis, setOpenElipsis] = useState(null);
     const elipsisRef = useRef({});
 
-    const handleDragEnd = (result) => {
+    const handleDragEnd = async (result) => {
         const { source, destination, type } = result;
         if (!destination) return;
 
@@ -48,6 +53,30 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
             const [removed] = reorderedLists.splice(source.index, 1);
             reorderedLists.splice(destination.index, 0, removed);
             setLists(reorderedLists);
+
+            // Update urutan di database
+            const updatedLists = reorderedLists.map((list, index) => ({
+                id: list.id,
+                urutan_posisi: index + 1,
+            }));
+
+            try {
+                await router.post(
+                    route("proyek.update-list-order", {id: user.id}),
+                    {
+                        lists: updatedLists,
+                    },
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                        only: [],
+                    }
+                );
+            } catch (error) {
+                console.error("Error updating list order:", error);
+                // Rollback jika error
+                // setLists(originalLists);
+            }
 
             console.log(
                 "Urutan List Sekarang:",
@@ -67,18 +96,44 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
             const destCards = Array.from(lists[destListIndex].cards);
             const [movedCard] = sourceCards.splice(source.index, 1);
 
+            let updatedCards = [];
+
             if (sourceListIndex === destListIndex) {
+                // Pindah dalam list yang sama
                 sourceCards.splice(destination.index, 0, movedCard);
                 const newLists = [...lists];
                 newLists[sourceListIndex].cards = sourceCards;
                 setLists(newLists);
+
+                // Update urutan cards dalam list yang sama
+                updatedCards = sourceCards.map((card, index) => ({
+                    id: card.id,
+                    urutan: index + 1,
+                    id_list: source.droppableId,
+                }));
             } else {
+                // Pindah ke list berbeda
                 destCards.splice(destination.index, 0, movedCard);
                 const newLists = [...lists];
                 newLists[sourceListIndex].cards = sourceCards;
                 newLists[destListIndex].cards = destCards;
                 setLists(newLists);
-                //  Log tujuan dan urutan card
+
+                // Update urutan untuk kedua list
+                const sourceUpdates = sourceCards.map((card, index) => ({
+                    id: card.id,
+                    urutan: index + 1,
+                    id_list: source.droppableId,
+                }));
+
+                const destUpdates = destCards.map((card, index) => ({
+                    id: card.id,
+                    urutan: index + 1,
+                    id_list: destination.droppableId,
+                }));
+
+                updatedCards = [...sourceUpdates, ...destUpdates];
+
                 console.log(
                     `Card dipindahkan ke list: ${lists[destListIndex].title}`
                 );
@@ -87,36 +142,58 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
                     destCards.map((card, idx) => `${idx + 1}. ${card.title}`)
                 );
             }
+
+            // Kirim update ke database
+            try {
+                await router.post(
+                    route("proyek.update-card-order", { id: user.id }),
+                    {
+                        cards: updatedCards,
+                    },
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                        only: [],
+                    }
+                );
+            } catch (error) {
+                console.error("Error updating card order:", error);
+                // Rollback jika error
+            }
         }
     };
 
-    const handleAddList = () => {
-        const title = prompt("Masukkan judul list:");
-        if (!title?.trim()) return;
-        const newList = {
-            id: Date.now().toString(),
-            title: title.trim(),
-            cards: [],
-        };
-        setLists((prev) => [...prev, newList]);
-    };
+    // const handleAddList = () => {
+    //     const title = prompt("Masukkan judul list:");
+    //     if (!title?.trim()) return;
+    //     const newList = {
+    //         id: Date.now().toString(),
+    //         title: title.trim(),
+    //         cards: [],
+    //     };
+    //     setLists((prev) => [...prev, newList]);
+    // };
 
     const handleAddCard = (listId) => {
-        const title = prompt("Masukkan judul card:");
-        if (!title?.trim()) return;
-        const newCard = {
-            id: Date.now().toString(),
-            title: title.trim(),
-        };
-
-        setLists((prev) =>
-            prev.map((list) =>
-                list.id === listId
-                    ? { ...list, cards: [...list.cards, newCard] }
-                    : list
-            )
-        );
+        setTambahCard(listId);
     };
+
+    //    const handleAddCard = (listId) => {
+    //        const title = prompt("Masukkan judul card:");
+    //        if (!title?.trim()) return;
+    //        const newCard = {
+    //            id: Date.now().toString(),
+    //            title: title.trim(),
+    //        };
+
+    //        setLists((prev) =>
+    //            prev.map((list) =>
+    //                list.id === listId
+    //                    ? { ...list, cards: [...list.cards, newCard] }
+    //                    : list
+    //            )
+    //        );
+    //    };
 
     const handleUpdateListTitle = (listId, newTitle) => {
         setLists((prev) =>
@@ -148,7 +225,11 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
     //handle lihat card
     const handleLihatCard = (cardId) => {
         router.visit(
-            route("proyek.card", { id: dashboardId, cardId: cardId, id_tim: tim.id }) // Kunjungi rute Proyek yang sama
+            route("proyek.card", {
+                id: dashboardId,
+                cardId: cardId,
+                id_tim: tim.id,
+            }) // Kunjungi rute Proyek yang sama
         );
     };
 
@@ -314,16 +395,9 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
                                                                                 provided,
                                                                                 snapshot
                                                                             ) => (
-                                                                                <div
-                                                                                    onClick={() => {
-                                                                                        handleLihatCard(
-                                                                                            card.id,
-                                                                                            card.title
-                                                                                        );
-                                                                                    }}
-                                                                                >
+                                                                                <div>
                                                                                     <div
-                                                                                        className={`bg-white p-2 rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 ${
+                                                                                        className={`bg-white p-2 group rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 relative ${
                                                                                             snapshot.isDragging
                                                                                                 ? "shadow-lg border-blue-600"
                                                                                                 : "border-blue-500"
@@ -334,11 +408,39 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
                                                                                         {...provided.draggableProps}
                                                                                         {...provided.dragHandleProps}
                                                                                     >
-                                                                                        <h1 className="text-sm break-words">
-                                                                                            {
-                                                                                                card.title
+                                                                                        <Ellipsis
+                                                                                            className="absolute top-0 right-0 m-2 hidden group-hover:flex cursor-pointer"
+                                                                                            size={
+                                                                                                18
                                                                                             }
-                                                                                        </h1>
+                                                                                        />
+                                                                                        {card.image ? (
+                                                                                            <img
+                                                                                                src={`/storage/${
+                                                                                                    card.image ||
+                                                                                                    ""
+                                                                                                }`}
+                                                                                                alt="image"
+                                                                                                className="w-full object-cover mb-5 mt-5"
+                                                                                            />
+                                                                                        ) : (
+                                                                                            ""
+                                                                                        )}
+                                                                                        <div
+                                                                                            onClick={() => {
+                                                                                                handleLihatCard(
+                                                                                                    card.id,
+                                                                                                    card.title
+                                                                                                );
+                                                                                            }}
+                                                                                            className="cursor-pointer hover:underline"
+                                                                                        >
+                                                                                            <h1 className="text-sm break-words">
+                                                                                                {
+                                                                                                    card.title
+                                                                                                }
+                                                                                            </h1>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             )}
@@ -377,7 +479,7 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
 
                                     {/* Tambah List */}
                                     <div
-                                        onClick={handleAddList}
+                                        onClick={() => setTambahList(true)}
                                         className="w-[280px] flex-shrink-0 bg-white/40 px-4 py-4 rounded-lg cursor-pointer hover:bg-white/60"
                                     >
                                         <div className="flex gap-2 items-center text-sm text-gray-700">
@@ -390,8 +492,23 @@ export default function Kanban({ children, dashboardId, activePage, tim }) {
                         </Droppable>
                     </DragDropContext>
                 </div>
+
                 {children}
             </Proyek>
+            {tambahList && (
+                <TambahList
+                    id={user.id}
+                    close={() => setTambahList(false)}
+                    id_board={id_board}
+                />
+            )}
+            {tambahCard && (
+                <TambahCard
+                    id_list={tambahCard}
+                    id={user.id}
+                    close={() => setTambahCard("")}
+                />
+            )}
         </>
     );
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\ProyekController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ProfilePerusahaanController;
 use App\Http\Controllers\Tim\Tim_perusahaanController;
+use App\Http\Controllers\Undangan\UndanganController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -38,7 +39,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.with.id');
 
     // Halaman Proyek board
-    Route::get('/proyek/{id_tim}/board', [ProyekController::class, 'index'])->name('proyek');
+    Route::get('/proyek/{id_tim}/board/{id_board}', [ProyekController::class, 'index'])->name('proyek');
     // halaman Proyek ringkas
     Route::get('/proyek/{id_tim}/ringkas', [ProyekController::class, 'ringkas'])->name('proyek.ringkas');
     // halaman proyek laporan
@@ -52,6 +53,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // Halaman Akses tim
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
+    Route::put('/aksestim/{user}/update-role', [AksesTimController::class, 'updateRole'])->name('aksestim.updateRole');
 
     // Halaman Pengaturan
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
@@ -64,8 +66,29 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // tambah anggota tim
+    // tambah tim
     Route::post('/tim-perusahaan', [Tim_perusahaanController::class, 'store'])->name('tim-perusahaan.store');
+    // hapus tim
+    Route::delete('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'destroy'])->name('tim-perusahaan.destroy');
+    // edit tim
+    Route::put('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'update'])->name('tim-perusahaan.update');
+
+    // perusahaan update
+    Route::put('/perusahaan', [DashboardController::class, 'update_perusahaan'])->name('perusahaan.update');
+
+    // Tambahkan di web.php atau routes file Anda
+    Route::post('/proyek/update-list-order', [ProyekController::class, 'updateListOrder'])
+        ->name('proyek.update-list-order');
+
+    Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])
+        ->name('proyek.update-card-order');
+
+    // tambah card
+    Route::post('/proyek/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
+
+    // tambah list
+    Route::post('/proyek/list', [ProyekController::class, 'storeList'])->name('proyek.list.store');
+
 });
 
 
@@ -114,16 +137,8 @@ Route::middleware(['auth:sanctum'])->prefix('api')->group(function () {
     Route::post('/profile-perusahaan/{id}/logo', [ProfilePerusahaanController::class, 'uploadLogo']);
 });
 
-// Route::middleware('auth')->group(function () {
-//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-// });
+    // kirim undangan    
+    Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim'); 
 
-// Route::middleware('auth')->group(function () {
-//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-// });
 
 require __DIR__.'/auth.php';

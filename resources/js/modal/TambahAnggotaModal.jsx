@@ -1,10 +1,12 @@
+import { router } from "@inertiajs/react";
 import { X, Mail } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function TambahAnggotaModal({ onclick }) {
     const modalOutside = useRef(null);
     const [email, setEmail] = useState("");
-    const [divisi, setDivisi] = useState("");
+    const [role, setrole] = useState("");
+    const [daftarrole, setDaftarrole] = useState([]);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -19,21 +21,27 @@ export default function TambahAnggotaModal({ onclick }) {
         };
     }, []);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!email || !divisi) {
-            setError("Email dan divisi wajib diisi.");
-            return;
-        }
 
-        // Simulasi kirim undangan
-        console.log("Mengundang:", { email, divisi });
+   const handleSubmit = (e) => {
+    e.preventDefault();
 
-        setEmail("");
-        setDivisi("");
-        setError("");
-        onclick();
-    };
+    if (!email || !role) {
+        setError("Email dan role wajib diisi.");
+        return;
+    }
+
+    router.post('/undangan', { email, role }, {
+        onSuccess: () => {
+            setEmail("");
+            setrole("");
+            setError("");
+            onclick();
+        },
+        onError: (errors) => {
+            setError(errors.email || errors.role || "Terjadi kesalahan.");
+        },
+    });
+};
 
     return (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -47,7 +55,7 @@ export default function TambahAnggotaModal({ onclick }) {
                 <div>
                     <h1 className="text-3xl font-bold mb-6 text-gray-800">Tambah Anggota</h1>
                     <form className="space-y-6" onSubmit={handleSubmit}>
-                    <div className="flex items-center bg-gray-100 rounded-xl px-4 py-3 space-x-3">
+                        <div className="flex items-center bg-gray-100 rounded-xl px-4 py-3 space-x-3">
                             <Mail className="text-gray-400" />
                             <input
                                 type="email"
@@ -58,25 +66,29 @@ export default function TambahAnggotaModal({ onclick }) {
                                 required
                             />
                             <select
-                                className="bg-white border border-gray-300 text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-0"
-                                value={divisi}
-                                onChange={(e) => setDivisi(e.target.value)}
+                                className="bg-white border border-gray-300 text-sm rounded-md px-2 py-1 focus:outline-none focus:ring-0 pr-7"
+                                value={role}
+                                onChange={(e) => setrole(e.target.value)}
                                 required
                             >
-                                <option value="" hidden>Pilih divisi</option>
-                                <option value="Marketing">HR</option>
-                                <option value="Admin">Admin</option>
-                                <option value="HR">HR</option>
-                                <option value="Finance">Finance</option>
+                                <option value="" hidden>Pilih Role</option>
+
+                                    <option value="Member">
+                                        Member
+                                    </option>
+                                    <option value="Admin">
+                                        Admin
+                                    </option>
+
                             </select>
                         </div>
 
                         {error && <p className="text-red-500 text-sm">{error}</p>}
                         <button
                             type="submit"
-                            disabled={!email || !divisi}
+                            disabled={!email || !role}
                             className={`w-full py-3 text-white font-medium rounded-lg transition 
-                                ${email && divisi ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"}`}
+                                ${email && role ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"}`}
                         >
                             Invite
                         </button>

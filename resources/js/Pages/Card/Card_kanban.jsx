@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { CalendarDays, Captions, MessageSquareText, Paperclip, Pencil, Save, SquareCheck, Tags, UserRoundPlus, X } from "lucide-react";
+import { CalendarDays, Captions, MessageSquareText, Paperclip, Pencil, Plus, Save, SquareCheck, Tags, UserRoundPlus, X } from "lucide-react";
 import { usePage } from "@inertiajs/react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import Proyek from "../Proyek";
+import Input from "@/modal/input/Input";
+import TambahAnggota from "@/modal/Proyek/TambahAnggota";
 
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
+    const [tambahAnggota, setTambahAnggota] = useState(false);
 
     // ref lihat card
     const lihatCardRef = useRef(null);
@@ -74,7 +77,7 @@ export default function Card_kanban() {
                     <div className="px-4 flex-1 flex flex-col lg:flex-row overflow-y-auto gap-4 ">
                         {/* Konten Kiri */}
                         <div className="flex flex-col gap-4 w-full py-4 lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element">
-                            {/* Avatar */}
+                            {/* Avatar
                             <div className="flex gap-2 items-center">
                                 <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center">
                                     <p>{user.name.charAt(0)}</p>
@@ -87,7 +90,7 @@ export default function Card_kanban() {
                                         2 jam yang lalu
                                     </p>
                                 </div>
-                            </div>
+                            </div> */}
 
                             {/* Deskripsi */}
                             <div className="px-2 border border-gray-200 py-3 rounded-lg">
@@ -136,32 +139,53 @@ export default function Card_kanban() {
                                         />
                                     )}
                                 </div>
+                            </div>
 
-                                {/* Tombol Aksi */}
-                                <div className="flex gap-3 mt-4 text-sm flex-wrap">
-                                    {/* button tambah anggota */}
-                                    <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                        <UserRoundPlus size={14} />
-                                        <p>Tambbah</p>
-                                    </div>
+                            {/* Tombol Aksi */}
+                            <div className="flex gap-3 mt-4 text-sm flex-wrap relative">
+                                {/* button pilihan */}
+                                <div className="flex gap-2 items-center p-2 rounded-md cursor-pointer bg-gray-200 hover:bg-gray-300">
+                                    <Plus size={14} />
+                                    Tambah
+                                </div>
 
-                                    {/* button checklist */}
-                                    <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                        <SquareCheck size={14} />
-                                        <p>Checklist</p>
-                                    </div>
+                                {/* button tambah anggota */}
+                                <div
+                                    onClick={() =>
+                                        setTambahAnggota(!tambahAnggota)
+                                    }
+                                    className={`flex gap-2 items-center p-2 ${
+                                        tambahAnggota
+                                            ? "bg-gray-600 text-white"
+                                            : "bg-gray-200"
+                                    } rounded-md cursor-pointer hover:bg-gray-300`}
+                                >
+                                    <UserRoundPlus size={14} />
+                                    <p>Anggota</p>
+                                </div>
 
-                                    {/* button label */}
-                                    <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                        <Tags size={14} />
-                                        <p>Label</p>
-                                    </div>
+                                {tambahAnggota && (
+                                    <TambahAnggota
+                                        close={() => setTambahAnggota(false)}
+                                    />
+                                )}
 
-                                    {/* button tanggal */}
-                                    <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                        <CalendarDays size={14} />
-                                        <p>Waktu</p>
-                                    </div>
+                                {/* button checklist */}
+                                <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
+                                    <SquareCheck size={14} />
+                                    <p>Checklist</p>
+                                </div>
+
+                                {/* button label */}
+                                <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
+                                    <Tags size={14} />
+                                    <p>Label</p>
+                                </div>
+
+                                {/* button tanggal */}
+                                <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
+                                    <CalendarDays size={14} />
+                                    <p>Waktu</p>
                                 </div>
                             </div>
 
