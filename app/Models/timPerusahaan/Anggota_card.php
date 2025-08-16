@@ -15,19 +15,14 @@ class Anggota_card extends Model
     protected $fillable = [
         'id',
         'id_user',
-        'id_tim_perusahaan',
-        'id_anggota_tim'
+        'id_card',
     ];
 
     public function user () {
         return $this->belongsTo(User::class, 'id_user');
     }
 
-    public function tim_perusahaan () {
-        return $this->belongsTo(TimPerusahaan::class, 'id_tim_perusahaan');
-    }
-
-    public function anggota_tim () {
-        return $this->belongsTo(Anggota_tim::class, 'id_anggota_tim');
+    public function cards () {
+        return $this->belongsTo(Card_listModel::class, 'id_anggota_tim');
     }
 }

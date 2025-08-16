@@ -23,5 +23,9 @@ class Card_listModel extends Model
     {
         return $this->belongsTo(List_boardModel::class, 'id_list', 'id');
     }
+
+    public function anggota_card_list () {
+        return $this->hasMany(Anggota_card::class, 'id_card');
+    }
     
 }

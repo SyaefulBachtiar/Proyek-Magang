@@ -61,19 +61,4 @@ class TimPerusahaan extends Model
         return $this->hasOne(BoardModel::class, 'id_team', 'id');
     }
 
-    public function anggota_card () {
-        return $this->hasMany(Anggota_card::class, 'id_tim_perusahaan');
-    }
-
-     // Method untuk mendapatkan semua anggota tim termasuk pembuat tim
-    // public function getAllMembers()
-    // {
-    //     return $this->anggotaTim()
-    //         ->with('user')
-    //         ->get()
-    //         ->pluck('user')
-    //         ->push($this->user)
-    //         ->unique('id');
-    // }
-
 }

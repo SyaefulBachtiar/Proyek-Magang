@@ -21,6 +21,16 @@ return new class extends Migration
             $table->foreign('id_list')->references('id')->on('list_board')->onDelete('cascade');
             $table->timestamps();
         });
+
+          // anggota card
+        Schema::create('anggota_card', function (Blueprint $table) {
+            $table->string('id', 36)->primary();
+            $table->string('id_user', 36)->nullable();
+            $table->string('id_card', 36)->nullable();
+            $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -29,5 +39,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('card_list');
+        Schema::dropIfExists('anggota_card');
     }
 };

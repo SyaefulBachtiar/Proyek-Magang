@@ -8,7 +8,7 @@ import TambahAnggotaBoard from "@/modal/Proyek/TambahAnggotaBoard";
 
 
 export default function Proyek({ children, dashboardId, activePage, tim }) {
-    const {id_board} = usePage().props;
+    const {id_board, role} = usePage().props;
     const [tambahAnggota, setTambahAnggota] =useState(false);
     return (
         <>
@@ -105,26 +105,32 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                 }`}
                             ></div>
                         </div>
-
-                        <div
-                            className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
-                            onClick={() => setTambahAnggota(!tambahAnggota)}
-                        >
-                            <div className="flex items-center gap-2">
-                                <UserRoundPlus size={20} />
-                                <h1>Tambah</h1>
-                            </div>
-                            <div
-                                className={`bg-[#A8E038] h-1 left-0 absolute`}
-                            ></div>
-                        </div>
+                        {role !== "Super User" ||
+                            (role !== "Admin" && (
+                                <div
+                                    className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                                    onClick={() =>
+                                        setTambahAnggota(!tambahAnggota)
+                                    }
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <UserRoundPlus size={20} />
+                                        <h1>Tambah</h1>
+                                    </div>
+                                    <div
+                                        className={`bg-[#A8E038] h-1 left-0 absolute`}
+                                    ></div>
+                                </div>
+                            ))}
                     </>
                 }
             >
                 <ProyekContent>{children}</ProyekContent>
             </Dashboard>
 
-            {tambahAnggota && <TambahAnggotaBoard close={() => setTambahAnggota(false)}/>}
+            {tambahAnggota && (
+                <TambahAnggotaBoard close={() => setTambahAnggota(false)} />
+            )}
         </>
     );
 }

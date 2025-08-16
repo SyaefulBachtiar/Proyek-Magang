@@ -3,7 +3,7 @@ import { X, Search, Plus } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 
 export default function TambahAnggotaBoard({ close }) {
-    const { anggota_tim, anggota_board } = usePage().props;
+    const { anggota_tim, anggota_board} = usePage().props;
 
     // State untuk search dan role
     const [searchQuery, setSearchQuery] = useState("");
@@ -147,7 +147,7 @@ export default function TambahAnggotaBoard({ close }) {
                     {anggota_board.length > 0 && (
                         <div className="mt-6">
                             <h2 className="font-medium text-gray-700 mb-3">
-                                Anggota Board ({anggota_board.length})
+                                Anggota Tim ({anggota_board.length})
                             </h2>
                             <div className="space-y-2 max-h-40 overflow-y-auto">
                                 {anggota_board.map((anggota) => (

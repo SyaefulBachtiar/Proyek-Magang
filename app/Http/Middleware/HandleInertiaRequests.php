@@ -109,6 +109,8 @@ class HandleInertiaRequests extends Middleware
                     $role = optional($user->perusahaan)->role;
                     return $role;
                 },
+
+                // anggota perusahaan
                 'anggota_tim' => function () use ($request) {
                     $user = $request->user();
                     if(!$user){
@@ -127,6 +129,8 @@ class HandleInertiaRequests extends Middleware
 
                     return $tim;
                 },
+
+                // anggota tim
                 'anggota_board' => function () use ($request) {
                 $user = $request->user();
                 $id_tim = $request->route('id_tim');
@@ -144,14 +148,39 @@ class HandleInertiaRequests extends Middleware
                         $data = $tim->anggota_tim_perusahaan
                             ->map(fn($anggota) => [
                                 'id' => $anggota->user->id ?? null,
-                                'name' => $anggota->user->name ?? ''
+                                'name' => $anggota->user->name ?? '',
+                                'role_anggota' => $anggota->role_anggota,
                             ])
                             ->toArray();
                     }
-                    
+
                 return $data;
+                },
+
+                // anggota card
+                'anggota_card' => function () use ($request) {
+                    $user = $request->user();
+                    $id_card = $request->route('cardId');
+
+                    if(!$user || !$id_card) {
+                        return null;
+                    }
+
+                    $tim = $user->anggota_card->firstWhere('id', $id_card);
+                    
+                    $data = [];
+                    if($tim) {
+                        $data = $tim->anggota_card_list
+                        ->map(fn($anggota) => [
+                            'id' => $anggota->user->id ?? null,
+                            'name' => $anggota->user->name ?? '',
+                        ])
+                        ->toArray();
+                    }
+                    
+                    return $data;
                 }
 
-                    ]);
+                ]);
     }
 }

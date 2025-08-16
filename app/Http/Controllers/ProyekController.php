@@ -44,7 +44,10 @@ class ProyekController extends Controller
 
     // card store
     public function storeCard(Request $request, $id){
-    
+      $user = Auth::user();
+        if(!$user){
+            return response()->json(['error', 'user tidak terkait dengan perusahaan'], 403);
+        }
     // Validasi input
     $request->validate([
         'nama_tugas' => 'required|string|max:50',
@@ -53,8 +56,6 @@ class ProyekController extends Controller
     ]);
 
     try {
-        // Generate ID unik
-        $cardId = (string) Str::uuid();
 
         // Hitung urutan card selanjutnya dalam list
         $maxUrutan = Card_listModel::where('id_list', $request->id_list)->max('urutan');
@@ -67,13 +68,19 @@ class ProyekController extends Controller
         }
 
         // Insert card baru
-        Card_listModel::create([
-            'id' => $cardId,
+        $card = Card_listModel::create([
+            'id' => (string) Str::uuid(),
             'nama_card' => $request->nama_tugas,
-            'pembuat' => Auth::user()->name, // Atau sesuaikan dengan field user
+            'pembuat' => $user->name,
             'image' => $imagePath,
             'id_list' => $request->id_list,
             'urutan' => $urutan,
+        ]);
+
+        $card->anggota_card()->create([
+            'id' => (string) Str::uuid(),
+            'id_user' => $user->id,
+            'id_card' => $card->id
         ]);
 
         return redirect()->back()->with('success', 'Berhasil Menambahkan Card');
@@ -86,21 +93,21 @@ class ProyekController extends Controller
 
      // list store
     public function storeList (Request $request, $id) {
-         $request->validate([
-        'nama_list' => 'required|string|max:50',
-        'id_board' => 'required|string|max:36|exists:board_tim,id',
-    ]);
 
+    $request->validate([
+    'nama_list' => 'required|string|max:50',
+    'id_board' => 'required|string|max:36|exists:board_tim,id',
+    ]);
 
     try{
 
-        $listId = (string) Str::uuid();
+
 
         $maxUrutan = List_boardModel::where('id_board', $request->id_board)->max('urutan_posisi');
         $urutan = $maxUrutan ? $maxUrutan + 1 : 1 + 1;
 
         List_boardModel::create([
-            'id' => $listId,
+            'id' => (string) Str::uuid(),
             'urutan_posisi' => $urutan,
             'judul' => $request->nama_list,
             'id_board' => $request->id_board,
@@ -108,7 +115,7 @@ class ProyekController extends Controller
 
         return redirect()->back()->with('success', 'Berhasil tambah list');
     }catch(\Exception $e){
-        return redirect()->back()->with('gagal', 'Gaga Menambahkan list: '. $e);
+        return redirect()->back()->with('gagal', 'Gagal Menambahkan list: '. $e);
     }
     }
 
