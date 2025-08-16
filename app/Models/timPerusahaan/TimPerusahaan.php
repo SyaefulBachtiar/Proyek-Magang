@@ -2,6 +2,7 @@
 
 namespace App\Models\timPerusahaan;
 
+use App\Models\Message;
 use App\Models\Perusahaan;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -54,5 +55,58 @@ class TimPerusahaan extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
+
+
+    // Leader tim
+    public function leader()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Messages chat grup
+    public function messages()
+    {
+        return $this->hasMany(Message::class, 'tim_id');
+    }
+
+    // Ambil messages terbaru
+    public function latestMessages($limit = 50)
+    {
+        return $this->messages()
+                    ->with('user')
+                    ->orderBy('created_at', 'desc')
+                    ->limit($limit)
+                    ->get()
+                    ->reverse(); // balik urutan, dari lama ke baru
+    }
+
+    // Count unread messages
+    public function unreadCount($userId)
+    {
+        return $this->messages()
+                    ->where('user_id', '!=', $userId)
+                    ->where('is_read', false)
+                    ->count();
+    }
+    // relasi ke board
+    public function board_tim()
+    {
+        return $this->hasOne(BoardModel::class, 'id_team', 'id');
+    }
+
+    public function anggota_card () {
+        return $this->hasMany(Anggota_card::class, 'id_tim_perusahaan');
+    }
+
+     // Method untuk mendapatkan semua anggota tim termasuk pembuat tim
+    // public function getAllMembers()
+    // {
+    //     return $this->anggotaTim()
+    //         ->with('user')
+    //         ->get()
+    //         ->pluck('user')
+    //         ->push($this->user)
+    //         ->unique('id');
+    // }
 
 }

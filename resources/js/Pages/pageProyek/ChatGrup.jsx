@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { usePage } from '@inertiajs/react';
 import Proyek from "../Proyek";
 
-const ChatGrup = ({ timId, activePage, tim }) => {
+const ChatGrup = ({ dashboardId, activePage, tim }) => {
     const { messages: initialMessages, user } = usePage().props;
     const [message, setMessage] = useState('');
     const [chatMessages, setChatMessages] = useState(initialMessages || []);
@@ -10,11 +10,42 @@ const ChatGrup = ({ timId, activePage, tim }) => {
     const [error, setError] = useState('');
     const chatContainerRef = useRef(null);
     const pollIntervalRef = useRef(null);
+    
+    // ✅ State untuk track apakah ini first load
+    const [isFirstLoad, setIsFirstLoad] = useState(true);
+
+    // ✅ Function untuk scroll ke bawah
+    const scrollToBottom = (smooth = false) => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: smooth ? 'smooth' : 'auto'
+            });
+        }
+    };
+
+    // ✅ Auto scroll ke bawah saat pertama kali load
+    useEffect(() => {
+        if (isFirstLoad && chatMessages && chatMessages.length > 0) {
+            // Slight delay untuk memastikan DOM sudah ter-render
+            setTimeout(() => {
+                scrollToBottom(false); // Tanpa animasi untuk first load
+                setIsFirstLoad(false);
+            }, 100);
+        }
+    }, [chatMessages, isFirstLoad]);
+
+    // ✅ Auto scroll ke bawah saat ada pesan baru (dengan smooth animation)
+    useEffect(() => {
+        if (!isFirstLoad) {
+            scrollToBottom(true); // Dengan smooth animation untuk pesan baru
+        }
+    }, [chatMessages.length]); // Trigger saat jumlah pesan berubah
 
     // Safety check untuk props
     if (!tim) {
         return (
-            <Proyek timId={timId} activePage={activePage} tim={null}>
+            <Proyek dashboardId={dashboardId} activePage={activePage} tim={null}>
                 <div className="p-4 bg-slate-100 min-h-screen">
                     <div className="text-center text-red-500">
                         Error: Data tim tidak ditemukan
@@ -23,13 +54,6 @@ const ChatGrup = ({ timId, activePage, tim }) => {
             </Proyek>
         );
     }
-
-    // Auto scroll ke bawah
-    useEffect(() => {
-        if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-        }
-    }, [chatMessages]);
 
     // Polling pesan baru setiap 3 detik
     useEffect(() => {
@@ -69,7 +93,7 @@ const ChatGrup = ({ timId, activePage, tim }) => {
     }, [tim?.id, chatMessages]);
 
     return (
-        <Proyek timId={timId} activePage={activePage} tim={tim}>
+        <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
             <div className="p-4 bg-slate-100 min-h-screen">
                 <h1 className="text-2xl font-bold text-center mb-4">Chat Grup Tim</h1>
 
@@ -88,6 +112,10 @@ const ChatGrup = ({ timId, activePage, tim }) => {
                         ref={chatContainerRef}
                         className="flex-1 p-4 overflow-y-auto space-y-3"
                         id="chatContainer"
+                        style={{
+                            // ✅ Tambahan CSS untuk smooth scrolling
+                            scrollBehavior: 'smooth'
+                        }}
                     >
                         {chatMessages?.length > 0 ? (
                             chatMessages.map((msg, index) => {
@@ -149,6 +177,9 @@ const ChatGrup = ({ timId, activePage, tim }) => {
                                 Belum ada pesan. Mulai percakapan!
                             </div>
                         )}
+                        
+                        {/* ✅ Invisible element sebagai scroll anchor */}
+                        <div id="chat-bottom" style={{ height: '1px' }}></div>
                     </div>
 
                     {/* Error Message */}
@@ -158,7 +189,7 @@ const ChatGrup = ({ timId, activePage, tim }) => {
                         </div>
                     )}
 
-                    {/* Form Input - MENGGUNAKAN INLINE FUNCTION */}
+                    {/* Form Input */}
                     <form onSubmit={async (e) => {
                         e.preventDefault();
                         
@@ -193,6 +224,8 @@ const ChatGrup = ({ timId, activePage, tim }) => {
                             if (data.success && data.message) {
                                 setChatMessages(prev => [...prev, data.message]);
                                 setMessage('');
+                                // ✅ Scroll ke bawah setelah mengirim pesan
+                                setTimeout(() => scrollToBottom(true), 50);
                             } else {
                                 setError(data.message || 'Gagal mengirim pesan');
                             }
@@ -229,6 +262,12 @@ const ChatGrup = ({ timId, activePage, tim }) => {
                     </form>
                 </div>
 
+                {/* ✅ BONUS: Tombol scroll ke bawah jika user scroll ke atas */}
+                <ScrollToBottomButton 
+                    chatContainerRef={chatContainerRef} 
+                    scrollToBottom={() => scrollToBottom(true)} 
+                />
+
                 {/* Info Tim */}
                 {tim && tim.members && tim.members.length > 0 && (
                     <div className="bg-white p-4 rounded-lg shadow-md">
@@ -251,5 +290,37 @@ const ChatGrup = ({ timId, activePage, tim }) => {
     );
 };
 
-// Pastikan export default
+// ✅ BONUS: Komponen tombol scroll ke bawah
+const ScrollToBottomButton = ({ chatContainerRef, scrollToBottom }) => {
+    const [showButton, setShowButton] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (chatContainerRef.current) {
+                const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50;
+                setShowButton(!isAtBottom);
+            }
+        };
+
+        const container = chatContainerRef.current;
+        if (container) {
+            container.addEventListener('scroll', handleScroll);
+            return () => container.removeEventListener('scroll', handleScroll);
+        }
+    }, [chatContainerRef]);
+
+    if (!showButton) return null;
+
+    return (
+        <button
+            onClick={scrollToBottom}
+            className="fixed bottom-20 right-8 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-200 z-50"
+            title="Scroll ke bawah"
+        >
+            ↓
+        </button>
+    );
+};
+
 export default ChatGrup;
