@@ -77,7 +77,7 @@ class ProyekController extends Controller
             'urutan' => $urutan,
         ]);
 
-        $card->anggota_card()->create([
+        $card->anggota_card_list()->create([
             'id' => (string) Str::uuid(),
             'id_user' => $user->id,
             'id_card' => $card->id
@@ -100,9 +100,6 @@ class ProyekController extends Controller
     ]);
 
     try{
-
-
-
         $maxUrutan = List_boardModel::where('id_board', $request->id_board)->max('urutan_posisi');
         $urutan = $maxUrutan ? $maxUrutan + 1 : 1 + 1;
 

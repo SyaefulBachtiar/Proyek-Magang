@@ -25,7 +25,7 @@ class Card_listModel extends Model
     }
 
     public function anggota_card_list () {
-        return $this->hasMany(Anggota_card::class, 'id_card');
+        return $this->hasMany(Anggota_card::class, 'id_card', 'id');
     }
     
 }

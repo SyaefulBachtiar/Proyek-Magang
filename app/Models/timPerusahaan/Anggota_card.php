@@ -23,6 +23,6 @@ class Anggota_card extends Model
     }
 
     public function cards () {
-        return $this->belongsTo(Card_listModel::class, 'id_anggota_tim');
+        return $this->belongsTo(Card_listModel::class, 'id_card', 'id');
     }
 }
