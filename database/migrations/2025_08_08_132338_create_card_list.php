@@ -27,8 +27,10 @@ return new class extends Migration
             $table->string('id', 36)->primary();
             $table->string('id_user', 36)->nullable();
             $table->string('id_card', 36)->nullable();
+            $table->string('id_anggota_tim', 36)->nullable();
             $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
+            $table->foreign('id_anggota_tim')->references('id')->on('anggota_tim')->onDelete('cascade');
             $table->timestamps();
         });
     }

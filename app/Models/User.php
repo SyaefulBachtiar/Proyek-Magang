@@ -99,13 +99,4 @@ class User extends Authenticatable
     {
         return Cache::has('user-is-online-' . $this->id);
     }
-    
-    public function anggota_card () {
-        return $this->belongsToMany(
-        Card_listModel::class, 
-        'anggota_card',
-        'id_user',
-        'id_card'
-    );
-    }
 }

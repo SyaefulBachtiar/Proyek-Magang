@@ -16,6 +16,7 @@ class Anggota_card extends Model
         'id',
         'id_user',
         'id_card',
+        'id_anggota_tim'
     ];
 
     public function user () {
@@ -24,5 +25,9 @@ class Anggota_card extends Model
 
     public function cards () {
         return $this->belongsTo(Card_listModel::class, 'id_card', 'id');
+    }
+
+    public function anggota_tim () {
+        return $this->belongsTo(Anggota_tim::class, 'id_anggota_tim', 'id');
     }
 }

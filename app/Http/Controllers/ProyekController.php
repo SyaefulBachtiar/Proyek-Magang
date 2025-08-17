@@ -16,34 +16,30 @@ class ProyekController extends Controller
 {
 
     // kanban
- public function index($id, $id_tim, $id_board) {
+    public function index($id, $id_tim, $id_board) {
+        $tim = TimPerusahaan::findOrFail($id_tim);
+        if (!$tim->board_tim) {
+            abort(404, 'Board tidak ditemukan');
+        }
+        $board_data = List_boardModel::with(['cards' => function($query) {
+                    $query->orderBy('urutan', 'asc');
+                }])
+                ->where('id_board', $id_board)
+                ->orderBy('urutan_posisi', 'asc')
+                ->get();
 
-    $tim = TimPerusahaan::findOrFail($id_tim);
-    
-    if (!$tim->board_tim) {
-        abort(404, 'Board tidak ditemukan');
+        return Inertia::render('pageProyek/Kanban', [
+            'dashboardId' => $id,
+            'id_tim' => $id_tim,
+            'id_board' => $id_board,
+            'activePage' => 'tugasPage',
+            'tim' => $tim,
+            'dataBoard' => $board_data,
+        ]);
     }
-
-    $board_data = List_boardModel::with(['cards' => function($query) {
-                // Urutkan cards berdasarkan kolom 'urutan'
-                $query->orderBy('urutan', 'asc');
-            }])
-            ->where('id_board', $id_board)
-            ->orderBy('urutan_posisi', 'asc') // Urutkan list berdasarkan urutan_posisi
-            ->get();
-
-    return Inertia::render('pageProyek/Kanban', [
-        'dashboardId' => $id,
-        'activePage' => 'tugasPage',
-        'tim' => $tim,
-        'dataBoard' => $board_data,
-    ]);
-    }
-
-    // kanban store
 
     // card store
-    public function storeCard(Request $request, $id){
+    public function storeCard(Request $request, $id, $id_tim, $id_board){
       $user = Auth::user();
         if(!$user){
             return response()->json(['error', 'user tidak terkait dengan perusahaan'], 403);
@@ -56,6 +52,10 @@ class ProyekController extends Controller
     ]);
 
     try {
+
+       $anggota_tim = $user->anggota_tim
+        ->where('id_tim_perusahaan', $id_tim)
+        ->first();
 
         // Hitung urutan card selanjutnya dalam list
         $maxUrutan = Card_listModel::where('id_list', $request->id_list)->max('urutan');
@@ -80,16 +80,17 @@ class ProyekController extends Controller
         $card->anggota_card_list()->create([
             'id' => (string) Str::uuid(),
             'id_user' => $user->id,
-            'id_card' => $card->id
+            'id_card' => $card->id,
+            'id_anggota_tim' => $anggota_tim->id,
         ]);
 
         return redirect()->back()->with('success', 'Berhasil Menambahkan Card');
 
     } catch (\Exception $e) {
         return redirect()->back()->with('gagal', 'Gagal Menambahkan Card: '. $e);
-    }
-    }
 
+    }
+}
 
      // list store
     public function storeList (Request $request, $id) {
@@ -117,97 +118,81 @@ class ProyekController extends Controller
     }
 
     public function showCard($id, $id_tim,  $cardId ) {
-
-         // Ambil hanya nama user dari anggota tim
-        $user = User::with([
-            'tim_perusahaan.anggota_tim_perusahaan.user'
-        ])->findOrFail($id);
-        
-       // Cari tim sesuai id_tim yang ada di parameter
+        $user = User::with(['tim_perusahaan.anggota_tim_perusahaan.user'])->findOrFail($id);
         $tim = $user->tim_perusahaan->firstWhere('id', $id_tim);
-
-          // Kalau tim ditemukan, ambil nama anggotanya
         $data = [];
         if ($tim) {
-            $data = $tim->anggota_tim_perusahaan
-                ->map(fn($anggota) => [
-                    'id' => $anggota->user->id ?? null,
-                    'name' => $anggota->user->name ?? ''
-                ])
-                ->toArray();
+            $data = $tim->anggota_tim_perusahaan->map(fn($anggota) => [
+                        'id' => $anggota->user->id ?? null,
+                        'name' => $anggota->user->name ?? '',
+                        'email' => $anggota->user->email ?? null
+                    ])->toArray();
+        }
+        return inertia('Card/Card_kanban', ['anggota_tim' => $data]);
+    }
+
+    public function ringkas ($id, $id_tim) {
+        $tim = TimPerusahaan::findOrFail($id_tim);
+        return Inertia::render('pageProyek/Rinkas', ['dashboardId' => $id, 'activePage' => 'ringkasPage', 'tim' => $tim]);
+    }
+
+    public function chatgrup ($id, $id_tim) {
+        $tim = TimPerusahaan::findOrFail($id_tim);
+        return Inertia::render('pageProyek/ChatGrup', ['dashboardId' => $id, 'activePage' => 'chatGrupPage', 'tim' => $tim]);
+    }
+
+    public function laporan ($id, $id_tim) {
+        $tim = TimPerusahaan::findOrFail($id_tim);
+        return Inertia::render('pageProyek/Laporan', ['dashboardId' => $id, 'activePage' => 'laporanPage', 'tim' => $tim]);
+    }
+
+    public function updateListOrder(Request $request) {
+        $request->validate(['lists' => 'required|array', 'lists.*.id' => 'required|string', 'lists.*.urutan_posisi' => 'required|integer']);
+        foreach ($request->lists as $list) {
+            List_boardModel::where('id', $list['id'])->update(['urutan_posisi' => $list['urutan_posisi']]);
+        }
+        return redirect()->back()->with('success', 'List berhasil di pindahkan');
+    }
+
+    public function updateCardOrder(Request $request) {
+        $request->validate(['cards' => 'required|array', 'cards.*.id' => 'required|string', 'cards.*.urutan' => 'required|integer', 'cards.*.id_list' => 'required|string']);
+        foreach ($request->cards as $card) {
+            Card_listModel::where('id', $card['id'])->update(['urutan' => $card['urutan'], 'id_list' => $card['id_list']]);
+        }
+        return redirect()->back()->with('success', 'Card berhasil di pindahkan');
+    }
+
+    // --- FUNGSI BARU UNTUK MENAMBAH ANGGOTA TIM ---
+    public function tambahAnggota(Request $request, $id, $id_tim) {
+        // Validasi defensif untuk memastikan ID tim valid
+        $tim = TimPerusahaan::find($id_tim);
+        if (!$tim) {
+            return response()->json(['message' => 'Tim perusahaan dengan ID yang diberikan tidak ditemukan.'], 404);
         }
 
+        $request->validate([
+            'id_users' => 'required|string|exists:users,id',
+            'role_anggota' => 'required|string|in:Member,Ketua tim',
+        ]);
 
-    return inertia('Card/Card_kanban', [
-        'anggota_tim' => $data
-    ]);
-}
+        try {
+            $isExist = Anggota_tim::where('id_users', $request->id_users)
+                                   ->where('id_tim_perusahaan', $id_tim)
+                                   ->exists();
+            if ($isExist) {
+                return response()->json(['message' => 'Anggota sudah terdaftar di tim ini.'], 422);
+            }
 
-
-
-public function ringkas ($id, $id_tim) {
-
-    $tim = TimPerusahaan::findOrFail($id_tim);
-
-    return Inertia::render('pageProyek/Rinkas', [
-        'dashboardId' => $id,
-        'activePage' => 'ringkasPage',
-        'tim' => $tim
-    ]);
-}
-
-
-public function chatgrup ($id, $id_tim) {
-    $tim = TimPerusahaan::findOrFail($id_tim);
-    return Inertia::render('pageProyek/ChatGrup', [
-        'dashboardId' => $id,
-        'activePage' => 'chatGrupPage',
-        'tim' => $tim
-    ]);
-}
-
-public function laporan ($id, $id_tim) {
-    $tim = TimPerusahaan::findOrFail($id_tim);
-    return Inertia::render('pageProyek/Laporan', [
-        'dashboardId' => $id,
-        'activePage' => 'laporanPage',
-        'tim' => $tim
-    ]);
-}
-
-public function updateListOrder(Request $request)
-{
-    $request->validate([
-        'lists' => 'required|array',
-        'lists.*.id' => 'required|string',
-        'lists.*.urutan_posisi' => 'required|integer',
-    ]);
-
-    foreach ($request->lists as $list) {
-        List_boardModel::where('id', $list['id'])
-            ->update(['urutan_posisi' => $list['urutan_posisi']]);
-    }
-
-    return redirect()->back()->with('success', 'List berhasil di pindahkan');
-}
-
-public function updateCardOrder(Request $request)
-{
-    $request->validate([
-        'cards' => 'required|array',
-        'cards.*.id' => 'required|string',
-        'cards.*.urutan' => 'required|integer',
-        'cards.*.id_list' => 'required|string',
-    ]);
-
-    foreach ($request->cards as $card) {
-        Card_listModel::where('id', $card['id'])
-            ->update([
-                'urutan' => $card['urutan'],
-                'id_list' => $card['id_list']
+            Anggota_tim::create([
+                'id' => (string) Str::uuid(),
+                'id_users' => $request->id_users,
+                'role_anggota' => $request->role_anggota,
+                'id_tim_perusahaan' => $id_tim,
             ]);
-    }
 
-    return redirect()->back()->with('success', 'Card berhasil di pindahkan');
-}
+            return redirect()->back()->with('success', 'Anggota tim berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
+        }
+    }
 }

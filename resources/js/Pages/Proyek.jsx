@@ -105,8 +105,7 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                 }`}
                             ></div>
                         </div>
-                        {role !== "Super User" ||
-                            (role !== "Admin" && (
+                        {role !== "Super User" || role !== "Admin" ? (
                                 <div
                                     className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
                                     onClick={() =>
@@ -121,7 +120,7 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                         className={`bg-[#A8E038] h-1 left-0 absolute`}
                                     ></div>
                                 </div>
-                            ))}
+                            ) : ""}
                     </>
                 }
             >

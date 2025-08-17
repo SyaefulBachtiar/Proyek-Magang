@@ -16,7 +16,7 @@ import {
 import { useState } from "react";
 
 export default function Sidebar({ sidebarOpen, activePage, id }) {
-    const { timPerusahaan, id_board, role } = usePage().props;
+    const { timPerusahaan, role } = usePage().props;
 
     const proyekTim =
         timPerusahaan?.filter((tim) => tim.jenis_tim === "proyek") || [];
@@ -219,8 +219,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                                                     {
                                                                         id: id,
                                                                         id_tim: tim.id,
-                                                                        id_board:
-                                                                            id_board,
+                                                                        id_board: tim.board_tim?.id,
                                                                     }
                                                                 )
                                                             )
@@ -294,8 +293,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                                                     {
                                                                         id: id,
                                                                         id_tim: anggota.id,
-                                                                        id_board:
-                                                                            id_board,
+                                                                        id_board: anggota.board_tim?.id,
                                                                     }
                                                                 )
                                                             )
@@ -333,7 +331,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                         )}
                     </div>
                 </div>
-                {role !== "Super User" || role !== "Admin" && (
+                {role !== "Super User" || role !== "Admin" ? (
                     <>
                         {/* akses tim sidebar */}
                         <div
@@ -431,7 +429,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                             </div>
                         </div>
                     </>
-                )}
+                ) : ""}
             </div>
         </>
     );

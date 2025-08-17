@@ -15,7 +15,7 @@ import TambahList from "@/modal/Proyek/TambahList";
 
 
 
-export default function Kanban({ children, dashboardId, activePage, tim, dataBoard }) {
+export default function Kanban({ children, dashboardId, activePage, tim, dataBoard, id_tim }) {
 
     const user = usePage().props.auth.user;
     const {id_board} = usePage().props;
@@ -506,6 +506,8 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                 <TambahCard
                     id_list={tambahCard}
                     id={user.id}
+                    id_tim={id_tim}
+                    id_board={id_board}
                     close={() => setTambahCard("")}
                 />
             )}

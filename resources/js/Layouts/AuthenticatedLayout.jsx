@@ -116,19 +116,19 @@ export default function AuthenticatedLayout({ children, header }) {
                             {/* Users */}
                             <div className="flex">
                                 {onlineUsers
-                                    ? onlineUsers.map((user, i) => (
+                                    ? onlineUsers.map((users, i) => (
                                           <div
                                               key={i}
                                               className="relative group mx-1"
                                           >
                                               {/* Avatar */}
 
-                                              {user.poto_profile_user ? (
+                                              {users.poto_profile_user ? (
                                                   <div
                                                       className={`w-[30px] h-[30px] rounded-[50%] cursor-pointer flex items-center justify-center overflow-hidden`}
                                                   >
                                                       <img
-                                                          src={`/storage/${user.poto_profile_user}`}
+                                                          src={`/storage/${users.poto_profile_user}`}
                                                           alt="Foto Profil"
                                                           className="object-cover h-full"
                                                       />
@@ -138,7 +138,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                                       className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
                                                   >
                                                       <p>
-                                                          {user.name.charAt(0)}
+                                                          {users.name.charAt(0)}
                                                       </p>
                                                   </div>
                                               )}
@@ -149,30 +149,32 @@ export default function AuthenticatedLayout({ children, header }) {
                                               {/* Hover modal/info box */}
                                               <div className="absolute top-[40px] left-1/2 -translate-x-1/2 z-10 w-max px-3 py-2 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                                                   <p className="text-sm font-semibold">
-                                                      {user.name}
+                                                      {users.name === user.name
+                                                          ? "Anda"
+                                                          : users.name}
                                                   </p>
                                                   <p className="text-xs text-gray-600">
-                                                      {user.jabatan}
+                                                      {users.jabatan}
                                                   </p>
                                                   <p className="text-xs text-gray-400">
-                                                      {user.role}
+                                                      {users.role}
                                                   </p>
                                               </div>
                                           </div>
                                       ))
-                                    : offlineUsers.map((user, i) => (
+                                    : offlineUsers.map((users, i) => (
                                           <div
                                               key={i}
                                               className="relative group mx-1"
                                           >
                                               {/* Avatar */}
 
-                                              {user.poto_profile_user ? (
+                                              {users.poto_profile_user ? (
                                                   <div
                                                       className={`w-[30px] h-[30px] rounded-[50%] cursor-pointer flex items-center justify-center overflow-hidden`}
                                                   >
                                                       <img
-                                                          src={`/storage/${user.poto_profile_user}`}
+                                                          src={`/storage/${users.poto_profile_user}`}
                                                           alt="Foto Profil"
                                                           className="object-cover h-full"
                                                       />
@@ -182,7 +184,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                                       className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
                                                   >
                                                       <p>
-                                                          {user.name.charAt(0)}
+                                                          {users.name.charAt(0)}
                                                       </p>
                                                   </div>
                                               )}
@@ -193,13 +195,15 @@ export default function AuthenticatedLayout({ children, header }) {
                                               {/* Hover modal/info box */}
                                               <div className="absolute top-[40px] left-1/2 -translate-x-1/2 z-10 w-max px-3 py-2 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                                                   <p className="text-sm font-semibold">
-                                                      {user.name}
+                                                      {users.name === user.name
+                                                          ? "Anda"
+                                                          : users.name}
                                                   </p>
                                                   <p className="text-xs text-gray-600">
-                                                      {user.jabatan}
+                                                      {users.jabatan}
                                                   </p>
                                                   <p className="text-xs text-gray-400">
-                                                      {user.role}
+                                                      {users.role}
                                                   </p>
                                               </div>
                                           </div>
@@ -207,20 +211,19 @@ export default function AuthenticatedLayout({ children, header }) {
                             </div>
 
                             {/* button tambah anggota */}
-                            {role !== "Super User" ||
-                                (role !== "Admin" && (
-                                    <button
-                                        className="px-4 py-2 bg-blue-400/50 rounded-lg flex items-center text-gray-600 gap-2"
-                                        onClick={() =>
-                                            setTambahAnggotaModal(true)
-                                        }
-                                    >
-                                        <UserRoundPlus />
-                                        <p className="text-xs sm:text-sm">
-                                            Tambah anggota
-                                        </p>
-                                    </button>
-                                ))}
+                            {role !== "Super User" || role !== "Admin" ? (
+                                <button
+                                    className="px-4 py-2 bg-blue-400/50 rounded-lg flex items-center text-gray-600 gap-2"
+                                    onClick={() => setTambahAnggotaModal(true)}
+                                >
+                                    <UserRoundPlus />
+                                    <p className="text-xs sm:text-sm">
+                                        Tambah anggota
+                                    </p>
+                                </button>
+                            ) : (
+                                ""
+                            )}
 
                             {/* Profil icon user */}
                             <div ref={profileDropDownRef} className="relative">

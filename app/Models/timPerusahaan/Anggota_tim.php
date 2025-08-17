@@ -45,5 +45,8 @@ class Anggota_tim extends Model
         return $this->belongsTo(User::class, 'id_users');
     }
 
+    public function anggota_card () {
+        return $this->hasMany(Anggota_card::class, 'id_anggota_tim', 'id');
+    }
 
 }

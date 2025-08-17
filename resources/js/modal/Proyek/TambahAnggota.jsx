@@ -6,6 +6,7 @@ export default function TambahAnggota({ close, tambahAnggota }) {
     const tambahRef = useRef(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [isAdding, setIsAdding] = useState(false);
+    const user = usePage().props.auth.user;
 
     const props = usePage().props;
     const anggota_tim = props.anggota_tim;
@@ -13,7 +14,7 @@ export default function TambahAnggota({ close, tambahAnggota }) {
 
     // Filter anggota card berdasarkan search query
     const filteredAnggotaCard = useMemo(() => {
-        return anggota_card.filter((tim) => {
+        const filtered = anggota_card.filter((tim) => {
             if (searchQuery.trim()) {
                 const query = searchQuery.toLowerCase();
                 return (
@@ -23,11 +24,27 @@ export default function TambahAnggota({ close, tambahAnggota }) {
             }
             return true;
         });
-    }, [anggota_card, searchQuery]);
 
-    // Filter anggota tim berdasarkan search query
+        // Urutkan agar user yang sedang login di paling atas
+        return filtered.sort((a, b) => {
+            if (a.id === user.id) return -1;
+            if (b.id === user.id) return 1;
+            return 0;
+        });
+    }, [anggota_card, searchQuery, user.id]);
+
+    // Filter anggota tim berdasarkan search query dan exclude yang sudah ada di anggota card
     const filteredAnggotaTim = useMemo(() => {
-        return anggota_tim.filter((tim) => {
+        // Buat set ID dari anggota card untuk pencarian yang lebih efisien
+        const anggotaCardIds = new Set(anggota_card.map((card) => card.id));
+
+        const filtered = anggota_tim.filter((tim) => {
+            // Skip jika anggota sudah ada di anggota card
+            if (anggotaCardIds.has(tim.id)) {
+                return false;
+            }
+
+            // Filter berdasarkan search query
             if (searchQuery.trim()) {
                 const query = searchQuery.toLowerCase();
                 return (
@@ -37,7 +54,14 @@ export default function TambahAnggota({ close, tambahAnggota }) {
             }
             return true;
         });
-    }, [anggota_tim, searchQuery]);
+
+        // Urutkan agar user yang sedang login di paling atas
+        return filtered.sort((a, b) => {
+            if (a.id === user.id) return -1;
+            if (b.id === user.id) return 1;
+            return 0;
+        });
+    }, [anggota_tim, anggota_card, searchQuery, user.id]);
 
     useEffect(() => {
         function handleClickOutside(e) {
@@ -80,7 +104,7 @@ export default function TambahAnggota({ close, tambahAnggota }) {
     return (
         <div
             ref={tambahRef}
-            className="absolute top-11 right-32 bg-white shadow-[0_4px_10px_rgba(0,0,0,0.25)] py-4 px-4 rounded-lg w-[300px] overflow-y-auto max-h-[400px]"
+            className="absolute top-11 right-32 bg-white shadow-[0_4px_10px_rgba(0,0,0,0.25)] py-4 px-4 rounded-lg min-w-[300px] overflow-y-auto max-h-[400px]"
         >
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-lg font-semibold">Anggota</h1>
@@ -140,7 +164,9 @@ export default function TambahAnggota({ close, tambahAnggota }) {
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-medium">
-                                            {tim.name}
+                                            {tim.name === user.name
+                                                ? "Anda"
+                                                : tim.name}
                                         </h3>
                                         {tim.email && (
                                             <p className="text-xs text-gray-500">
@@ -153,7 +179,15 @@ export default function TambahAnggota({ close, tambahAnggota }) {
                                     disabled={isAdding}
                                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 rounded transition-opacity disabled:opacity-50"
                                 >
-                                    <X size={14} />
+                                    <X
+                                        size={14}
+                                        className={`${
+                                            tim.name === user.name ||
+                                            tim.role === "Ketua tim"
+                                                ? "hidden"
+                                                : "flex"
+                                        }`}
+                                    />
                                 </button>
                             </div>
                         ))
@@ -172,7 +206,7 @@ export default function TambahAnggota({ close, tambahAnggota }) {
                     )}
                 </h2>
 
-                <div className="space-y-1 max-h-32 overflow-y-auto">
+                <div className="space-y-1 max-h-32 overflow-y-auto my-scrollable-element">
                     {filteredAnggotaTim.length === 0 ? (
                         <div className="text-center text-gray-500 py-4 text-sm">
                             {searchQuery
@@ -193,7 +227,9 @@ export default function TambahAnggota({ close, tambahAnggota }) {
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-medium">
-                                            {tim.name}
+                                            {tim.name === user.name
+                                                ? "Anda"
+                                                : tim.name}
                                         </h3>
                                         {tim.email && (
                                             <p className="text-xs text-gray-500">
@@ -206,7 +242,14 @@ export default function TambahAnggota({ close, tambahAnggota }) {
                                     disabled={isAdding}
                                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 rounded transition-opacity disabled:opacity-50"
                                 >
-                                    <Plus size={14} className="text-blue-500" />
+                                    <Plus
+                                        size={14}
+                                        className={`text-blue-500 ${
+                                            tim.name === user.name
+                                                ? "hidden"
+                                                : "flex"
+                                        }`}
+                                    />
                                 </button>
                             </div>
                         ))

@@ -3,7 +3,9 @@ import { X, Search, Plus } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 
 export default function TambahAnggotaBoard({ close }) {
-    const { anggota_tim, anggota_board} = usePage().props;
+    // Ambil 'tim' dan 'auth' dari props
+    const { anggota_tim, anggota_board, tim, auth } = usePage().props;
+
 
     // State untuk search dan role
     const [searchQuery, setSearchQuery] = useState("");
@@ -12,14 +14,12 @@ export default function TambahAnggotaBoard({ close }) {
 
     // Filter anggota tim berdasarkan search query saja (tetap tampilkan semua)
     const filteredAnggotaTim = useMemo(() => {
-        // Buat set ID anggota yang sudah ada di board untuk styling
         const anggotaBoardIds = new Set(
             anggota_board.map((anggota) => anggota.id)
         );
 
         return anggota_tim
             .filter((anggota) => {
-                // Filter berdasarkan search query
                 if (searchQuery.trim()) {
                     const query = searchQuery.toLowerCase();
                     return (
@@ -28,12 +28,11 @@ export default function TambahAnggotaBoard({ close }) {
                             anggota.email.toLowerCase().includes(query))
                     );
                 }
-
                 return true;
             })
             .map((anggota) => ({
                 ...anggota,
-                isInBoard: anggotaBoardIds.has(anggota.id), // Tambah flag untuk styling
+                isInBoard: anggotaBoardIds.has(anggota.id),
             }));
     }, [anggota_tim, anggota_board, searchQuery]);
 
@@ -45,16 +44,22 @@ export default function TambahAnggotaBoard({ close }) {
     // Handle tambah anggota ke board
     const handleTambahAnggota = useCallback(
         async (anggota) => {
-            // Cek jika anggota sudah ada di board
             if (anggota.isInBoard) {
                 alert("Anggota sudah ada di board");
                 return;
             }
 
+            // Validasi di sisi frontend untuk memastikan data tim dan auth ada
+            if (!tim || !tim.id || !auth || !auth.user || !auth.user.id) {
+                console.error("ID Tim atau ID User tidak ditemukan di props!");
+                alert("Gagal menambahkan anggota: Data sesi tidak lengkap.");
+                return;
+            }
+
             setIsAdding(true);
             try {
-                // Implementasi API call untuk menambah anggota
-                const response = await fetch("/api/board/anggota", {
+                // URL diperbaiki agar sepenuhnya dinamis
+                const response = await fetch(`/dashboard/${auth.user.id}/proyek/${tim.id}/anggota`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -63,27 +68,29 @@ export default function TambahAnggotaBoard({ close }) {
                             .getAttribute("content"),
                     },
                     body: JSON.stringify({
-                        user_id: anggota.id,
-                        role: selectedRole,
+                        id_users: anggota.id,
+                        role_anggota: selectedRole,
                     }),
                 });
 
                 if (response.ok) {
-                    // Refresh halaman atau update state
-                    window.location.reload(); // Atau gunakan Inertia.reload()
+                    window.location.reload();
                 } else {
-                    console.error("Gagal menambahkan anggota");
+                    const errorData = await response.json();
+                    alert(errorData.message || "Gagal menambahkan anggota");
+                    console.error("Gagal menambahkan anggota:", errorData);
                 }
             } catch (error) {
                 console.error("Error:", error);
+                alert("Terjadi kesalahan saat menambahkan anggota.");
             } finally {
                 setIsAdding(false);
             }
         },
-        [selectedRole]
+        [selectedRole, tim, auth] // Tambahkan 'auth' sebagai dependency
     );
 
-    // Handle hapus anggota dari board
+    // Handle hapus anggota dari board (Fungsi ini tidak diubah)
     const handleHapusAnggota = useCallback(async (anggotaId) => {
         try {
             const response = await fetch(`/api/board/anggota/${anggotaId}`, {
@@ -116,8 +123,6 @@ export default function TambahAnggotaBoard({ close }) {
 
                 <div className="mt-4">
                     <h1 className="text-xl font-semibold">Tambahkan Anggota</h1>
-
-                    {/* Search Input dan Role Selector */}
                     <div className="flex gap-3 mt-5">
                         <div className="relative flex-1">
                             <Search
@@ -143,7 +148,6 @@ export default function TambahAnggotaBoard({ close }) {
                         </select>
                     </div>
 
-                    {/* Anggota Board (yang sudah ditambahkan) */}
                     {anggota_board.length > 0 && (
                         <div className="mt-6">
                             <h2 className="font-medium text-gray-700 mb-3">
@@ -168,6 +172,11 @@ export default function TambahAnggotaBoard({ close }) {
                                                 <p className="text-xs text-gray-500">
                                                     {anggota.role}
                                                 </p>
+                                                {anggota.email && (
+                                                    <p className="text-xs text-gray-500">
+                                                        {anggota.email}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                         {anggota.role !== "owner" && (
@@ -191,7 +200,6 @@ export default function TambahAnggotaBoard({ close }) {
                         </div>
                     )}
 
-                    {/* Anggota Perusahaan (yang bisa ditambahkan) */}
                     <div className="mt-6">
                         <h2 className="font-medium text-gray-700 mb-3">
                             Anggota Perusahaan
@@ -201,7 +209,6 @@ export default function TambahAnggotaBoard({ close }) {
                                 </span>
                             )}
                         </h2>
-
                         <div className="space-y-2 max-h-60 overflow-y-auto">
                             {filteredAnggotaTim.length > 0 ? (
                                 filteredAnggotaTim.map((anggota) => (
@@ -292,8 +299,6 @@ export default function TambahAnggotaBoard({ close }) {
                             )}
                         </div>
                     </div>
-
-                    {/* Loading state */}
                     {isAdding && (
                         <div className="mt-4 text-center text-sm text-gray-500">
                             Menambahkan anggota...

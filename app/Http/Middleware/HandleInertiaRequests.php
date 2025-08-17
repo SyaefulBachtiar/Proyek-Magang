@@ -3,8 +3,10 @@
 namespace App\Http\Middleware;
 
 use App\Models\timPerusahaan\BoardModel;
+use App\Models\timPerusahaan\Card_listModel;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -84,11 +86,16 @@ class HandleInertiaRequests extends Middleware
                 'timPerusahaan' => function () use ($request) {
                     $user = $request->user();
 
-                    if(!$user){
+                    if(!$user) {
                         return [];
                     }
 
-                    return $user->tim_perusahaan()->with('anggota_tim_perusahaan.user')->get();
+                    $user->load([
+                    'tim_perusahaan.anggota_tim_perusahaan.user',
+                    'tim_perusahaan.board_tim.listBoards'
+                    ]);
+
+                    return $user->tim_perusahaan;
                 },
                 'id_board' => function () use ($request) {
                     $id_tim = $request->route('id_tim');
@@ -149,7 +156,8 @@ class HandleInertiaRequests extends Middleware
                             ->map(fn($anggota) => [
                                 'id' => $anggota->user->id ?? null,
                                 'name' => $anggota->user->name ?? '',
-                                'role_anggota' => $anggota->role_anggota,
+                                'email' => $anggota->user->email ?? null,
+                                'role' => $anggota->role_anggota,
                             ])
                             ->toArray();
                     }
@@ -159,14 +167,14 @@ class HandleInertiaRequests extends Middleware
 
                 // anggota card
                 'anggota_card' => function () use ($request) {
-                    $user = $request->user();
                     $id_card = $request->route('cardId');
 
-                    if(!$user || !$id_card) {
+                    if(!$id_card) {
                         return null;
                     }
 
-                    $tim = $user->anggota_card->firstWhere('id', $id_card);
+                    $tim = Card_listModel::with(['anggota_card_list.user', 'anggota_card_list.anggota_tim'])
+                    ->find($id_card);
                     
                     $data = [];
                     if($tim) {
@@ -174,10 +182,12 @@ class HandleInertiaRequests extends Middleware
                         ->map(fn($anggota) => [
                             'id' => $anggota->user->id ?? null,
                             'name' => $anggota->user->name ?? '',
+                            'email' => $anggota->user->email ?? null,
+                            'role' => $anggota->anggota_tim->role_anggota ?? null
                         ])
                         ->toArray();
                     }
-                    
+
                     return $data;
                 }
 
