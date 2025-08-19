@@ -42,7 +42,7 @@ class ProyekController extends Controller
     public function storeCard(Request $request, $id, $id_tim, $id_board){
       $user = Auth::user();
         if(!$user){
-            return response()->json(['error', 'user tidak terkait dengan perusahaan'], 403);
+            return response()->json(['error' => 'user tidak terkait dengan perusahaan'], 403);
         }
     // Validasi input
     $request->validate([
@@ -191,6 +191,26 @@ class ProyekController extends Controller
             ]);
 
             return redirect()->back()->with('success', 'Anggota tim berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
+        }
+    }
+    
+    // fungsi delet
+    public function hapusAnggota($id, $id_tim, $id_user) {
+        try {
+            // Cari anggota tim yang sesuai berdasarkan id_tim_perusahaan dan id_users
+            $anggota = Anggota_tim::where('id_tim_perusahaan', $id_tim)
+                                   ->where('id_users', $id_user)
+                                   ->first();
+
+            // Jika anggota tidak ditemukan, kembalikan response error
+            if (!$anggota) {
+                return response()->json(['message' => 'Anggota tidak ditemukan di tim ini.'], 404);
+            }
+            $anggota->delete();
+            return response()->json(['message' => 'Anggota tim berhasil dihapus.'], 200);
+
         } catch (\Exception $e) {
             return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
         }

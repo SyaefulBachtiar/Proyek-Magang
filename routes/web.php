@@ -45,6 +45,9 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::post('/proyek/{id_tim}/board/{id_board}/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
     Route::post('/proyek/list', [ProyekController::class, 'storeList'])->name('proyek.list.store');
     
+    // Menghapus Anggota
+    Route::delete('/proyek/{id_tim}/anggota/{id_user}', [ProyekController::class, 'hapusAnggota'])->name('proyek.anggota.destroy');
+
     //  MENAMBAH ANGGOTA TIM
     Route::post('/proyek/{id_tim}/anggota', [ProyekController::class, 'tambahAnggota'])->name('proyek.anggota.store');
 
