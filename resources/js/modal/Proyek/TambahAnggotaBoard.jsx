@@ -3,16 +3,15 @@ import { X, Search, Plus } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 
 export default function TambahAnggotaBoard({ close }) {
-    // Ambil 'tim' dan 'auth' dari props
+    
     const { anggota_tim, anggota_board, tim, auth } = usePage().props;
 
-
-    // State untuk search dan role
+    // State untuk search, role, dan status proses
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRole, setSelectedRole] = useState("Member");
     const [isAdding, setIsAdding] = useState(false);
 
-    // Filter anggota tim berdasarkan search query saja (tetap tampilkan semua)
+    // Filter anggota perusahaan berdasarkan query pencarian
     const filteredAnggotaTim = useMemo(() => {
         const anggotaBoardIds = new Set(
             anggota_board.map((anggota) => anggota.id)
@@ -36,7 +35,7 @@ export default function TambahAnggotaBoard({ close }) {
             }));
     }, [anggota_tim, anggota_board, searchQuery]);
 
-    // Handle search input change
+    // Handle perubahan input search
     const handleSearchChange = useCallback((e) => {
         setSearchQuery(e.target.value);
     }, []);
@@ -49,7 +48,6 @@ export default function TambahAnggotaBoard({ close }) {
                 return;
             }
 
-            // Validasi di sisi frontend untuk memastikan data tim dan auth ada
             if (!tim || !tim.id || !auth || !auth.user || !auth.user.id) {
                 console.error("ID Tim atau ID User tidak ditemukan di props!");
                 alert("Gagal menambahkan anggota: Data sesi tidak lengkap.");
@@ -58,7 +56,6 @@ export default function TambahAnggotaBoard({ close }) {
 
             setIsAdding(true);
             try {
-                // URL diperbaiki agar sepenuhnya dinamis
                 const response = await fetch(`/dashboard/${auth.user.id}/proyek/${tim.id}/anggota`, {
                     method: "POST",
                     headers: {
@@ -87,13 +84,24 @@ export default function TambahAnggotaBoard({ close }) {
                 setIsAdding(false);
             }
         },
-        [selectedRole, tim, auth] // Tambahkan 'auth' sebagai dependency
+        [selectedRole, tim, auth]
     );
 
-    // Handle hapus anggota dari board (Fungsi ini tidak diubah)
+    // Handle hapus anggota dari board
     const handleHapusAnggota = useCallback(async (anggotaId) => {
+        const confirmation = window.confirm("Apakah Anda yakin ingin menghapus anggota ini?");
+        if (!confirmation) {
+            return;
+        }
+
+        if (!tim || !tim.id || !auth || !auth.user || !auth.user.id) {
+            console.error("ID Tim atau ID User tidak ditemukan di props!");
+            alert("Gagal menghapus anggota: Data sesi tidak lengkap.");
+            return;
+        }
+
         try {
-            const response = await fetch(`/api/board/anggota/${anggotaId}`, {
+            const response = await fetch(`/dashboard/${auth.user.id}/proyek/${tim.id}/anggota/${anggotaId}`, {
                 method: "DELETE",
                 headers: {
                     "X-CSRF-TOKEN": document
@@ -103,17 +111,20 @@ export default function TambahAnggotaBoard({ close }) {
             });
 
             if (response.ok) {
+                alert("Anggota berhasil dihapus.");
                 window.location.reload();
             } else {
+                alert("Gagal menghapus anggota.");
                 console.error("Gagal menghapus anggota");
             }
         } catch (error) {
             console.error("Error:", error);
+            alert("Terjadi kesalahan saat menghapus anggota.");
         }
-    }, []);
+    }, [tim, auth]);
 
     return (
-        <div className="fixed top-0 bg-black/20 w-screen h-screen z-50 flex justify-center items-center">
+        <div className="fixed top-0 left-0 bg-black/20 w-screen h-screen z-50 flex justify-center items-center">
             <div className="p-5 bg-white relative rounded-lg w-[500px] px-8 max-h-[80vh] overflow-y-auto">
                 <X
                     onClick={close}
@@ -161,9 +172,7 @@ export default function TambahAnggotaBoard({ close }) {
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
-                                                {anggota.name
-                                                    .charAt(0)
-                                                    .toUpperCase()}
+                                                {anggota.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium">
@@ -179,13 +188,9 @@ export default function TambahAnggotaBoard({ close }) {
                                                 )}
                                             </div>
                                         </div>
-                                        {anggota.role !== "owner" && (
+                                        {anggota.role !== 'Ketua tim' && (
                                             <button
-                                                onClick={() =>
-                                                    handleHapusAnggota(
-                                                        anggota.id
-                                                    )
-                                                }
+                                                onClick={() => handleHapusAnggota(anggota.id)}
                                                 className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 rounded transition-opacity"
                                             >
                                                 <X
@@ -232,9 +237,7 @@ export default function TambahAnggotaBoard({ close }) {
                                                         : "bg-gray-600"
                                                 }`}
                                             >
-                                                {anggota.name
-                                                    .charAt(0)
-                                                    .toUpperCase()}
+                                                {anggota.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
                                                 <h3 className="text-sm font-medium flex items-center gap-2">
