@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tim;
 
 use App\Http\Controllers\Controller;
+use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\List_boardModel;
 use App\Models\timPerusahaan\TimPerusahaan;
@@ -75,7 +76,7 @@ class Tim_perusahaanController extends Controller
             ]);
             // Buat card_list untuk setiap list_board
             foreach ($cards as $index => $card) {
-                Card_listModel::create([
+                $cardList = Card_listModel::create([
                     'id' => (string) Str::uuid(),
                     'nama_card' => $card['nama_card'],
                     'pembuat' => $card['pembuat'],
@@ -83,6 +84,19 @@ class Tim_perusahaanController extends Controller
                     'id_list' => $listBoard->id,
                     'urutan' => $index + 1,
                 ]);
+
+                $anggotaTim = $tim->anggota_tim_perusahaan()
+                ->where('id_users', $user->id)
+                ->first();
+
+                if ($anggotaTim) {
+                    Anggota_card::create([
+                        'id' => (string) Str::uuid(),
+                        'id_user' => $user->id,
+                        'id_card' => $cardList->id,
+                        'id_anggota_tim' => $anggotaTim->id
+                    ]);
+                }
             }
         }
 

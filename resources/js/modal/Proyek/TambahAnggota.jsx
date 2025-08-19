@@ -1,8 +1,8 @@
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { X, Search, Plus } from "lucide-react";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 
-export default function TambahAnggota({ close, tambahAnggota }) {
+export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id }) {
     const tambahRef = useRef(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [isAdding, setIsAdding] = useState(false);
@@ -180,10 +180,17 @@ export default function TambahAnggota({ close, tambahAnggota }) {
                                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 rounded transition-opacity disabled:opacity-50"
                                 >
                                     <X
+                                        onClick={() =>
+                                            router.delete(
+                                                route("proyek.card.destroy", {
+                                                    id: user.id, id_user: tim.id,
+                                                })
+                                            )
+                                        }
                                         size={14}
                                         className={`${
                                             tim.name === user.name ||
-                                            tim.role === "Ketua tim"
+                                            tim.role !== "Ketua tim"
                                                 ? "hidden"
                                                 : "flex"
                                         }`}
@@ -243,6 +250,15 @@ export default function TambahAnggota({ close, tambahAnggota }) {
                                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 rounded transition-opacity disabled:opacity-50"
                                 >
                                     <Plus
+                                        onClick={() =>
+                                            router.post(
+                                                route("proyek.card.invite", {
+                                                    id: user.id,
+                                                    id_user: tim.id,
+                                                    cardId: card_id,
+                                                })
+                                            )
+                                        }
                                         size={14}
                                         className={`text-blue-500 ${
                                             tim.name === user.name

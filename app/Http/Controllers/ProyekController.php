@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\List_boardModel;
@@ -128,8 +129,32 @@ class ProyekController extends Controller
                         'email' => $anggota->user->email ?? null
                     ])->toArray();
         }
-        return inertia('Card/Card_kanban', ['anggota_tim' => $data]);
+        return inertia('Card/Card_kanban', [
+            'anggota_tim' => $data,
+            'id_tim' => $id_tim,
+            'card_id' => $cardId    
+        ]);
     }
+
+    // Tambah Anggota Card
+    public function tambah_anggota_card ($id, $id_user, $cardId) {
+        $id_anggota_tim = Anggota_tim::where('id_users', $id)->first();
+
+        Anggota_card::create([
+            'id' => (string) Str::uuid(),
+            'id_user' => $id_user,
+            'id_card' => $cardId,
+            'id_anggota_tim' => $id_anggota_tim->id
+        ]);
+
+        return redirect()->back()->with('success', 'Berhasil Menambahkan Anggota');
+    }
+
+    // Delete anggota Card
+    public function destroy_anggota_card ($id, $id_user) {
+        Anggota_card::where('id_user', $id_user)->delete();
+    }
+    
 
     public function ringkas ($id, $id_tim) {
         $tim = TimPerusahaan::findOrFail($id_tim);

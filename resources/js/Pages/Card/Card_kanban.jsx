@@ -10,6 +10,7 @@ import TambahAnggota from "@/modal/Proyek/TambahAnggota";
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
+    const { role, id_tim, card_id } = usePage().props;
     const [tambahAnggota, setTambahAnggota] = useState(false);
 
     // ref lihat card
@@ -150,6 +151,7 @@ export default function Card_kanban() {
                                 </div>
 
                                 {/* button tambah anggota */}
+                                {role !== 'Member' ? (
                                 <div
                                     onClick={() =>
                                         setTambahAnggota(!tambahAnggota)
@@ -163,10 +165,13 @@ export default function Card_kanban() {
                                     <UserRoundPlus size={14} />
                                     <p>Anggota</p>
                                 </div>
+                                ) : ""}
 
                                 {tambahAnggota && (
                                     <TambahAnggota
                                         close={() => setTambahAnggota(false)}
+                                        card_id={card_id}
+                                        id_tim={id_tim}
                                     />
                                 )}
 

@@ -105,7 +105,7 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                 }`}
                             ></div>
                         </div>
-                        {role !== "Super User" || role !== "Admin" ? (
+                        {role !== "Member" ? (
                                 <div
                                     className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
                                     onClick={() =>

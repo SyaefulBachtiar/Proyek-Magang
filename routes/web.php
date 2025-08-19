@@ -38,7 +38,11 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::get('/proyek/{id_tim}/laporan', [ProyekController::class, 'laporan'])->name('proyek.laporan');
     Route::get('/proyek/{id_tim}/chatgrup', [ProyekController::class, 'chatgrup'])->name('proyek.chatgrup');
     Route::get('/proyek/{id_tim}/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
-    
+
+    // Tambah anggota Card Kanban
+    Route::post('proyek/{id_user}/card/{cardId}', [ProyekController::class, 'tambah_anggota_card'])->name('proyek.card.invite');
+    Route::delete('proyek/{id_user}', [ProyekController::class, 'destroy_anggota_card'])->name('proyek.card.destroy');
+
     // Aksi Proyek (POST/PUT/DELETE)
     Route::post('/proyek/update-list-order', [ProyekController::class, 'updateListOrder'])->name('proyek.update-list-order');
     Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])->name('proyek.update-card-order');
@@ -64,6 +68,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::delete('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'destroy'])->name('tim-perusahaan.destroy');
     Route::put('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'update'])->name('tim-perusahaan.update');
     Route::put('/perusahaan', [DashboardController::class, 'update_perusahaan'])->name('perusahaan.update');
+    
 });
 
 Route::middleware('auth')->group(function () {
