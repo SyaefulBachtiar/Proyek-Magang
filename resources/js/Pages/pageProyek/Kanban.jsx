@@ -33,7 +33,22 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                 cards: list.cards.map((card) => ({
                     id: card.id.toString(),
                     title: card.nama_card,
-                    image: card.image
+                    image: card.image,
+                    anggota:
+                        card.anggota_card_list?.map((ang) => ({
+                            id: ang.id,
+                            id_user: ang.id_user,
+                            id_anggota_tim: ang.id_anggota_tim,
+                            // kalau relasi user/anggota_tim ikut di-load dari backend
+                            user: ang.user
+                                ? {
+                                      id: ang.user.id,
+                                      name: ang.user.name,
+                                      email: ang.user.email,
+                                      image: ang.user.poto_profile_user
+                                  }
+                                : null,
+                        })) || [],
                 })),
             }));
             setLists(mappedLists);
@@ -397,7 +412,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                             ) => (
                                                                                 <div>
                                                                                     <div
-                                                                                        className={`bg-white p-2 group rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 relative ${
+                                                                                        className={`bg-white p-2 group/elipsis rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 relative flex items-center space-x-2 ${
                                                                                             snapshot.isDragging
                                                                                                 ? "shadow-lg border-blue-600"
                                                                                                 : "border-blue-500"
@@ -409,7 +424,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                         {...provided.dragHandleProps}
                                                                                     >
                                                                                         <Ellipsis
-                                                                                            className="absolute top-0 right-0 m-2 hidden group-hover:flex cursor-pointer"
+                                                                                            className="absolute top-0 right-0 mt-3 mr-2 hidden group-hover/elipsis:flex cursor-pointer"
                                                                                             size={
                                                                                                 18
                                                                                             }
@@ -435,11 +450,57 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                             }}
                                                                                             className="cursor-pointer hover:underline"
                                                                                         >
-                                                                                            <h1 className="text-sm break-words">
+                                                                                            <h1 className="text-md break-words">
                                                                                                 {
                                                                                                     card.title
                                                                                                 }
                                                                                             </h1>
+                                                                                        </div>
+                                                                                        <div className="flex relative ">
+                                                                                            {card.anggota.map(
+                                                                                                (
+                                                                                                    ang
+                                                                                                ) => (
+                                                                                                    <div
+                                                                                                        key={
+                                                                                                            ang.id
+                                                                                                        }
+                                                                                                        className="w-6 h-6 rounded-full group/anggota items-center overflow-hidden"
+                                                                                                    >
+                                                                                                        {ang.user ? (
+                                                                                                            ang
+                                                                                                                .user
+                                                                                                                .image ? (
+                                                                                                                <img
+                                                                                                                    src={`/storage/${ang.user.image}`}
+                                                                                                                    alt="image_user"
+                                                                                                                    className="object-cover h-full w-full"
+                                                                                                                />
+                                                                                                            ) : (
+                                                                                                                <div className="flex justify-center items-center w-full h-full bg-blue-600 text-white">
+                                                                                                                    <p className="text-xs">
+                                                                                                                        {ang.user.name.charAt(
+                                                                                                                            0
+                                                                                                                        )}
+                                                                                                                    </p>
+                                                                                                                </div>
+                                                                                                            )
+                                                                                                        ) : (
+                                                                                                            ""
+                                                                                                        )}
+
+                                                                                                        <div
+                                                                                                            className="absolute bottom-[1px] left-1/2 -translate-x-1/2 mb-2 
+                                                                                                                        hidden group-hover/anggota:flex bg-gray-800/70 text-gray-200 
+                                                                                                                        text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap z-50"
+                                                                                                        >
+                                                                                                            {
+                                                                                                                ang.user.name === user.name ? "Anda" : ang.user.name
+                                                                                                            }
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                )
+                                                                                            )}
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>

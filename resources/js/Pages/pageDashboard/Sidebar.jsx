@@ -17,7 +17,6 @@ import { useState } from "react";
 
 export default function Sidebar({ sidebarOpen, activePage, id }) {
     const { timPerusahaan, role } = usePage().props;
-    console.log(role);
 
     const proyekTim =
         timPerusahaan?.filter((tim) => tim.jenis_tim === "proyek") || [];

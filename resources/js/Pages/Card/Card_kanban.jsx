@@ -10,26 +10,64 @@ import TambahAnggota from "@/modal/Proyek/TambahAnggota";
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
-    const { role, id_tim, card_id } = usePage().props;
+    const { role, id_tim, card_id, anggota_card } = usePage().props;
     const [tambahAnggota, setTambahAnggota] = useState(false);
+
+    const buttonFitur = [
+        {
+            name: "Tambah",
+            icon: <Plus size={14} />,
+            onclick: () => console.log("Tambah klik"),
+            show: true,
+            active: "",
+        },
+        {
+            name: "Checklist",
+            icon: <SquareCheck size={14} />,
+            onclick: () => console.log("Cehcklist klik"),
+            show: true,
+            active: "",
+        },
+        {
+            name: "Label",
+            icon: <Paperclip size={14}/>,
+            onclick: () => console.log("Label klik"),
+            show: true,
+            active: "",
+        },
+        {
+            name: "Waktu",
+            icon: <CalendarDays size={14}/>,
+            onclick: () => console.log("Waktu klik"),
+            show: true,
+            active: "",
+        },
+        {
+            name: "Anggota",
+            icon: <UserRoundPlus size={14} />,
+            onclick: () => setTambahAnggota((prev) => !prev),
+            show: role !== "Member",
+            active: tambahAnggota,
+        },
+    ];
 
     // ref lihat card
     const lihatCardRef = useRef(null);
 
-    // useEffect(() => {
-    //     function handleClickOutside(e) {
-    //         if (
-    //             lihatCardRef.current &&
-    //             !lihatCardRef.current.contains(e.target)
-    //         ) {
-    //             onClose();
-    //         }
-    //     }
-    //     document.addEventListener("mousedown", handleClickOutside);
-    //     return () => {
-    //         document.removeEventListener("mousedown", handleClickOutside);
-    //     };
-    // }, [onClose]);
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (
+                lihatCardRef.current &&
+                !lihatCardRef.current.contains(e.target)
+            ) {
+                window.history.back(); 
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     // State untuk toggle dan isi deskripsi
     const [isEditing, setIsEditing] = useState(false);
@@ -78,21 +116,6 @@ export default function Card_kanban() {
                     <div className="px-4 flex-1 flex flex-col lg:flex-row overflow-y-auto gap-4 ">
                         {/* Konten Kiri */}
                         <div className="flex flex-col gap-4 w-full py-4 lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element">
-                            {/* Avatar
-                            <div className="flex gap-2 items-center">
-                                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                                    <p>{user.name.charAt(0)}</p>
-                                </div>
-                                <div>
-                                    <p className="font-bold text-lg">
-                                        {user.name}
-                                    </p>
-                                    <p className="p-1 bg-gray-200 rounded-md text-sm">
-                                        2 jam yang lalu
-                                    </p>
-                                </div>
-                            </div> */}
-
                             {/* Deskripsi */}
                             <div className="px-2 border border-gray-200 py-3 rounded-lg">
                                 <div className="flex justify-between items-center mb-4">
@@ -145,27 +168,22 @@ export default function Card_kanban() {
                             {/* Tombol Aksi */}
                             <div className="flex gap-3 mt-4 text-sm flex-wrap relative">
                                 {/* button pilihan */}
-                                <div className="flex gap-2 items-center p-2 rounded-md cursor-pointer bg-gray-200 hover:bg-gray-300">
-                                    <Plus size={14} />
-                                    Tambah
-                                </div>
-
-                                {/* button tambah anggota */}
-                                {role !== 'Member' ? (
-                                <div
-                                    onClick={() =>
-                                        setTambahAnggota(!tambahAnggota)
-                                    }
-                                    className={`flex gap-2 items-center p-2 ${
-                                        tambahAnggota
-                                            ? "bg-gray-600 text-white"
-                                            : "bg-gray-200"
-                                    } rounded-md cursor-pointer hover:bg-gray-300`}
-                                >
-                                    <UserRoundPlus size={14} />
-                                    <p>Anggota</p>
-                                </div>
-                                ) : ""}
+                                {buttonFitur
+                                    .filter((btn) => btn.show)
+                                    .map((btn, i) => (
+                                        <div
+                                            key={i}
+                                            onClick={btn.onclick}
+                                            className={`flex gap-2 items-center p-2 ${
+                                                btn.active
+                                                    ? "bg-gray-600 text-white"
+                                                    : "bg-gray-200"
+                                            } rounded-md cursor-pointer hover:bg-gray-300`}
+                                        >
+                                            {btn.icon}
+                                            <p>{btn.name}</p>
+                                        </div>
+                                    ))}
 
                                 {tambahAnggota && (
                                     <TambahAnggota
@@ -174,28 +192,38 @@ export default function Card_kanban() {
                                         id_tim={id_tim}
                                     />
                                 )}
+                            </div>
+                            <div className="flex flex-col gap-1 mt-4">
+                                <h4 className="text-[14px] text-gray-700">
+                                    Anggota
+                                </h4>
 
-                                {/* button checklist */}
-                                <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                    <SquareCheck size={14} />
-                                    <p>Checklist</p>
-                                </div>
-
-                                {/* button label */}
-                                <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                    <Tags size={14} />
-                                    <p>Label</p>
-                                </div>
-
-                                {/* button tanggal */}
-                                <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                    <CalendarDays size={14} />
-                                    <p>Waktu</p>
+                                <div className="flex gap-1 items-center">
+                                    {anggota_card.map((data, i) => (
+                                        <div
+                                            key={i}
+                                            className="w-6 h-6 rounded-full overflow-hidden"
+                                        >
+                                            {data.image ? (
+                                                <img
+                                                    src={`/storage/${data.image}`}
+                                                    alt={data.name}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-blue-500 flex justify-center items-center text-white text-xs">
+                                                    <p>{data.name.charAt(0)}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <div className="w-6 h-6 flex justify-center items-center cursor-pointer">
+                                        <Plus onClick={() => setTambahAnggota(!tambahAnggota)} size={14} />
+                                    </div>
                                 </div>
                             </div>
 
                             {/* lampilan */}
-                            <div className="border border-gray-200 py-3 px-2 rounded-md">
+                            <div className="border border-gray-200 py-3 px-2 rounded-md mt-4">
                                 <div className="flex items-center gap-2">
                                     <Paperclip size={14} />
                                     <h1>Lampiran</h1>

@@ -183,6 +183,7 @@ class HandleInertiaRequests extends Middleware
                             'id' => $anggota->user->id ?? null,
                             'name' => $anggota->user->name ?? '',
                             'email' => $anggota->user->email ?? null,
+                            'image' => $anggota->user->poto_profile_user ?? null,
                             'role' => $anggota->anggota_tim->role_anggota ?? null
                         ])
                         ->toArray();

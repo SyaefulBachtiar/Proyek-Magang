@@ -104,7 +104,7 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id })
     return (
         <div
             ref={tambahRef}
-            className="absolute top-11 right-32 bg-white shadow-[0_4px_10px_rgba(0,0,0,0.25)] py-4 px-4 rounded-lg min-w-[300px] overflow-y-auto max-h-[400px]"
+            className="absolute top-11 right-32 bg-white shadow-[0_5px_10px_rgba(0,0,0,0.25)] py-4 px-4 rounded-lg min-w-[300px] overflow-y-auto max-h-[400px]"
         >
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-lg font-semibold">Anggota</h1>

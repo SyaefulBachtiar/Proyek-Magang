@@ -23,7 +23,8 @@ class ProyekController extends Controller
             abort(404, 'Board tidak ditemukan');
         }
         $board_data = List_boardModel::with(['cards' => function($query) {
-                    $query->orderBy('urutan', 'asc');
+                    $query->orderBy('urutan', 'asc')
+                    ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim');
                 }])
                 ->where('id_board', $id_board)
                 ->orderBy('urutan_posisi', 'asc')
@@ -119,18 +120,7 @@ class ProyekController extends Controller
     }
 
     public function showCard($id, $id_tim,  $cardId ) {
-        $user = User::with(['tim_perusahaan.anggota_tim_perusahaan.user'])->findOrFail($id);
-        $tim = $user->tim_perusahaan->firstWhere('id', $id_tim);
-        $data = [];
-        if ($tim) {
-            $data = $tim->anggota_tim_perusahaan->map(fn($anggota) => [
-                        'id' => $anggota->user->id ?? null,
-                        'name' => $anggota->user->name ?? '',
-                        'email' => $anggota->user->email ?? null
-                    ])->toArray();
-        }
         return inertia('Card/Card_kanban', [
-            'anggota_tim' => $data,
             'id_tim' => $id_tim,
             'card_id' => $cardId    
         ]);
