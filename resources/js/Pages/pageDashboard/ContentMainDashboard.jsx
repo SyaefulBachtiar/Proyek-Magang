@@ -1,6 +1,6 @@
 import BuatTimModal from "@/modal/BuatTimModal";
 import { router, useForm, usePage } from "@inertiajs/react";
-import { AlertCircle, CheckCircle, ChevronRight, EllipsisVertical, Loader2, PlusCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, ChevronRight, EllipsisVertical, Loader2, Plus, PlusCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import Dashboard, { DashboardState } from "../Dashboard";
 
@@ -206,11 +206,11 @@ function MainDashboard() {
                     </div>
                 ) : role === "Super User" || role === "Admin" ? (
                     <div
-                        className="flex mt-10 p-2 rounded-lg bg-blue-600 text-white justify-center items-center gap-2 cursor-pointer"
+                        className="flex mt-10 p-3 rounded-lg bg-blue-600 text-white justify-center items-center gap-2 cursor-pointer shadow-[0_2px_10px_rgba(0,0,0,0.25)]"
                         onClick={() => setBuatTimModal(true)}
                     >
-                        <h1 className="text-xl">Buat grup</h1>
-                        <PlusCircle size={18} />
+                        <Plus size={30}/>
+                        <h1 className="text-2xl">Buat grup</h1>
                     </div>
                 ) : (
                     ""
@@ -353,7 +353,10 @@ function MainDashboard() {
                                                                             {
                                                                                 id: id,
                                                                                 id_tim: tim.id,
-                                                                                id_board: tim.board_tim?.id,
+                                                                                id_board:
+                                                                                    tim
+                                                                                        .board_tim
+                                                                                        ?.id,
                                                                             }
                                                                         )
                                                                     )
@@ -572,7 +575,10 @@ function MainDashboard() {
                                                                                 {
                                                                                     id: id,
                                                                                     id_tim: tim.id,
-                                                                                    id_board: tim.board_tim?.id,
+                                                                                    id_board:
+                                                                                        tim
+                                                                                            .board_tim
+                                                                                            ?.id,
                                                                                 }
                                                                             )
                                                                         )

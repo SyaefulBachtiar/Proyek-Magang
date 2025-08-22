@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\Card_listModel;
+use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +50,12 @@ class HandleInertiaRequests extends Middleware
                 return $user && $user->perusahaan 
                     ? $user->perusahaan->nama_perusahaan
                     : null;
+                },
+                'nama_board' => function () use ($request) {
+                    $id_tim = $request->route('id_tim');
+                    $nama_tim = TimPerusahaan::where('id', $id_tim)->value('nama_tim');
+
+                    return $nama_tim;
                 },
                 'timLayout' => function () use ($request) {
                     // 1. Ambil user yang sedang login beserta relasi perusahaannya

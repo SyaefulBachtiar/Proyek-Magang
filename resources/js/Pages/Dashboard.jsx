@@ -10,7 +10,7 @@ export default function Dashboard({children, header}) {
     return (
         <AuthenticatedLayout
             header={
-                <div className="flex gap-2 text-sm items-center">
+                <div className="flex gap-2 text-sm items-center w-full">
                     {header}
                 </div>
             }
@@ -65,7 +65,7 @@ function DashboardContent({children}){
                     {/* Sidebar */}
                     <div
                         ref={sidebar}
-                        className={`bg-gray-200/30 hover-sidebar transition-all group delay-150 overflow-hidden overflow-y-auto ease-in-out duration-300 px-2 w-[60px] hover:px-4 my-scrollable-element ${
+                        className={`bg-white hover-sidebar transition-all group delay-150 overflow-hidden overflow-y-auto ease-in-out duration-300 px-[13px] w-[70px] hover:px-4 my-scrollable-element ${
                             sidebarOpen ? "sidebar-click px-4" : ""
                         }`}
                     >
@@ -78,7 +78,7 @@ function DashboardContent({children}){
                     </div>
 
                     {/* Main content */}
-                    <div className="w-full h-full flex-1 overflow-y-auto my-scrollable-element">
+                    <div className="w-full h-full flex-1 overflow-y-auto my-scrollable-element bg-[#F4F4F4] rounded-tl-2xl">
                         {children}
                     </div>
                 </div>
