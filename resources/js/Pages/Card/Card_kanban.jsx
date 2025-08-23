@@ -1,17 +1,42 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { CalendarDays, Captions, MessageSquareText, Paperclip, Pencil, Plus, Save, SquareCheck, Tags, UserRoundPlus, X } from "lucide-react";
 import { usePage } from "@inertiajs/react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import Proyek from "../Proyek";
-import Input from "@/modal/input/Input";
 import TambahAnggota from "@/modal/Proyek/TambahAnggota";
+import Kalender from "@/modal/Proyek/Kalender";
+
+const initialState = {
+    tambahAnggota: false,
+    checklist: false,
+    label: false,
+    waktu: false,
+};
+
+function reducer (state, action) {
+    switch (action.type) {
+        case "TOGGLE_TAMBAH_ANGGOTA":
+            return { ...state, tambahAnggota: !state.tambahAnggota };
+        case "TOGGLE_CHECKLIST":
+            return { ...state, checklist: !state.checklist };
+        case "TOGGLE_LABEL":
+            return { ...state, label: !state.label };
+        case "TOGGLE_WAKTU":
+            return { ...state, waktu: !state.waktu };
+        default:
+            return state;
+    }
+}
+
 
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
     const { role, id_tim, card_id, anggota_card } = usePage().props;
-    const [tambahAnggota, setTambahAnggota] = useState(false);
+    const refs = useRef({});
+
+    const [state, dispatch] = useReducer(reducer, initialState);
 
     const buttonFitur = [
         {
@@ -38,16 +63,16 @@ export default function Card_kanban() {
         {
             name: "Waktu",
             icon: <CalendarDays size={14}/>,
-            onclick: () => console.log("Waktu klik"),
+            onclick: () => dispatch({ type: "TOGGLE_WAKTU" }),
             show: true,
-            active: "",
+            active: state.waktu,
         },
         {
             name: "Anggota",
             icon: <UserRoundPlus size={14} />,
-            onclick: () => setTambahAnggota((prev) => !prev),
+            onclick: () => dispatch({ type: "TOGGLE_TAMBAH_ANGGOTA" }),
             show: role !== "Member",
-            active: tambahAnggota,
+            active: state.tambahAnggota,
         },
     ];
 
@@ -172,6 +197,7 @@ export default function Card_kanban() {
                                     .filter((btn) => btn.show)
                                     .map((btn, i) => (
                                         <div
+                                            ref={(el) => (refs.current[btn.name] = el)}
                                             key={i}
                                             onClick={btn.onclick}
                                             className={`flex gap-2 items-center p-2 ${
@@ -185,11 +211,18 @@ export default function Card_kanban() {
                                         </div>
                                     ))}
 
-                                {tambahAnggota && (
+                                {state.tambahAnggota && (
                                     <TambahAnggota
-                                        close={() => setTambahAnggota(false)}
+                                        close={() => dispatch({ type: "TOGGLE_TAMBAH_ANGGOTA" })}
                                         card_id={card_id}
                                         id_tim={id_tim}
+                                        refTrigger={refs.current["Anggota"]}
+                                    />
+                                )}
+                                {state.waktu && (
+                                    <Kalender 
+                                    close={() => dispatch({ type: "TOGGLE_WAKTU" })}
+                                    refTrigger={refs.current["Waktu"]}
                                     />
                                 )}
                             </div>
@@ -217,7 +250,7 @@ export default function Card_kanban() {
                                         </div>
                                     ))}
                                     <div className="w-6 h-6 flex justify-center items-center cursor-pointer">
-                                        <Plus onClick={() => setTambahAnggota(!tambahAnggota)} size={14} />
+                                        <Plus onClick={() => dispatch({ type: "TOGGLE_TAMBAH_ANGGOTA" })} size={14} />
                                     </div>
                                 </div>
                             </div>

@@ -2,8 +2,7 @@ import { router, usePage } from "@inertiajs/react";
 import { X, Search, Plus } from "lucide-react";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 
-export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id }) {
-    const tambahRef = useRef(null);
+export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, refTrigger }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [isAdding, setIsAdding] = useState(false);
     const user = usePage().props.auth.user;
@@ -11,6 +10,8 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id })
     const props = usePage().props;
     const anggota_tim = props.anggota_tim;
     const anggota_card = props.anggota_card;
+
+    const modalRef = useRef(null);
 
     // Filter anggota card berdasarkan search query
     const filteredAnggotaCard = useMemo(() => {
@@ -65,7 +66,7 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id })
 
     useEffect(() => {
         function handleClickOutside(e) {
-            if (tambahRef.current && !tambahRef.current.contains(e.target)) {
+            if (modalRef.current && !modalRef.current.contains(e.target) && refTrigger && !refTrigger.contains(e.target)) {
                 close();
             }
         }
@@ -75,7 +76,7 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id })
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [close]);
+    }, [close, refTrigger]);
 
     // Handle search input change
     const handleSearchChange = useCallback((e) => {
@@ -103,8 +104,8 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id })
 
     return (
         <div
-            ref={tambahRef}
-            className="absolute top-11 right-32 bg-white shadow-[0_5px_10px_rgba(0,0,0,0.25)] py-4 px-4 rounded-lg min-w-[300px] overflow-y-auto max-h-[400px]"
+            ref={modalRef}
+            className="absolute top-11 right-10 bg-white shadow-[0_5px_10px_rgba(0,0,0,0.25)] py-4 px-4 rounded-lg min-w-[300px] overflow-y-auto max-h-[400px]"
         >
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-lg font-semibold">Anggota</h1>
