@@ -105,15 +105,8 @@ function MainDashboard() {
                             className="w-full max-w-md bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4 border border-gray-100"
                         >
                             {/* Header Form */}
-                            <div className="mb-6 flex gap-5 items-end">
-                                <div className="h-[40px] w-[40px]">
-                                    <img
-                                        src="/img/perusahaan.png"
-                                        alt="Perusahaan"
-                                        className="object-cover w-full h-full"
-                                    />
-                                </div>
-                                <h2 className="text-2xl font-bold text-gray-800">
+                            <div className="mb-6 text-center">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-2">
                                     Masukan Nama Perusahaan
                                 </h2>
                             </div>
@@ -130,6 +123,13 @@ function MainDashboard() {
 
                             {/* Input Field */}
                             <div className="mb-6">
+                                <label
+                                    htmlFor="nama_perusahaan"
+                                    className="block text-gray-700 text-sm font-semibold mb-3"
+                                >
+                                    Nama Perusahaan{" "}
+                                    <span className="text-red-500">*</span>
+                                </label>
                                 <input
                                     type="text"
                                     id="nama_perusahaan"
@@ -188,10 +188,19 @@ function MainDashboard() {
                                     ) : (
                                         <>
                                             <CheckCircle size={18} />
-                                            Buat Perusahaan
+                                            Update Perusahaan
                                         </>
                                     )}
                                 </button>
+                            </div>
+
+                            {/* Form Info */}
+                            <div className="mt-4 text-center">
+                                <p className="text-xs text-gray-500">
+                                    {isDirty
+                                        ? "Anda memiliki perubahan yang belum disimpan"
+                                        : "Tidak ada perubahan"}
+                                </p>
                             </div>
                         </form>
                     </div>
@@ -200,31 +209,52 @@ function MainDashboard() {
                         className="flex mt-10 p-3 rounded-lg bg-blue-600 text-white justify-center items-center gap-2 cursor-pointer shadow-[0_2px_10px_rgba(0,0,0,0.25)]"
                         onClick={() => setBuatTimModal(true)}
                     >
-                        <Plus size={30} />
+                        <Plus size={30}/>
                         <h1 className="text-2xl">Buat grup</h1>
                     </div>
                 ) : (
                     ""
                 )}
                 {data.length > 0 ? (
-                    <div className="flex flex-col justify-center items-center mt-10">
+                    <div className="flex flex-col justify-center items-center w-full mt-10">
                         <div className="w-full px-4 sm:px-2 md:px-2 xl:px-10 pb-10">
                             {/* Proyek grup */}
                             {proyekTim.length > 0 && (
-                                <div className="my-4 w-full rounded-lg">
-                                    <div className="mb-5">
-                                        <h1 className="text-2xl">Proyek</h1>
+                                <div className="my-4 w-full rounded-lg border-2 border-gray-200">
+                                    <div
+                                        onClick={() =>
+                                            setDropdownProyek(!dropdownProyek)
+                                        }
+                                        className="flex cursor-pointer flex-row items-center justify-between border-b-2 p-4 bg-gray-200 border-gray-200"
+                                    >
+                                        <h1 className="h-full text-center sm:text-md text-2xl md:text-xl lg:text-xl xl:text-2xl">
+                                            Proyek
+                                        </h1>
+                                        <ChevronRight
+                                            size={30}
+                                            className={`transition-transform duration-200 flex-shrink-0 ${
+                                                dropdownProyek
+                                                    ? "rotate-90"
+                                                    : "rotate-0"
+                                            }`}
+                                        />
                                     </div>
-                                    <div className="grid grid-flow-row grid-cols-3 gap-10">
+                                    <div
+                                        className={`gap-5 flex-wrap overflow-hidden transition-[height,opacity] duration-200 ease-in-out relative ${
+                                            dropdownProyek
+                                                ? "max-h-[1000px] opacity-100 px-4 p-5 flex"
+                                                : "max-h-0 opacity-0 mt-0"
+                                        }`}
+                                    >
                                         {proyekTim.map((tim) => (
                                             <div
                                                 key={tim.id}
-                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[0_2px_15px_rgba(0,0,0,0.10)] hover:shadow-lg bg-[#F0E460] rounded-xl  group relative"
+                                                className="w-[280px] transition-all ease-in-out duration-300 cursor-pointer hover:shadow-lg group shadow-md relative"
                                             >
                                                 {/* dropdown elipsis - hanya muncul untuk tim dengan ID yang sesuai */}
                                                 {activeEllipsisId ===
                                                     tim.id && (
-                                                    <div className="absolute left-72 z-50 top-8 bg-white rounded-md p-2 min-w-[120px]">
+                                                    <div className="absolute left-72 z-50 top-8 bg-white shadow-lg rounded-md p-2 min-w-[120px]">
                                                         <ul className="space-y-2">
                                                             <li
                                                                 className="cursor-pointer text-gray-700 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
@@ -288,48 +318,51 @@ function MainDashboard() {
                                                         </ul>
                                                     </div>
                                                 )}
-                                                <div className="absolute top-3 right-3 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white/40">
-                                                    <EllipsisVertical
-                                                        size={18}
-                                                        className="text-black hover:text-gray-700"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleEllipsis(
-                                                                tim.id
-                                                            );
-                                                        }}
-                                                    />
-                                                </div>
 
-                                                <div
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            route("proyek", {
-                                                                id: id,
-                                                                id_tim: tim.id,
-                                                                id_board:
-                                                                    tim
-                                                                        .board_tim
-                                                                        ?.id,
-                                                            })
-                                                        )
-                                                    }
-                                                    className="rounded-xl h-full overflow-hidden"
-                                                >
-                                                    <div className="h-[168px] relative flex justify-center items-center">
-                                                        <div className="w-[180px]">
-                                                            <img
-                                                                src="/img/kanban.png"
-                                                                alt="Gambar grup proyek opsional"
-                                                                className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
-                                                            />
-                                                        </div>
+                                                <div className="rounded-md overflow-hidden">
+                                                    <div className="absolute top-3 right-3 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white">
+                                                        <EllipsisVertical
+                                                            size={18}
+                                                            className="text-gray-500 hover:text-gray-700"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                toggleEllipsis(
+                                                                    tim.id
+                                                                );
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    {/* Overlay gelap saat hover */}
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 z-10 pointer-events-none"></div>
+                                                    <div className="h-[80px] relative">
+                                                        <img
+                                                            src="/img/img_proyek.png"
+                                                            alt="Gambar grup proyek opsional"
+                                                            className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
+                                                        />
                                                         {/* Inset shadow pada gambar */}
                                                         <div className="absolute inset-0 shadow-none group-hover:shadow-inset-lg transition-shadow duration-300"></div>
                                                     </div>
-                                                    <div className="px-4 bg-white h-full">
-                                                        <div className="pt-2">
-                                                            <h1 className="text-lg text-gray-700 group-hover:underline cursor-pointer">
+                                                    <div className="px-4 h-[150px] bg-gray-100 flow-root">
+                                                        <div className="mt-2">
+                                                            <h1
+                                                                onClick={() =>
+                                                                    router.visit(
+                                                                        route(
+                                                                            "proyek",
+                                                                            {
+                                                                                id: id,
+                                                                                id_tim: tim.id,
+                                                                                id_board:
+                                                                                    tim
+                                                                                        .board_tim
+                                                                                        ?.id,
+                                                                            }
+                                                                        )
+                                                                    )
+                                                                }
+                                                                className="text-2xl text-gray-700 hover:underline cursor-pointer"
+                                                            >
                                                                 {tim.nama_tim}
                                                             </h1>
                                                             <p className="text-sm text-gray-400">
@@ -337,6 +370,60 @@ function MainDashboard() {
                                                                     tim.deskripsi_tim
                                                                 }
                                                             </p>
+                                                        </div>
+                                                        <p className="text-sm text-gray-400 mt-6">
+                                                            Anggota
+                                                        </p>
+                                                        <div className="flex -space-x-2 relative">
+                                                            {tim.anggota_tim_perusahaan
+                                                                .slice(0, 4)
+                                                                .map(
+                                                                    (
+                                                                        anggota,
+                                                                        i
+                                                                    ) => {
+                                                                        // Warna acak untuk setiap lingkaran
+                                                                        const randomColor = `hsl(${Math.floor(
+                                                                            Math.random() *
+                                                                                360
+                                                                        )}, 70%, 50%)`;
+
+                                                                        return (
+                                                                            <div
+                                                                                key={
+                                                                                    i
+                                                                                }
+                                                                                className="w-[30px] h-[30px] text-xs text-white rounded-full flex justify-center items-center"
+                                                                                style={{
+                                                                                    backgroundColor:
+                                                                                        randomColor,
+                                                                                }}
+                                                                                title={
+                                                                                    anggota
+                                                                                        .user
+                                                                                        ?.name
+                                                                                }
+                                                                            >
+                                                                                {anggota.user?.name?.charAt(
+                                                                                    0
+                                                                                ) ??
+                                                                                    "?"}
+                                                                            </div>
+                                                                        );
+                                                                    }
+                                                                )}
+
+                                                            {tim
+                                                                .anggota_tim_perusahaan
+                                                                .length > 4 && (
+                                                                <div className="w-[30px] h-[30px] text-xs text-white bg-gray-500 rounded-full flex justify-center items-center">
+                                                                    +
+                                                                    {tim
+                                                                        .anggota_tim_perusahaan
+                                                                        .length -
+                                                                        4}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -347,15 +434,36 @@ function MainDashboard() {
                             )}
                             {/* Tim biasa */}
                             {timBiasa.length > 0 && (
-                                <div className="my-4 w-full rounded-lg mt-16">
-                                    <div className="mb-5">
-                                        <h1 className="text-2xl">Tim</h1>
+                                <div className="my-4 w-full border-2 border-gray-200 rounded-lg">
+                                    <div
+                                        onClick={() =>
+                                            setDropdownTim(!dropdownTim)
+                                        }
+                                        className="cursor-pointer flex flex-row items-center justify-between gap-10 p-4 bg-gray-200 border-b-2 border-gray-200"
+                                    >
+                                        <h1 className="sm:text-md text-2xl md:text-xl lg:text-xl xl:text-2xl">
+                                            Tim
+                                        </h1>
+                                        <ChevronRight
+                                            size={30}
+                                            className={`transition-transform duration-200 ${
+                                                dropdownTim
+                                                    ? "rotate-90"
+                                                    : "rotate-0"
+                                            }`}
+                                        />
                                     </div>
-                                    <div className="grid grid-flow-row grid-cols-3 gap-10">
+                                    <div
+                                        className={`gap-5 flex-wrap overflow-hidden transition-[height,opacity] duration-200 ease-in-out ${
+                                            dropdownTim
+                                                ? "max-h-[1000px] opacity-100 px-4 py-5 flex"
+                                                : "max-h-0 opacity-0 mt-0"
+                                        }`}
+                                    >
                                         {timBiasa.map((tim) => (
                                             <div
                                                 key={tim.id}
-                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[0_2px_15px_rgba(0,0,0,0.10)] bg-[#F0E460] hover:shadow-lg rounded-xl group relative"
+                                                className="w-[280px] shadow-lg transition-all ease-in-out duration-300 cursor-pointer hover:shadow-lg group relative"
                                             >
                                                 {/* dropdown elipsis untuk tim biasa */}
                                                 {activeEllipsisId ===
@@ -431,54 +539,117 @@ function MainDashboard() {
                                                         </ul>
                                                     </div>
                                                 )}
-                                                <div className="absolute top-3 right-3 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white/40">
-                                                    <EllipsisVertical
-                                                        size={18}
-                                                        className="text-black hover:text-gray-700"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleEllipsis(
-                                                                tim.id
-                                                            );
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            route("proyek", {
-                                                                id: id,
-                                                                id_tim: tim.id,
-                                                                id_board:
-                                                                    tim
-                                                                        .board_tim
-                                                                        ?.id,
-                                                            })
-                                                        )
-                                                    }
-                                                    className="rounded-xl h-full overflow-hidden"
-                                                >
-                                                    <div className="h-[168px] relative flex justify-center items-center">
-                                                        <div className="w-[180px]">
+                                                <div className="rounded-md overflow-hidden">
+                                                    <div className="absolute top-3 right-3 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white">
+                                                        <EllipsisVertical
+                                                            size={18}
+                                                            className="text-gray-500 hover:text-gray-700"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                toggleEllipsis(
+                                                                    tim.id
+                                                                );
+                                                            }}
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        {/* Overlay gelap saat hover */}
+                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 z-10 pointer-events-none"></div>
+                                                        <div className="h-[80px] relative">
                                                             <img
-                                                                src="/img/kanban.png"
-                                                                alt="Gambar grup proyek opsional"
+                                                                src="/img/img_proyek.png"
+                                                                alt="Gambar grup tim opsional"
                                                                 className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
                                                             />
+                                                            {/* Overlay gelap saat hover */}
+                                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 z-10 pointer-events-none"></div>
                                                         </div>
-                                                        {/* Inset shadow pada gambar */}
-                                                        <div className="absolute inset-0 shadow-none group-hover:shadow-inset-lg transition-shadow duration-300"></div>
-                                                    </div>
-                                                    <div className="px-4 h-full bg-white">
-                                                        <div className="pt-2">
-                                                            <h1 className="text-lg text-gray-700 group-hover:underline">
-                                                                {tim.nama_tim}
-                                                            </h1>
-                                                            <p className="text-sm text-gray-400">
-                                                                {
-                                                                    tim.deskripsi_tim
-                                                                }
+                                                        <div className="px-4 h-[150px] bg-gray-100 flow-root">
+                                                            <div className="mt-2">
+                                                                <h1
+                                                                    onClick={() =>
+                                                                        router.visit(
+                                                                            route(
+                                                                                "proyek",
+                                                                                {
+                                                                                    id: id,
+                                                                                    id_tim: tim.id,
+                                                                                    id_board:
+                                                                                        tim
+                                                                                            .board_tim
+                                                                                            ?.id,
+                                                                                }
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    className="text-2xl text-gray-700 hover:underline"
+                                                                >
+                                                                    {
+                                                                        tim.nama_tim
+                                                                    }
+                                                                </h1>
+                                                                <p className="text-sm text-gray-400">
+                                                                    {
+                                                                        tim.deskripsi_tim
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                            <p className="text-sm text-gray-400 mt-6">
+                                                                Anggota
                                                             </p>
+                                                            <div className="flex -space-x-2">
+                                                                {tim.anggota_tim_perusahaan
+                                                                    .slice(0, 4)
+                                                                    .map(
+                                                                        (
+                                                                            anggota,
+                                                                            i
+                                                                        ) => {
+                                                                            // Warna acak untuk setiap lingkaran
+                                                                            const randomColor = `hsl(${Math.floor(
+                                                                                Math.random() *
+                                                                                    360
+                                                                            )}, 70%, 50%)`;
+
+                                                                            return (
+                                                                                <div
+                                                                                    key={
+                                                                                        i
+                                                                                    }
+                                                                                    className="w-[30px] h-[30px] text-xs text-white rounded-full flex justify-center items-center"
+                                                                                    style={{
+                                                                                        backgroundColor:
+                                                                                            randomColor,
+                                                                                    }}
+                                                                                    title={
+                                                                                        anggota
+                                                                                            .user
+                                                                                            ?.name
+                                                                                    }
+                                                                                >
+                                                                                    {anggota.user?.name?.charAt(
+                                                                                        0
+                                                                                    ) ??
+                                                                                        "?"}
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                    )}
+
+                                                                {tim
+                                                                    .anggota_tim_perusahaan
+                                                                    .length >
+                                                                    4 && (
+                                                                    <div className="w-[30px] h-[30px] text-xs text-white bg-gray-500 rounded-full flex justify-center items-center">
+                                                                        +
+                                                                        {tim
+                                                                            .anggota_tim_perusahaan
+                                                                            .length -
+                                                                            4}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -490,11 +661,7 @@ function MainDashboard() {
                         </div>
                     </div>
                 ) : (
-                    <div className="w-full mt-10 flex justify-center items-center">
-                        <div className="w-[500px]">
-                            <img src="/img/ilustrasi.png" alt="ilustrasi" className="w-full h-full object-cover" />
-                        </div>
-                    </div>
+                    ""
                 )}
             </div>
 

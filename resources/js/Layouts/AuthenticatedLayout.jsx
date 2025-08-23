@@ -199,17 +199,17 @@ export default function AuthenticatedLayout({ children, header }) {
                             </div>
 
                             <div className="p-2 bg-[#F0E460] rounded-lg text-white cursor-pointer">
-                                <Bell size={25} />
+                                <Bell size={20} />
                             </div>
 
                             {/* button tambah anggota */}
                             {role !== "Super User" || role !== "Admin" ? (
                                 <button
-                                    className="px-3 py-2 bg-[#0076FD] rounded-lg flex items-center text-white gap-2"
+                                    className="p-2 bg-[#0076FD] rounded-lg flex items-center text-white gap-2"
                                     onClick={() => setTambahAnggotaModal(true)}
                                 >
-                                    <UserRoundPlus size={25}/>
-                                    <p className="text-xs sm:text-lg">
+                                    <UserRoundPlus size={20}/>
+                                    <p className="text-xs sm:text-[15px]">
                                         Tambah anggota
                                     </p>
                                 </button>
