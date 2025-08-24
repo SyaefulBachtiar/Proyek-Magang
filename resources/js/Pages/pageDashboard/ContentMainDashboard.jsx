@@ -219,7 +219,7 @@ function MainDashboard() {
                                         {proyekTim.map((tim) => (
                                             <div
                                                 key={tim.id}
-                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[0_2px_15px_rgba(0,0,0,0.10)] hover:shadow-lg bg-[#F0E460] rounded-xl  group relative"
+                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] hover:shadow-lg bg-[#F0E460] rounded-xl  group relative"
                                             >
                                                 {/* dropdown elipsis - hanya muncul untuk tim dengan ID yang sesuai */}
                                                 {activeEllipsisId ===
@@ -355,7 +355,7 @@ function MainDashboard() {
                                         {timBiasa.map((tim) => (
                                             <div
                                                 key={tim.id}
-                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[0_2px_15px_rgba(0,0,0,0.10)] bg-[#F0E460] hover:shadow-lg rounded-xl group relative"
+                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] bg-[#F0E460] hover:shadow-lg rounded-xl group relative"
                                             >
                                                 {/* dropdown elipsis untuk tim biasa */}
                                                 {activeEllipsisId ===

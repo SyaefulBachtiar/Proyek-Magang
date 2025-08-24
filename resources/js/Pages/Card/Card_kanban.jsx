@@ -223,6 +223,7 @@ export default function Card_kanban() {
                                     <Kalender 
                                     close={() => dispatch({ type: "TOGGLE_WAKTU" })}
                                     refTrigger={refs.current["Waktu"]}
+                                    card_id={card_id}
                                     />
                                 )}
                             </div>

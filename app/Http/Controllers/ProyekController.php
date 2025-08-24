@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\Card_listModel;
+use App\Models\timPerusahaan\Kalender;
 use App\Models\timPerusahaan\List_boardModel;
 use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\User;
@@ -120,9 +121,11 @@ class ProyekController extends Controller
     }
 
     public function showCard($id, $id_tim,  $cardId ) {
+        $kalender = Kalender::where('id_card', $cardId)->first();
         return inertia('Card/Card_kanban', [
             'id_tim' => $id_tim,
-            'card_id' => $cardId    
+            'card_id' => $cardId,
+            'kalender' => $kalender
         ]);
     }
 
@@ -229,5 +232,42 @@ class ProyekController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function kalender_store (Request $request, $id, $cardId) {
+
+        $validated = $request->validate([
+            'start_date' => 'nullable||date',
+            'due_date' => 'nullable||date',
+            'due_time' => 'nullable',
+            'reminder' => 'nullable||string',
+        ]);
+
+        $kalender = Kalender::create([
+            'id' => (string) Str::uuid(),
+            'id_card' => $cardId,
+            'start_date' => $validated['start_date'],
+            'due_date' => $validated['due_date'],
+            'due_time' => $validated['due_time'],
+            'reminder' => $validated['reminder'],
+        ]);
+
+        return redirect()->back()->with('success', 'berhasil menambahkan waktu');
+    }
+
+    public function kalender_update (Request $request, $id, $kalender_id) {
+        $validated = $request->validate([
+            'start_date' => 'nullable||date',
+            'due_date' => 'nullable||date',
+            'due_time' => 'nullable',
+            'reminder' => 'nullable||string',
+        ]);
+
+
+        $kalender = Kalender::findOrFail($kalender_id);
+
+        $kalender->update($validated);
+
+        return redirect()->back()->with("seccess", 'Berhasil Update');
     }
 }

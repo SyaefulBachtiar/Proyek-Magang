@@ -28,4 +28,7 @@ class Card_listModel extends Model
         return $this->hasMany(Anggota_card::class, 'id_card', 'id');
     }
     
+    public function kalender () {
+        return $this->hasMany(Kalender::class, 'id_card', 'id');
+    }
 }

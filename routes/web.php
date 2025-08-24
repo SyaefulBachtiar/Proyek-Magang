@@ -71,6 +71,10 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::delete('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'destroy'])->name('tim-perusahaan.destroy');
     Route::put('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'update'])->name('tim-perusahaan.update');
     Route::put('/perusahaan', [DashboardController::class, 'update_perusahaan'])->name('perusahaan.update');
+
+    // KALENDER
+    Route::post('proyek/card/{cardId}', [ProyekController::class, 'kalender_store'])->name('kalender.store');
+    Route::put('proyek/card/{kalender_id}/update', [ProyekController::class, 'kalender_update'])->name('kalender.update');
     
 });
 

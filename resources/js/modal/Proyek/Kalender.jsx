@@ -1,7 +1,12 @@
+import { router, usePage } from "@inertiajs/react";
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export default function Kalender({ close, refTrigger }) {
+export default function Kalender({ close, refTrigger, card_id }) {
+    // user
+    const user = usePage().props.auth.user;
+    const {kalender} = usePage().props;
+
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
@@ -14,6 +19,90 @@ export default function Kalender({ close, refTrigger }) {
     const [reminder, setReminder] = useState("None");
     const [selectionStep, setSelectionStep] = useState("none"); // 'none', 'start', 'due'
     const modalRef = useRef(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (kalender) {
+            if (kalender.start_date) {
+                setStartDate(new Date(kalender.start_date));
+            } else {
+                setStartDate(null);
+            }
+
+            if (kalender.due_date) {
+                setDueDate(new Date(kalender.due_date));
+            } else {
+                setDueDate(null);
+            }
+
+            if (kalender.due_time) {
+                setDueTime(kalender.due_time);
+            } else {
+                setDueTime("");
+            }
+
+            if (kalender.reminder) {
+                setReminder(kalender.reminder);
+            } else {
+                setReminder("None");
+            }
+        }
+    }, [kalender]);
+
+    // handle simpan
+    const handleSimpan = () => {
+        setLoading(true);
+        // perbaiki format untuk database
+        const formatUntukDB = (date) => {
+            if(!date) return null;
+            const tahun = date.getFullYear();
+            const bulan = String(date.getMonth() + 1).padStart(2, '0');
+            const hari = String(date.getDate()).padStart(2, "0");
+            return `${tahun}-${bulan}-${hari}`;
+        };
+
+        const data = {
+            start_date: startDate ? formatUntukDB(startDate) : null,
+            due_date: dueDate ? formatUntukDB(dueDate) : null,
+            due_time: dueTime || null,
+            reminder: reminder || null,
+        }
+
+        if(kalender){
+            router.put(
+                route("kalender.update", { id: user.id, kalender_id: kalender.id }),
+                data,
+                {
+                    onSuccess: () => {
+                        console.log("berhasil update");
+                    },
+                    onError: () => {
+                        console.log("error");
+                    },
+                    onFinish: () => {
+                        setLoading(false);
+                    },
+                }
+            );
+        }else{
+            router.post(route('kalender.store', {id: user.id, cardId: card_id}),
+            data,
+            {
+                onSuccess: (response) => {
+                    console.log('Berhasil di tambahkan');
+                },
+                onError: (errors) => {
+                    console.log('error', errors);
+                },
+                onFinish: () => {
+                    setLoading(false);
+                }
+            }
+    
+         ); 
+        }
+    }
+
 
     useEffect(() => {
         function handleClickOutside(e) {
@@ -158,14 +247,17 @@ export default function Kalender({ close, refTrigger }) {
         }
 
         const clickedDate = new Date(dateInfo.date);
+        console.log("📅 Date clicked:", clickedDate);
 
         // If both checkboxes are unchecked, do nothing
         if (!startDate && !dueDate) {
+            console.log("❌ No checkboxes selected, ignoring click");
             return;
         }
 
         // If only start date is checked
         if (startDate && !dueDate) {
+            console.log("🟢 Setting start date:", clickedDate);
             setStartDate(clickedDate);
             setSelectedDate(clickedDate);
             return;
@@ -173,6 +265,7 @@ export default function Kalender({ close, refTrigger }) {
 
         // If only due date is checked
         if (!startDate && dueDate) {
+            console.log("🔴 Setting due date:", clickedDate);
             setDueDate(clickedDate);
             setSelectedDate(clickedDate);
             return;
@@ -183,14 +276,19 @@ export default function Kalender({ close, refTrigger }) {
         // Jika tanggal diklik kurang dari due date, set sebagai start date
         if (startDate && dueDate) {
             if (clickedDate > dueDate) {
-                // Tanggal diklik lebih dari due date, set sebagai due date baru
+                console.log(
+                    "📈 Date is after due date, setting as new due date:",
+                    clickedDate
+                );
                 setDueDate(clickedDate);
             } else if (clickedDate < dueDate) {
-                // Tanggal diklik kurang dari due date, set sebagai start date baru
+                console.log(
+                    "📉 Date is before due date, setting as new start date:",
+                    clickedDate
+                );
                 setStartDate(clickedDate);
             } else {
-                // Tanggal diklik sama dengan due date, tidak ada perubahan
-                // Atau bisa diatur sesuai keinginan
+                console.log("📅 Date is same as due date, no change");
             }
             setSelectedDate(clickedDate);
         }
@@ -206,6 +304,13 @@ export default function Kalender({ close, refTrigger }) {
 
     // Handle manual date input validation
     const handleDateInputChange = (value, isStartDate) => {
+        console.log(
+            `📝 Manual input changed - ${
+                isStartDate ? "Start Date" : "Due Date"
+            }:`,
+            value
+        );
+
         if (value) {
             const [month, day, year] = value.split("/");
             if (month && day && year) {
@@ -218,11 +323,14 @@ export default function Kalender({ close, refTrigger }) {
                 // Check if the manually entered date is in the past
                 if (!isPastDate(newDate)) {
                     if (isStartDate) {
+                        console.log("✅ Valid start date entered:", newDate);
                         setStartDate(newDate);
                     } else {
+                        console.log("✅ Valid due date entered:", newDate);
                         setDueDate(newDate);
                     }
                 } else {
+                    console.log("❌ Past date entered, resetting to today");
                     // If past date is entered, reset to today
                     if (isStartDate) {
                         setStartDate(today);
@@ -233,11 +341,46 @@ export default function Kalender({ close, refTrigger }) {
             }
         } else {
             if (isStartDate) {
+                console.log("🗑️ Start date cleared");
                 setStartDate(null);
             } else {
+                console.log("🗑️ Due date cleared");
                 setDueDate(null);
             }
         }
+    };
+
+    // Handle checkbox changes with debug
+    const handleStartDateCheckbox = (checked) => {
+        console.log("☑️ Start date checkbox changed:", checked);
+        if (checked) {
+            setStartDate(today);
+        } else {
+            setStartDate(null);
+            setSelectionStep("none");
+        }
+    };
+
+    const handleDueDateCheckbox = (checked) => {
+        console.log("☑️ Due date checkbox changed:", checked);
+        if (checked) {
+            setDueDate(today);
+        } else {
+            setDueDate(null);
+            setSelectionStep("none");
+        }
+    };
+
+    // Handle time change with debug
+    const handleTimeChange = (value) => {
+        console.log("🕐 Time changed:", value);
+        setDueTime(value);
+    };
+
+    // Handle reminder change with debug
+    const handleReminderChange = (value) => {
+        console.log("🔔 Reminder changed:", value);
+        setReminder(value);
     };
 
     return (
@@ -256,6 +399,22 @@ export default function Kalender({ close, refTrigger }) {
             </div>
 
             <div className="p-4">
+                {/* Debug Info Panel */}
+                {/* <div className="mb-4 p-3 bg-gray-50 rounded text-xs">
+                    <div className="font-bold mb-1">Debug Info:</div>
+                    <div>
+                        Start:{" "}
+                        {startDate ? formatDateForInput(startDate) : "None"}
+                    </div>
+                    <div>
+                        Due:{" "}
+                        {dueDate
+                            ? formatDateForInput(dueDate) + " " + dueTime
+                            : "None"}
+                    </div>
+                    <div>Reminder: {reminder}</div>
+                </div> */}
+
                 {/* Calendar Navigation */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-1">
@@ -388,7 +547,7 @@ export default function Kalender({ close, refTrigger }) {
                                                 ? "text-gray-300"
                                                 : isPast
                                                 ? "text-gray-300 cursor-not-allowed opacity-50"
-                                                : "text-gray-700 hover:bg-gray-100 hover:text-gray-700"
+                                                : "text-gray-700"
                                         }
                                         ${
                                             isSelected && !isPast
@@ -397,7 +556,7 @@ export default function Kalender({ close, refTrigger }) {
                                         }
                                         ${
                                             inRange && !isPast
-                                                ? "bg-blue-100 "
+                                                ? "bg-blue-100"
                                                 : ""
                                         }
                                         ${
@@ -425,14 +584,9 @@ export default function Kalender({ close, refTrigger }) {
                         <input
                             type="checkbox"
                             checked={!!startDate}
-                            onChange={(e) => {
-                                if (e.target.checked) {
-                                    setStartDate(today); // Set to today instead of yesterday
-                                } else {
-                                    setStartDate(null);
-                                    setSelectionStep("none");
-                                }
-                            }}
+                            onChange={(e) =>
+                                handleStartDateCheckbox(e.target.checked)
+                            }
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                         <span className="text-sm font-medium text-gray-700">
@@ -465,14 +619,9 @@ export default function Kalender({ close, refTrigger }) {
                         <input
                             type="checkbox"
                             checked={!!dueDate}
-                            onChange={(e) => {
-                                if (e.target.checked) {
-                                    setDueDate(today);
-                                } else {
-                                    setDueDate(null);
-                                    setSelectionStep("none");
-                                }
-                            }}
+                            onChange={(e) =>
+                                handleDueDateCheckbox(e.target.checked)
+                            }
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                         <span className="text-sm font-medium text-gray-700">
@@ -497,7 +646,7 @@ export default function Kalender({ close, refTrigger }) {
                         <input
                             type="text"
                             value={dueDate ? dueTime : ""}
-                            onChange={(e) => setDueTime(e.target.value)}
+                            onChange={(e) => handleTimeChange(e.target.value)}
                             placeholder="Jam"
                             disabled={!dueDate}
                             className={`w-full border rounded px-3 py-1.5 text-sm ${
@@ -516,7 +665,7 @@ export default function Kalender({ close, refTrigger }) {
                     </label>
                     <select
                         value={reminder}
-                        onChange={(e) => setReminder(e.target.value)}
+                        onChange={(e) => handleReminderChange(e.target.value)}
                         className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option>None</option>
@@ -526,6 +675,22 @@ export default function Kalender({ close, refTrigger }) {
                         <option>1 jam sebelumnya</option>
                         <option>1 hari sebelumnya</option>
                     </select>
+                </div>
+
+                {/* Button simpan dan batal */}
+                <div className="space-x-2">
+                    <button
+                    onClick={handleSimpan}
+                    className="p-2 bg-blue-600 rounded-md text-white"
+                    disabled={loading}
+                    >
+                        {loading ? "Loading..." : "Simpan"}
+                    </button>
+                    <button
+                    onClick={close}
+                    className="p-2 bg-red-600 rounded-md text-white">
+                        Batal
+                    </button>
                 </div>
             </div>
         </div>
