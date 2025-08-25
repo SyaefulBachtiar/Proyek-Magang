@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\BoardUpdated;
 use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\Card_listModel;
@@ -164,19 +165,52 @@ class ProyekController extends Controller
         return Inertia::render('pageProyek/Laporan', ['dashboardId' => $id, 'activePage' => 'laporanPage', 'tim' => $tim]);
     }
 
-    public function updateListOrder(Request $request) {
-        $request->validate(['lists' => 'required|array', 'lists.*.id' => 'required|string', 'lists.*.urutan_posisi' => 'required|integer']);
+    private function broadcastBoardUpdate ($id_board) {
+        $updatedBoardData = List_boardModel::with(['cards' => function($query) {
+                $query->orderBy('urutan', 'asc')
+                      ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim');
+            }])
+            ->where('id_board', $id_board)
+            ->orderBy('urutan_posisi', 'asc')
+            ->get()
+            ->toArray();
+
+        // Siarkan ke semua event client
+        broadcast(new BoardUpdated($id_board, $updatedBoardData));
+    }
+
+    public function updateListOrder(Request $request, $id) {
+        $request->validate([
+        'id_board' => 'required',
+        'lists' => 'required|array',
+        'lists.*.id' => 'required|string',
+        'lists.*.urutan_posisi' =>'required|integer'
+    ]);
         foreach ($request->lists as $list) {
             List_boardModel::where('id', $list['id'])->update(['urutan_posisi' => $list['urutan_posisi']]);
         }
+
+        // Panggil dari boradcast
+        $this->broadcastBoardUpdate($request->id_board);
+
         return redirect()->back()->with('success', 'List berhasil di pindahkan');
     }
 
-    public function updateCardOrder(Request $request) {
-        $request->validate(['cards' => 'required|array', 'cards.*.id' => 'required|string', 'cards.*.urutan' => 'required|integer', 'cards.*.id_list' => 'required|string']);
+    public function updateCardOrder(Request $request, $id) {
+        $request->validate([
+            'id_board' => 'required',
+            'cards' => 'required|array', 
+            'cards.*.id' => 'required|string', 
+            'cards.*.urutan' => 'required|integer', 
+            'cards.*.id_list' => 'required|string'
+        ]);
         foreach ($request->cards as $card) {
             Card_listModel::where('id', $card['id'])->update(['urutan' => $card['urutan'], 'id_list' => $card['id_list']]);
         }
+
+        // Panggil dari boradcast
+        $this->broadcastBoardUpdate($request->id_board);
+
         return redirect()->back()->with('success', 'Card berhasil di pindahkan');
     }
 

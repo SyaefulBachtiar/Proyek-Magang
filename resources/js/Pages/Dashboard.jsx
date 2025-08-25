@@ -1,7 +1,7 @@
 import AuthenticatedLayout, {
     useAllState,
 } from "@/Layouts/AuthenticatedLayout";
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import Sidebar from "./pageDashboard/Sidebar";
 
@@ -33,6 +33,45 @@ function DashboardContent({children}){
     // sidebar ref
     const sidebar = useRef(null);
 
+    // flash
+    const { flash } = usePage().props;
+
+    // flash state
+    const [showFlashSuccess, setShowFlashSuccess] = useState(false);
+    const [showFlashError, setShowFlashError] = useState(false);
+
+    // timer helper
+    const showFlash = (setter, delay = 2000) => {
+        setter(true);
+
+        setTimeout(() => {
+            setter(false); // matikan flash setelah delay
+        }, delay);
+    };
+
+    const [localFlash, setLocalFlash] = useState({
+        success: null,
+        error: null,
+    });
+
+    // copy flash ke state lokal sekali setiap ada update
+    useEffect(() => {
+        if (flash.success || flash.error) {
+            setLocalFlash(flash);
+        }
+    }, [flash]);
+
+    // handle flash dari state lokal
+    useEffect(() => {
+        if (localFlash.success) {
+            showFlash(setShowFlashSuccess);
+            setLocalFlash((prev) => ({ ...prev, success: null })); // reset
+        } else if (localFlash.error) {
+            showFlash(setShowFlashError);
+            setLocalFlash((prev) => ({ ...prev, error: null })); // reset
+        }
+    }, [localFlash]);
+
     // ambil state dari Allstate
     const { sidebarOpen, setSidebarOpen, buttonMenu, user } = useAllState();
 
@@ -44,17 +83,21 @@ function DashboardContent({children}){
 
     // tutup sidebar ketika klik selain sidebar
     useEffect(() => {
-        function handleClickOutside(e){
-            if(sidebar.current && !sidebar.current.contains(e.target) && buttonMenu.current && !buttonMenu.current.contains(e.target)){
+        function handleClickOutside(e) {
+            if (
+                sidebar.current &&
+                !sidebar.current.contains(e.target) &&
+                buttonMenu.current &&
+                !buttonMenu.current.contains(e.target)
+            ) {
                 setSidebarOpen(false);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
-        }
+        };
     }, []);
-
 
     return (
         <>
@@ -75,6 +118,28 @@ function DashboardContent({children}){
                             setActivePage={setActivePage}
                             id={id}
                         />
+                    </div>
+                    {/* flash alert */}
+                    <div
+                        className={`
+                                fixed top-[150px] right-10 z-50 min-w-[100px] rounded-md p-4 
+                                border border-gray-100 cursor-pointer
+                                transform transition-transform duration-500 ease-in-out
+                                ${
+                                    showFlashSuccess
+                                        ? "translate-x-0 opacity-100"
+                                        : "translate-x-full opacity-0"
+                                }
+                                ${
+                                    showFlashSuccess
+                                        ? "text-white bg-blue-600"
+                                        : showFlashError
+                                        ? "text-white bg-red-600"
+                                        : ""
+                                }
+                            `}
+                    >
+                        <p>{flash.success || flash.error}</p>
                     </div>
 
                     {/* Main content */}

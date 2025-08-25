@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class List_boardModel extends Model
 {
+    protected $with = ['cards'];
     protected $table = 'list_board';
     protected $primaryKey = 'id';
     public $incrementing = false;
