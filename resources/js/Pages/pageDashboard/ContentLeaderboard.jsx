@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { usePage } from "@inertiajs/react";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaCrown, FaSearch } from "react-icons/fa";
 import { LuMedal } from "react-icons/lu";
 import Dashboard, { DashboardState } from "../Dashboard";
 
+// Komponen Wrapper (Tidak ada perubahan)
 export default function ContentLeaderboard() {
   return (
     <Dashboard>
@@ -12,6 +13,16 @@ export default function ContentLeaderboard() {
   );
 }
 
+// Helper function untuk bintang (Tidak ada perubahan)
+const getStarRating = (tasks) => {
+  if (tasks >= 10) return 5;
+  if (tasks >= 8) return 4;
+  if (tasks >= 6) return 3;
+  if (tasks >= 4) return 2;
+  return 1;
+};
+
+// Komponen utama Leaderboard dengan tampilan minimalis
 function Leaderboard() {
   const { activePage } = usePage().props;
   const { setActivePage } = DashboardState();
@@ -20,93 +31,119 @@ function Leaderboard() {
     if (activePage && setActivePage) {
       setActivePage(activePage);
     }
-  }, [activePage]);
+  }, [activePage, setActivePage]);
 
-  // Data asli sudah diurutkan berdasarkan peringkat
   const allData = [
     { name: "Sahrul Maulidi", tasks: 10 },
     { name: "Syaeful B", tasks: 9 },
     { name: "M Fikri", tasks: 8 },
     { name: "Agus", tasks: 8 },
     { name: "Ahmad", tasks: 6 },
-    { name: "Ahmad", tasks: 6 },
+    { name: "Budi Santoso", tasks: 5 },
+    { name: "Citra Lestari", tasks: 4 },
   ];
 
   const [search, setSearch] = useState("");
 
-  // Tetap gunakan peringkat asli dari index allData
   const filteredData = allData
     .map((user, index) => ({ ...user, rank: index + 1 }))
     .filter((user) =>
       user.name.toLowerCase().includes(search.toLowerCase())
     );
 
-  const topColors = [
-    "from-red-400 to-red-500",
-    "from-blue-400 to-blue-500",
-    "from-green-400 to-green-500",
-  ];
+  // ✨ Fungsi untuk mendapatkan ikon peringkat dengan warna aksen
+  const getRankIcon = (rank) => {
+    // Warna ikon utama adalah indigo-500
+    const iconColor = "text-indigo-500";
+    if (rank === 1) return <FaCrown className={iconColor} size={20} />;
+    if (rank <= 3) return <LuMedal className={iconColor} size={18} />;
+    return null;
+  };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Leaderboard</h1>
+    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="text-left mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Papan Peringkat</h1>
+          <p className="text-gray-500 mt-1">
+            Kinerja anggota teratas bulan ini.
+          </p>
+        </div>
 
-      {/* 🔍 Search Input */}
-      <input
-        type="text"
-        placeholder="Cari nama anggota..."
-        className="w-full mb-5 p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring focus:border-blue-300"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+        {/* 🔍 Search Input */}
+        <div className="relative mb-6">
+          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Cari nama anggota..."
+            className="w-full py-2 pl-12 pr-4 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-shadow"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
 
-      {/* Leaderboard List */}
-      <div className="flex flex-col gap-3">
-        {filteredData.map((user, i) => (
-          <div
-            key={i}
-            className={`rounded-xl shadow-md px-5 py-3 flex items-center justify-between ${
-              user.rank <= 3
-                ? `bg-gradient-to-r ${topColors[user.rank - 1]} text-white`
-                : `bg-white text-gray-800`
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className={`text-lg font-bold w-6 ${
-                  user.rank <= 3 ? "text-yellow-300" : "text-black"
-                }`}
-              >
-                {user.rank}.
-              </span>
+        {/* Leaderboard List */}
+        <div className="flex flex-col gap-2">
+          {filteredData.map((user) => (
+            <div
+              key={user.rank}
+              className={`
+                p-4 flex items-center justify-between rounded-lg transition-all duration-200
+                ${
+                  user.rank <= 3
+                    ? 'bg-indigo-50 border-l-4 border-indigo-500 shadow-sm'
+                    : 'bg-white border border-gray-200 hover:bg-gray-50'
+                }
+              `}
+            >
+              <div className="flex items-center gap-4">
+               
+                <span className={`text-lg font-bold w-6 text-center ${user.rank <= 3 ? 'text-indigo-600' : 'text-gray-400'}`}>
+                  {user.rank}
+                </span>
 
-              {user.rank <= 3 && (
-                <LuMedal className="text-yellow-300" size={20} />
-              )}
+                {/* Avatar */}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${user.rank <= 3 ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                  {user.name.charAt(0)}
+                </div>
 
-              <span className="font-semibold">{user.name}</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex text-yellow-300 text-sm">
-                {[...Array(user.tasks >= 10 ? 5 : user.tasks >= 8 ? 4 : 3)].map(
-                  (_, i) => (
-                    <FaStar key={i} />
-                  )
-                )}
+                {/* Nama dan Bintang */}
+                <div>
+                  <span className="font-bold text-base text-gray-800">{user.name}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    {getRankIcon(user.rank)}
+                    <div className="flex text-amber-500">
+                      {[...Array(getStarRating(user.tasks))].map((_, i) => (
+                        <FaStar key={i} size={14} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span className="text-sm">
-                {user.tasks} Tugas Diselesaikan
-              </span>
-            </div>
-          </div>
-        ))}
 
-        {filteredData.length === 0 && (
-          <div className="text-center text-gray-500 text-sm mt-4">
-            Tidak ditemukan anggota dengan nama tersebut.
-          </div>
-        )}
+              {/* Jumlah Tugas */}
+              <div className="text-right">
+                <span className="font-bold text-lg text-indigo-600">
+                    {user.tasks}
+                </span>
+                <span className="text-xs block text-gray-500">
+                    Tugas
+                </span>
+              </div>
+            </div>
+          ))}
+
+          {/* Pesan jika tidak ditemukan */}
+          {filteredData.length === 0 && (
+            <div className="text-center text-gray-500 py-10 bg-white rounded-lg border border-gray-200">
+              <p className="font-semibold">Anggota tidak ditemukan</p>
+              <p className="text-sm mt-1">
+                Coba gunakan kata kunci pencarian yang lain.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
