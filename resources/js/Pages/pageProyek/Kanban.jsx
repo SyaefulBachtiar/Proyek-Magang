@@ -12,7 +12,31 @@ import Proyek from "../Proyek";
 import TambahCard from "@/modal/Proyek/TambahCard";
 import TambahList from "@/modal/Proyek/TambahList";
 
-
+// Helper function untuk memetakan data dari backend ke state frontend
+// Ini untuk menghindari duplikasi kode
+const mapBoardData = (boardData) => {
+    if (!boardData) return [];
+    return boardData.map((list) => ({
+        id: list.id.toString(),
+        title: list.judul,
+        cards: list.cards.map((card) => ({
+            id: card.id.toString(),
+            title: card.nama_card,
+            image: card.image,
+            anggota: card.anggota_card_list?.map((ang) => ({
+                id: ang.id,
+                id_user: ang.id_user,
+                id_anggota_tim: ang.id_anggota_tim,
+                user: ang.user ? {
+                    id: ang.user.id,
+                    name: ang.user.name,
+                    email: ang.user.email,
+                    image: ang.user.poto_profile_user
+                } : null,
+            })) || [],
+        })),
+    }));
+};
 
 
 export default function Kanban({ children, dashboardId, activePage, tim, dataBoard, id_tim }) {
@@ -26,34 +50,26 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
     const [lists, setLists] = useState([]);
 
     useEffect(() => {
-        if (dataBoard) {
-            const mappedLists = dataBoard.map((list) => ({
-                id: list.id.toString(),
-                title: list.judul,
-                cards: list.cards.map((card) => ({
-                    id: card.id.toString(),
-                    title: card.nama_card,
-                    image: card.image,
-                    anggota:
-                        card.anggota_card_list?.map((ang) => ({
-                            id: ang.id,
-                            id_user: ang.id_user,
-                            id_anggota_tim: ang.id_anggota_tim,
-                            // kalau relasi user/anggota_tim ikut di-load dari backend
-                            user: ang.user
-                                ? {
-                                      id: ang.user.id,
-                                      name: ang.user.name,
-                                      email: ang.user.email,
-                                      image: ang.user.poto_profile_user
-                                  }
-                                : null,
-                        })) || [],
-                })),
-            }));
-            setLists(mappedLists);
-        }
+        setLists(mapBoardData(dataBoard));
     }, [dataBoard]);
+
+    useEffect(() => {
+        if(id_board){
+            // console.log(`Subscribing to private channel: board.${id_board}`);
+            
+            const channel = window.Echo.private(`board.${id_board}`);
+
+            channel.listen('.board.updated', (event) => {
+                // console.log("Real-time event received:", event);
+                setLists(mapBoardData(event.boardData));;
+            });
+
+            return () => {
+                // console.log(`Leaving channel: board.${id_board}`);
+                window.Echo.leave(`board.${id_board}`);
+            }
+        }
+    }, [id_board]);
 
     const [editingListId, setEditingListId] = useState(null);
     const [openElipsis, setOpenElipsis] = useState(null);
@@ -80,6 +96,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                     route("proyek.update-list-order", {id: user.id}),
                     {
                         lists: updatedLists,
+                        id_board: id_board
                     },
                     {
                         preserveState: true,
@@ -93,10 +110,10 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                 // setLists(originalLists);
             }
 
-            console.log(
-                "Urutan List Sekarang:",
-                reorderedLists.map((l, index) => `${index + 1}. ${l.title}`)
-            );
+            // console.log(
+            //     "Urutan List Sekarang:",
+            //     reorderedLists.map((l, index) => `${index + 1}. ${l.title}`)
+            // );
         }
 
         if (type === "card") {
@@ -149,13 +166,13 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
 
                 updatedCards = [...sourceUpdates, ...destUpdates];
 
-                console.log(
-                    `Card dipindahkan ke list: ${lists[destListIndex].title}`
-                );
-                console.log(
-                    `Urutan card sekarang di "${lists[destListIndex].title}":`,
-                    destCards.map((card, idx) => `${idx + 1}. ${card.title}`)
-                );
+                // console.log(
+                //     `Card dipindahkan ke list: ${lists[destListIndex].title}`
+                // );
+                // console.log(
+                //     `Urutan card sekarang di "${lists[destListIndex].title}":`,
+                //     destCards.map((card, idx) => `${idx + 1}. ${card.title}`)
+                // );
             }
 
             // Kirim update ke database
@@ -164,6 +181,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                     route("proyek.update-card-order", { id: user.id }),
                     {
                         cards: updatedCards,
+                        id_board: id_board
                     },
                     {
                         preserveState: true,
