@@ -103,6 +103,28 @@ class Tim_perusahaanController extends Controller
         return redirect()->back()->with('success', 'Tim berhasil dibuat.');
     }
 
+    public function update(Request $request, $id, $id_tim)
+    {
+        // 1. Validasi input dari form
+        $request->validate([
+            'nama_tim' => 'required|string|max:255',
+            'deskripsi_tim' => 'nullable|string',
+        ]);
+
+        // 2. Cari tim menggunakan Model `TimPerusahaan` Anda
+        $tim = TimPerusahaan::findOrFail($id_tim);
+
+        // 3. Update data tim dengan data yang sudah divalidasi
+        $tim->nama_tim = $request->nama_tim;
+        $tim->deskripsi_tim = $request->deskripsi_tim;
+
+        // 4. Simpan perubahan ke database
+        $tim->save();
+
+        // 5. Kembalikan ke halaman sebelumnya
+        return redirect()->back()->with('success', 'Tim berhasil diperbarui.');
+    }
+
     public function destroy($id, $id_tim)
     {
         $tim = TimPerusahaan::findOrFail($id_tim);

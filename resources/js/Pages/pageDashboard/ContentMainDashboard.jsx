@@ -1,10 +1,10 @@
 import BuatTimModal from "@/modal/BuatTimModal";
+import EditTimModal from "@/modal/EditTimModal"; // Import modal edit
+
 import { router, useForm, usePage } from "@inertiajs/react";
-import { AlertCircle, CheckCircle, ChevronRight, EllipsisVertical, Loader2, Plus, PlusCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, EllipsisVertical, Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import Dashboard, { DashboardState } from "../Dashboard";
-
-
 
 export default function ContentMainDashboard() {
     return (
@@ -24,21 +24,27 @@ function MainDashboard() {
     const data = props.data;
     const perusahaan = props.perusahaan;
 
-    // console.log(idBoard);
-
-    const [dropdownProyek, setDropdownProyek] = useState(true);
-    const [dropdownTim, setDropdownTim] = useState(true);
-    // Ubah state elipsis untuk menyimpan ID tim yang aktif
     const [activeEllipsisId, setActiveEllipsisId] = useState(null);
 
     const proyekTim = data?.filter((tim) => tim.jenis_tim === "proyek") || [];
     const timBiasa = data?.filter((tim) => tim.jenis_tim === "tim") || [];
 
-    // Dasboard state
+    // Dasboard state, `id` di sini adalah ID Perusahaan
     const { setActivePage, id } = DashboardState();
 
     // state untuk modal buat tim
     const [buatTimModal, setBuatTimModal] = useState(false);
+
+    // State untuk modal edit tim
+    const [editTimModal, setEditTimModal] = useState(false);
+    const [timToEdit, setTimToEdit] = useState(null);
+
+    // Fungsi untuk membuka modal edit
+    const handleEditClick = (tim) => {
+        setTimToEdit(tim);
+        setEditTimModal(true);
+        setActiveEllipsisId(null);
+    };
 
     // Function untuk toggle ellipsis dropdown
     const toggleEllipsis = (timId) => {
@@ -50,7 +56,6 @@ function MainDashboard() {
         const handleClickOutside = () => {
             setActiveEllipsisId(null);
         };
-
         document.addEventListener("click", handleClickOutside);
         return () => document.removeEventListener("click", handleClickOutside);
     }, []);
@@ -60,33 +65,27 @@ function MainDashboard() {
             setActivePage(activePage);
         }
     }, [activePage]);
-    
 
-    // ✅ useForm untuk form perusahaan (UPDATE)
+    // useForm untuk form perusahaan (UPDATE)
     const {
         data: formData,
         setData,
-        put, // Gunakan PUT untuk update
+        put,
         processing,
         errors,
-        reset,
-        wasSuccessful,
         recentlySuccessful,
-        isDirty, // Cek apakah ada perubahan
+        isDirty,
     } = useForm({
-        nama_perusahaan: '', // Set nilai awal dari data existing
+        nama_perusahaan: '',
     });
 
-    // Handle form submission untuk UPDATE
+    // Handle form submission untuk UPDATE perusahaan
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        // Update data ke Laravel backend
         put(route("perusahaan.update", { id: id }), {
             preserveScroll: true,
             onSuccess: () => {
                 console.log("Perusahaan berhasil diupdate");
-                // Tidak perlu reset karena ini update, bukan create
             },
             onError: (errors) => {
                 console.log("Error:", errors);
@@ -99,12 +98,10 @@ function MainDashboard() {
             <div className="flex flex-col justify-center items-center ">
                 {!perusahaan ? (
                     <div className="flex flex-col justify-center items-center w-full mt-10">
-                        {/* ✅ Form dengan useForm yang sudah diperbaiki */}
                         <form
                             onSubmit={handleSubmit}
                             className="w-full max-w-md bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4 border border-gray-100"
                         >
-                            {/* Header Form */}
                             <div className="mb-6 flex gap-5 items-end">
                                 <div className="h-[40px] w-[40px]">
                                     <img
@@ -117,8 +114,6 @@ function MainDashboard() {
                                     Masukan Nama Perusahaan
                                 </h2>
                             </div>
-
-                            {/* Success Message */}
                             {recentlySuccessful && (
                                 <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
                                     <CheckCircle size={16} />
@@ -127,31 +122,21 @@ function MainDashboard() {
                                     </span>
                                 </div>
                             )}
-
-                            {/* Input Field */}
                             <div className="mb-6">
                                 <input
                                     type="text"
                                     id="nama_perusahaan"
                                     name="nama_perusahaan"
                                     value={formData.nama_perusahaan}
-                                    onChange={(e) =>
-                                        setData(
-                                            "nama_perusahaan",
-                                            e.target.value
-                                        )
-                                    }
-                                    className={`w-full py-3 px-4 border rounded-lg text-gray-700 leading-tight focus:outline-none focus:ring-2 transition-all duration-200 ${
-                                        errors.nama_perusahaan
+                                    onChange={(e) => setData("nama_perusahaan", e.target.value)}
+                                    className={`w-full py-3 px-4 border rounded-lg text-gray-700 leading-tight focus:outline-none focus:ring-2 transition-all duration-200 ${errors.nama_perusahaan
                                             ? "border-red-400 focus:ring-red-400 bg-red-50"
                                             : "border-gray-300 focus:ring-blue-400 focus:border-blue-400 bg-white"
-                                    }`}
+                                        }`}
                                     placeholder="PT. Contoh Perusahaan"
                                     required
                                     disabled={processing}
                                 />
-
-                                {/* Error Message */}
                                 {errors.nama_perusahaan && (
                                     <p className="mt-2 text-red-600 text-sm flex items-center gap-1">
                                         <AlertCircle size={14} />
@@ -159,30 +144,18 @@ function MainDashboard() {
                                     </p>
                                 )}
                             </div>
-
-                            {/* Submit Button */}
                             <div className="flex items-center justify-center">
                                 <button
                                     type="submit"
-                                    disabled={
-                                        processing ||
-                                        !formData.nama_perusahaan.trim() ||
-                                        !isDirty
-                                    }
-                                    className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 ${
-                                        processing ||
-                                        !formData.nama_perusahaan.trim() ||
-                                        !isDirty
+                                    disabled={processing || !formData.nama_perusahaan.trim() || !isDirty}
+                                    className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 ${processing || !formData.nama_perusahaan.trim() || !isDirty
                                             ? "bg-gray-400 cursor-not-allowed"
                                             : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transform hover:scale-[1.02]"
-                                    }`}
+                                        }`}
                                 >
                                     {processing ? (
                                         <>
-                                            <Loader2
-                                                size={18}
-                                                className="animate-spin"
-                                            />
+                                            <Loader2 size={18} className="animate-spin" />
                                             Mengupdate...
                                         </>
                                     ) : (
@@ -219,67 +192,27 @@ function MainDashboard() {
                                         {proyekTim.map((tim) => (
                                             <div
                                                 key={tim.id}
-                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] hover:shadow-lg bg-[#F0E460] rounded-xl  group relative"
+                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] hover:shadow-lg bg-[#F0E460] rounded-xl group relative"
                                             >
-                                                {/* dropdown elipsis - hanya muncul untuk tim dengan ID yang sesuai */}
-                                                {activeEllipsisId ===
-                                                    tim.id && (
+                                                {activeEllipsisId === tim.id && (
                                                     <div className="absolute left-72 z-50 top-8 bg-white rounded-md p-2 min-w-[120px]">
                                                         <ul className="space-y-2">
                                                             <li
                                                                 className="cursor-pointer text-gray-700 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(
-                                                                    e
-                                                                ) => {
+                                                                onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setActiveEllipsisId(
-                                                                        null
-                                                                    );
+                                                                    handleEditClick(tim);
                                                                 }}
                                                             >
                                                                 Edit
                                                             </li>
                                                             <li
                                                                 className="cursor-pointer text-red-600 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(
-                                                                    e
-                                                                ) => {
+                                                                onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setActiveEllipsisId(
-                                                                        null
-                                                                    );
-                                                                    if (
-                                                                        confirm(
-                                                                            "Apakah Anda yakin ingin menghapus tim ini?"
-                                                                        )
-                                                                    ) {
-                                                                        router.delete(
-                                                                            route(
-                                                                                "tim-perusahaan.destroy",
-                                                                                {
-                                                                                    id: id,
-                                                                                    id_tim: tim.id,
-                                                                                }
-                                                                            ),
-                                                                            {
-                                                                                preserveScroll: true,
-                                                                                onSuccess:
-                                                                                    () => {
-                                                                                        console.log(
-                                                                                            "Tim berhasil dihapus"
-                                                                                        );
-                                                                                    },
-                                                                                onError:
-                                                                                    (
-                                                                                        errors
-                                                                                    ) => {
-                                                                                        console.log(
-                                                                                            "Error:",
-                                                                                            errors
-                                                                                        );
-                                                                                    },
-                                                                            }
-                                                                        );
+                                                                    setActiveEllipsisId(null);
+                                                                    if (confirm("Apakah Anda yakin ingin menghapus tim ini?")) {
+                                                                        router.delete(route("tim-perusahaan.destroy", { id: id, id_tim: tim.id }), { preserveScroll: true });
                                                                     }
                                                                 }}
                                                             >
@@ -294,26 +227,12 @@ function MainDashboard() {
                                                         className="text-black hover:text-gray-700"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            toggleEllipsis(
-                                                                tim.id
-                                                            );
+                                                            toggleEllipsis(tim.id);
                                                         }}
                                                     />
                                                 </div>
-
                                                 <div
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            route("proyek", {
-                                                                id: id,
-                                                                id_tim: tim.id,
-                                                                id_board:
-                                                                    tim
-                                                                        .board_tim
-                                                                        ?.id,
-                                                            })
-                                                        )
-                                                    }
+                                                    onClick={() => router.visit(route("proyek", { id: id, id_tim: tim.id, id_board: tim.board_tim?.id }))}
                                                     className="rounded-xl h-full overflow-hidden"
                                                 >
                                                     <div className="h-[168px] relative flex justify-center items-center">
@@ -324,7 +243,6 @@ function MainDashboard() {
                                                                 className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
                                                             />
                                                         </div>
-                                                        {/* Inset shadow pada gambar */}
                                                         <div className="absolute inset-0 shadow-none group-hover:shadow-inset-lg transition-shadow duration-300"></div>
                                                     </div>
                                                     <div className="px-4 bg-white h-full">
@@ -333,9 +251,7 @@ function MainDashboard() {
                                                                 {tim.nama_tim}
                                                             </h1>
                                                             <p className="text-sm text-gray-400">
-                                                                {
-                                                                    tim.deskripsi_tim
-                                                                }
+                                                                {tim.deskripsi_tim}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -357,73 +273,26 @@ function MainDashboard() {
                                                 key={tim.id}
                                                 className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] bg-[#F0E460] hover:shadow-lg rounded-xl group relative"
                                             >
-                                                {/* dropdown elipsis untuk tim biasa */}
-                                                {activeEllipsisId ===
-                                                    tim.id && (
+                                                {activeEllipsisId === tim.id && (
                                                     <div className="absolute left-72 z-50 top-8 bg-white shadow-lg rounded-md p-2 min-w-[120px]">
                                                         <ul className="space-y-2">
                                                             <li
                                                                 className="cursor-pointer text-gray-700 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(
-                                                                    e
-                                                                ) => {
+                                                                onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    console.log(
-                                                                        "Edit tim:",
-                                                                        tim.id
-                                                                    );
-                                                                    setActiveEllipsisId(
-                                                                        null
-                                                                    );
+                                                                    handleEditClick(tim);
                                                                 }}
                                                             >
                                                                 Edit
                                                             </li>
                                                             <li
                                                                 className="cursor-pointer text-red-600 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(
-                                                                    e
-                                                                ) => {
+                                                                onClick={(e) => {
                                                                     e.stopPropagation();
-
-                                                                    // Tambahkan konfirmasi
-                                                                    if (
-                                                                        confirm(
-                                                                            "Apakah Anda yakin ingin menghapus tim ini?"
-                                                                        )
-                                                                    ) {
-                                                                        router.delete(
-                                                                            route(
-                                                                                "tim-perusahaan.destroy",
-                                                                                {
-                                                                                    id: id,
-                                                                                    id_tim: tim.id,
-                                                                                }
-                                                                            ),
-                                                                            {
-                                                                                preserveScroll: true,
-                                                                                onSuccess:
-                                                                                    () => {
-                                                                                        console.log(
-                                                                                            "Tim berhasil dihapus"
-                                                                                        );
-                                                                                    },
-                                                                                onError:
-                                                                                    (
-                                                                                        errors
-                                                                                    ) => {
-                                                                                        console.log(
-                                                                                            "Error:",
-                                                                                            errors
-                                                                                        );
-                                                                                    },
-                                                                            }
-                                                                        );
+                                                                    setActiveEllipsisId(null);
+                                                                    if (confirm("Apakah Anda yakin ingin menghapus tim ini?")) {
+                                                                        router.delete(route("tim-perusahaan.destroy", { id: id, id_tim: tim.id }), { preserveScroll: true });
                                                                     }
-
-                                                                    setActiveEllipsisId(
-                                                                        null
-                                                                    );
                                                                 }}
                                                             >
                                                                 Hapus
@@ -437,25 +306,12 @@ function MainDashboard() {
                                                         className="text-black hover:text-gray-700"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            toggleEllipsis(
-                                                                tim.id
-                                                            );
+                                                            toggleEllipsis(tim.id);
                                                         }}
                                                     />
                                                 </div>
                                                 <div
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            route("proyek", {
-                                                                id: id,
-                                                                id_tim: tim.id,
-                                                                id_board:
-                                                                    tim
-                                                                        .board_tim
-                                                                        ?.id,
-                                                            })
-                                                        )
-                                                    }
+                                                    onClick={() => router.visit(route("proyek", { id: id, id_tim: tim.id, id_board: tim.board_tim?.id }))}
                                                     className="rounded-xl h-full overflow-hidden"
                                                 >
                                                     <div className="h-[168px] relative flex justify-center items-center">
@@ -466,7 +322,6 @@ function MainDashboard() {
                                                                 className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
                                                             />
                                                         </div>
-                                                        {/* Inset shadow pada gambar */}
                                                         <div className="absolute inset-0 shadow-none group-hover:shadow-inset-lg transition-shadow duration-300"></div>
                                                     </div>
                                                     <div className="px-4 h-full bg-white">
@@ -475,9 +330,7 @@ function MainDashboard() {
                                                                 {tim.nama_tim}
                                                             </h1>
                                                             <p className="text-sm text-gray-400">
-                                                                {
-                                                                    tim.deskripsi_tim
-                                                                }
+                                                                {tim.deskripsi_tim}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -498,9 +351,21 @@ function MainDashboard() {
                 )}
             </div>
 
-            {/* Tim modal */}
+            {/* Modal untuk buat tim */}
             {buatTimModal && (
                 <BuatTimModal onClose={() => setBuatTimModal(false)} />
+            )}
+
+            {/* Modal untuk edit tim */}
+            {editTimModal && timToEdit && (
+                <EditTimModal
+                    id_perusahaan={id}
+                    tim={timToEdit}
+                    onClose={() => {
+                        setEditTimModal(false);
+                        setTimToEdit(null);
+                    }}
+                />
             )}
         </>
     );
