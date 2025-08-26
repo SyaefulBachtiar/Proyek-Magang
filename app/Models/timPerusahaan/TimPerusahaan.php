@@ -56,6 +56,10 @@ class TimPerusahaan extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
+    public function label_tim () {
+        return $this->hasMany(Label_tim::class, 'id_tim_perusahaan', 'id');
+    }
+
 
     // Leader tim
     public function leader()

@@ -7,6 +7,8 @@ use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\Kalender;
+use App\Models\timPerusahaan\Label_card;
+use App\Models\timPerusahaan\Label_tim;
 use App\Models\timPerusahaan\List_boardModel;
 use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\User;
@@ -123,10 +125,15 @@ class ProyekController extends Controller
 
     public function showCard($id, $id_tim,  $cardId ) {
         $kalender = Kalender::where('id_card', $cardId)->first();
+        $label_tim = Label_tim::where('id_tim_perusahaan', $id_tim)->get();
+        $label_card = Label_card::where('id_card', $cardId)->get();
+
         return inertia('Card/Card_kanban', [
             'id_tim' => $id_tim,
             'card_id' => $cardId,
-            'kalender' => $kalender
+            'kalender' => $kalender,
+            'label_tim' => $label_tim,
+            'label_card' => $label_card
         ]);
     }
 
@@ -308,5 +315,73 @@ class ProyekController extends Controller
     public function kalender_delete ($id, $kalender_id) {
         Kalender::where('id', $kalender_id)->delete();
         return redirect()->back()->with('success', 'Berhasil hapus');
+    }
+
+    public function label_store (Request $request, $id, $id_card, $id_tim) {
+
+        $request->validate([
+            'title' => 'required|string',
+            'warna' => 'required|string'
+        ]);
+
+        try{
+        //     Label_card::create([
+        //     'id' => (string) Str::uuid(),
+        //     'title' => $request->title,
+        //     'warna' => $request->warna,
+        //     'id_card' => $id_card
+        // ]);
+
+        Label_tim::create([
+            'id' => (string) Str::uuid(),
+            'title' => $request->title,
+            'warna' => $request->warna,
+            'id_tim_perusahaan' => $id_tim
+        ]);
+
+        return redirect()->back()->with('success', 'Berhasil menambahkan label');
+        } catch (\Error $e){
+             return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
+        }
+    } 
+
+    public function label_update (Request $request, $id, $id_tim, $id_label) {
+        $validated = $request->validate([
+            'title' => 'required|string',
+            'warna' => 'required|string'
+        ]);
+
+        $label_tim = Label_tim::where('id', $id_label)
+                    ->where('id_tim_perusahaan', $id_tim)
+                    ->firstOrFail();
+
+        $label_tim->update($validated);
+
+        return redirect()->back()->with('success', 'Berhasil update label');
+    }
+
+    public function label_card_store (Request $request, $id, $card_id) {
+
+        $request->validate([
+            'label_id' => 'required'
+        ]);
+
+        $label_tim = Label_tim::findOrFail($request->label_id);
+
+        Label_card::create([
+            'id' => (string) Str::uuid(),
+            'title' => $label_tim->title,
+            'warna' => $label_tim->warna,
+            'id_card' => $card_id,
+            'id_label_tim' => $label_tim->id
+        ]);
+        return redirect()->back()->with('success', 'berhasil menambahkan label');
+    }
+
+    public function label_card_delete ($id, $card_id, $label_id) {
+
+        Label_card::where('id_label_tim', $label_id)->delete();
+        
+        return redirect()->back()->with('success', 'Berhasil delete label');
     }
 }

@@ -6,6 +6,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import Proyek from "../Proyek";
 import TambahAnggota from "@/modal/Proyek/TambahAnggota";
 import Kalender from "@/modal/Proyek/Kalender";
+import Label from "@/modal/Proyek/Label";
 
 const initialState = {
     tambahAnggota: false,
@@ -36,7 +37,7 @@ function reducer (state, action) {
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
-    const { role, id_tim, card_id, anggota_card, kalender } = usePage().props;
+    const { role, id_tim, card_id, anggota_card, kalender, label_tim } = usePage().props;
     const refs = useRef({});
     let date = "";
     let fullDate = "";
@@ -70,7 +71,7 @@ export default function Card_kanban() {
         {
             name: "Label",
             icon: <Tag size={14} />,
-            onclick: () => console.log("Label klik"),
+            onclick: () => dispatch({ type: "TOGGLE_LABEL"}),
             show: true,
             active: "",
         },
@@ -255,6 +256,14 @@ export default function Card_kanban() {
                                         card_id={card_id}
                                     />
                                 )}
+                                {state.label && (
+                                    <Label 
+                                    close={() => dispatch({ type: "TOGGLE_LABEL" })}
+                                    refTrigger={refs.current['Label']}
+                                    card_id={card_id}
+                                    id_tim={id_tim}
+                                    />
+                                )}
                             </div>
                             <div className="flex flex-col gap-1 mt-4">
                                 <h4 className="text-[14px] text-gray-700">
@@ -301,7 +310,7 @@ export default function Card_kanban() {
                                     })}
                                     className="flex gap-2 items-center p-2 bg-gray-200 w-fit rounded-md cursor-pointer">
                                         <CalendarDays size={20} />
-                                        <p>{fullDate}</p>
+                                        <p>{fullDate} jam: {kalender.due_time}</p>
                                     </div>
                                 </div>
                             )}

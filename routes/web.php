@@ -82,7 +82,14 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::post('proyek/card/{cardId}', [ProyekController::class, 'kalender_store'])->name('kalender.store');
     Route::put('proyek/card/{kalender_id}/update', [ProyekController::class, 'kalender_update'])->name('kalender.update');
     Route::delete('proyek/card/{kalender_id}/update', [ProyekController::class, 'kalender_delete'])->name('kalender.delete');
+
+    // LABEL TIM
+    Route::post('proyek/card/{id_card}/{id_tim}/label', [ProyekController::class, 'label_store'])->name('label.store');
+    Route::put('proyek/card/{id_tim}/{id_label}/label/update', [ProyekController::class, 'label_update'])->name('label.update');
     
+    // LABEL CARD
+    Route::post('card/{id_card}', [ProyekController::class, 'label_card_store'])->name('label.card.store');
+    Route::delete('card/{card_id}/label/{label_id}', [ProyekController::class, 'label_card_delete'])->name('label.card.delete');
 });
 
 Route::middleware('auth')->group(function () {

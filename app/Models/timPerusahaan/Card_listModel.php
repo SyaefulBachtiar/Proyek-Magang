@@ -31,4 +31,8 @@ class Card_listModel extends Model
     public function kalender () {
         return $this->hasMany(Kalender::class, 'id_card', 'id');
     }
+
+    public function label_card () {
+        return $this->hasMany(Label_card::class, 'id_card', 'id');
+    }
 }
