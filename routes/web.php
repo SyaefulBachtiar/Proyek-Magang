@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\ProfilePengaturanController;
 use App\Http\Controllers\AksesTimController;
 use App\Http\Controllers\LeaderboardController;
@@ -58,7 +59,12 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // Halaman lain
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
     Route::put('/aksestim/{user}/update-role', [AksesTimController::class, 'updateRole'])->name('aksestim.updateRole');
+    
+    // Rute untuk halaman Pengaturan
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
+    // Rute untuk menangani update form
+    Route::post('/pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
+
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 
     // Profile
@@ -98,29 +104,6 @@ Route::middleware(['auth'])->prefix('chat')->name('chat.')->group(function () {
     
     // API ambil pesan baru
     Route::get('/tim/{timId}/baru', [ChatController::class, 'getNewMessages'])->name('baru');
-});
-
-Route::middleware(['auth'])->group(function () {
-    // Routes untuk pengaturan perusahaan utama
-    Route::get('/pengaturan', [ProfilePerusahaanController::class, 'index'])->name('pengaturan.index');
-    Route::put('/pengaturan', [ProfilePerusahaanController::class, 'update'])->name('pengaturan.update');
-    Route::post('/pengaturan/upload-logo', [ProfilePerusahaanController::class, 'uploadLogo'])->name('pengaturan.upload-logo');
-    
-    // Routes untuk mengelola profile perusahaan spesifik
-    Route::get('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'show'])->name('profile-perusahaan.show');
-    Route::put('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'update'])->name('profile-perusahaan.update');
-    Route::post('/profile-perusahaan/{id}/upload-logo', [ProfilePerusahaanController::class, 'uploadLogo'])->name('profile-perusahaan.upload-logo');
-    
-    // Route khusus untuk update dari frontend React
-    Route::put('/pengaturan/frontend', [ProfilePerusahaanController::class, 'updateFromFrontend'])->name('pengaturan.update-frontend');
-    Route::put('/profile-perusahaan/{id}/frontend', [ProfilePerusahaanController::class, 'updateFromFrontend'])->name('profile-perusahaan.update-frontend');
-});
-
-Route::middleware(['auth:sanctum'])->prefix('api')->group(function () {
-    Route::get('/profile-perusahaan', [ProfilePerusahaanController::class, 'apiIndex']);
-    Route::get('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'apiShow']);
-    Route::put('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'updateFromFrontend']);
-    Route::post('/profile-perusahaan/{id}/logo', [ProfilePerusahaanController::class, 'uploadLogo']);
 });
 
 Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim');
