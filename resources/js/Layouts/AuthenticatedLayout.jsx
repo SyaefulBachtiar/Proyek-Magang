@@ -7,6 +7,7 @@ import { useState, useEffect,  createContext, useContext, useRef } from "react";
 
 import SearchModal from '../modal/SearchModal';
 import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
+import Notif from '@/modal/Notifikasi/Notif';
 
 
 // untuk sidebar
@@ -19,6 +20,9 @@ export default function AuthenticatedLayout({ children, header }) {
     const user = usePage().props.auth.user;
 
     const { perusahaan, timLayout, role } = usePage().props;
+    
+    // notif state
+    const [notif, setNotif] = useState(false);
 
     // sidebar state
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -69,7 +73,7 @@ export default function AuthenticatedLayout({ children, header }) {
         >
             <div className="h-screen flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="py-1 px-3 bg-white">
+                <div className="py-1 px-3 bg-white relative">
                     <div className="flex py-2 gap-5">
                         <div className="flex items-center w-[500px] justify-between">
                             <div className="flex items-center gap-3">
@@ -198,9 +202,14 @@ export default function AuthenticatedLayout({ children, header }) {
                                       ))}
                             </div>
 
-                            <div className="p-2 bg-[#F0E460] rounded-lg text-white cursor-pointer">
+                            <div
+                                onClick={() => setNotif(!notif)}
+                                className="p-2 bg-[#F0E460] rounded-lg text-white cursor-pointer"
+                            >
                                 <Bell size={20} />
                             </div>
+
+                            {notif && <Notif close={() => setNotif(false)} />}
 
                             {/* button tambah anggota */}
                             {role !== "Super User" || role !== "Admin" ? (
@@ -208,7 +217,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                     className="p-2 bg-[#0076FD] rounded-lg flex items-center text-white gap-2"
                                     onClick={() => setTambahAnggotaModal(true)}
                                 >
-                                    <UserRoundPlus size={20}/>
+                                    <UserRoundPlus size={20} />
                                     <p className="text-xs sm:text-[15px]">
                                         Tambah anggota
                                     </p>
@@ -279,10 +288,7 @@ export default function AuthenticatedLayout({ children, header }) {
                         </div>
                     </div>
 
-                    {header && 
-                    <header className='w-full'>
-                        {header}
-                    </header>}
+                    {header && <header className="w-full">{header}</header>}
                 </div>
 
                 <main className="flex-1 h-full flex flex-col overflow-hidden">

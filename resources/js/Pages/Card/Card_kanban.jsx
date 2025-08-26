@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
-import { CalendarDays, Captions, MessageSquareText, Paperclip, Pencil, Plus, Save, SquareCheck, Tags, UserRoundPlus, X } from "lucide-react";
+import { CalendarDays, Captions, MessageSquareText, Paperclip, Pencil, Plus, Save, SquareCheck, Tag, Tags, UserRoundPlus, X } from "lucide-react";
 import { usePage } from "@inertiajs/react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -12,6 +12,7 @@ const initialState = {
     checklist: false,
     label: false,
     waktu: false,
+    lampiran: false
 };
 
 function reducer (state, action) {
@@ -24,6 +25,8 @@ function reducer (state, action) {
             return { ...state, label: !state.label };
         case "TOGGLE_WAKTU":
             return { ...state, waktu: !state.waktu };
+        case "TOGGLE_LAMPIRAN":
+            return { ...state, lampiran: !state.lampiran}
         default:
             return state;
     }
@@ -33,8 +36,19 @@ function reducer (state, action) {
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
-    const { role, id_tim, card_id, anggota_card } = usePage().props;
+    const { role, id_tim, card_id, anggota_card, kalender } = usePage().props;
     const refs = useRef({});
+    let date = "";
+    let fullDate = "";
+    if(kalender){
+    date = new Date(kalender.due_date);
+    fullDate = date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+    }
+
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -55,14 +69,14 @@ export default function Card_kanban() {
         },
         {
             name: "Label",
-            icon: <Paperclip size={14}/>,
+            icon: <Tag size={14} />,
             onclick: () => console.log("Label klik"),
             show: true,
             active: "",
         },
         {
             name: "Waktu",
-            icon: <CalendarDays size={14}/>,
+            icon: <CalendarDays size={14} />,
             onclick: () => dispatch({ type: "TOGGLE_WAKTU" }),
             show: true,
             active: state.waktu,
@@ -73,6 +87,13 @@ export default function Card_kanban() {
             onclick: () => dispatch({ type: "TOGGLE_TAMBAH_ANGGOTA" }),
             show: role !== "Member",
             active: state.tambahAnggota,
+        },
+        {
+            name: "Lampiran",
+            icon: <Paperclip size={14} />,
+            onclick: () => dispatch({ type: "TOGGLE_LAMPIRAN" }),
+            show: true,
+            active: state.lampiran,
         },
     ];
 
@@ -197,7 +218,9 @@ export default function Card_kanban() {
                                     .filter((btn) => btn.show)
                                     .map((btn, i) => (
                                         <div
-                                            ref={(el) => (refs.current[btn.name] = el)}
+                                            ref={(el) =>
+                                                (refs.current[btn.name] = el)
+                                            }
                                             key={i}
                                             onClick={btn.onclick}
                                             className={`flex gap-2 items-center p-2 ${
@@ -213,17 +236,23 @@ export default function Card_kanban() {
 
                                 {state.tambahAnggota && (
                                     <TambahAnggota
-                                        close={() => dispatch({ type: "TOGGLE_TAMBAH_ANGGOTA" })}
+                                        close={() =>
+                                            dispatch({
+                                                type: "TOGGLE_TAMBAH_ANGGOTA",
+                                            })
+                                        }
                                         card_id={card_id}
                                         id_tim={id_tim}
                                         refTrigger={refs.current["Anggota"]}
                                     />
                                 )}
                                 {state.waktu && (
-                                    <Kalender 
-                                    close={() => dispatch({ type: "TOGGLE_WAKTU" })}
-                                    refTrigger={refs.current["Waktu"]}
-                                    card_id={card_id}
+                                    <Kalender
+                                        close={() =>
+                                            dispatch({ type: "TOGGLE_WAKTU" })
+                                        }
+                                        refTrigger={refs.current["Waktu"]}
+                                        card_id={card_id}
                                     />
                                 )}
                             </div>
@@ -251,10 +280,31 @@ export default function Card_kanban() {
                                         </div>
                                     ))}
                                     <div className="w-6 h-6 flex justify-center items-center cursor-pointer">
-                                        <Plus onClick={() => dispatch({ type: "TOGGLE_TAMBAH_ANGGOTA" })} size={14} />
+                                        <Plus
+                                            onClick={() =>
+                                                dispatch({
+                                                    type: "TOGGLE_TAMBAH_ANGGOTA",
+                                                })
+                                            }
+                                            size={14}
+                                        />
                                     </div>
                                 </div>
                             </div>
+
+                            {kalender && (
+                                <div className="text-gray-800">
+                                    <h1>Tenggat Waktu</h1>
+                                    <div 
+                                    onClick={() => dispatch({
+                                        type: "TOGGLE_WAKTU"
+                                    })}
+                                    className="flex gap-2 items-center p-2 bg-gray-200 w-fit rounded-md cursor-pointer">
+                                        <CalendarDays size={20} />
+                                        <p>{fullDate}</p>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* lampilan */}
                             <div className="border border-gray-200 py-3 px-2 rounded-md mt-4">

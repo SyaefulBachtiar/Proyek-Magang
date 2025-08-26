@@ -304,4 +304,9 @@ class ProyekController extends Controller
 
         return redirect()->back()->with("seccess", 'Berhasil Update');
     }
+
+    public function kalender_delete ($id, $kalender_id) {
+        Kalender::where('id', $kalender_id)->delete();
+        return redirect()->back()->with('success', 'Berhasil hapus');
+    }
 }

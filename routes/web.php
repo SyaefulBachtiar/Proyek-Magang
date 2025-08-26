@@ -75,6 +75,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // KALENDER
     Route::post('proyek/card/{cardId}', [ProyekController::class, 'kalender_store'])->name('kalender.store');
     Route::put('proyek/card/{kalender_id}/update', [ProyekController::class, 'kalender_update'])->name('kalender.update');
+    Route::delete('proyek/card/{kalender_id}/update', [ProyekController::class, 'kalender_delete'])->name('kalender.delete');
     
 });
 

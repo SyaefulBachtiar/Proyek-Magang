@@ -61,6 +61,7 @@ export default function Kalender({ close, refTrigger, card_id }) {
             return `${tahun}-${bulan}-${hari}`;
         };
 
+
         const data = {
             start_date: startDate ? formatUntukDB(startDate) : null,
             due_date: dueDate ? formatUntukDB(dueDate) : null,
@@ -88,8 +89,8 @@ export default function Kalender({ close, refTrigger, card_id }) {
             router.post(route('kalender.store', {id: user.id, cardId: card_id}),
             data,
             {
-                onSuccess: (response) => {
-                    console.log('Berhasil di tambahkan');
+                onSuccess: () => {
+                    close()
                 },
                 onError: (errors) => {
                     console.log('error', errors);
@@ -102,6 +103,21 @@ export default function Kalender({ close, refTrigger, card_id }) {
          ); 
         }
     }
+
+    const handleRemove = () => {
+        router.delete(route('kalender.delete', {id: user.id, kalender_id: kalender.id}),
+        {
+            onSuccess: () => {
+                close()
+            },
+            onError: (errors) => {
+                console.log('error', errors);
+            },
+            onFinish: () => {
+                setLoading(false);
+            }
+        }
+    )}
 
 
     useEffect(() => {
@@ -680,16 +696,17 @@ export default function Kalender({ close, refTrigger, card_id }) {
                 {/* Button simpan dan batal */}
                 <div className="space-x-2">
                     <button
-                    onClick={handleSimpan}
-                    className="p-2 bg-blue-600 rounded-md text-white"
-                    disabled={loading}
+                        onClick={handleSimpan}
+                        className="p-2 bg-blue-600 rounded-md text-white"
+                        disabled={loading}
                     >
                         {loading ? "Loading..." : "Simpan"}
                     </button>
                     <button
-                    onClick={close}
-                    className="p-2 bg-red-600 rounded-md text-white">
-                        Batal
+                        onClick={kalender ? handleRemove : close}
+                        className={`p-2 ${kalender ? 'bg-red-600 text-white' : 'text-gray-800'} rounded-md`}
+                    >
+                        {kalender ? "Hapus" : "Batal"}
                     </button>
                 </div>
             </div>
