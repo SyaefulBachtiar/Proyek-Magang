@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\timPerusahaan\BoardModel;
+use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -20,3 +21,32 @@ Broadcast::channel('board.{id_board}', function ($user, $id_board) {
             $query->where('id_users', $user->id);
         })->exists();
 });
+
+Broadcast::channel('labelcard.{cardId}', function ($user, $cardId) {
+    // 1. Temukan card beserta relasi board-nya
+    $card = Card_listModel::with('listBoard.board')->find($cardId);
+
+    // 2. Jika card atau board tidak ditemukan, tolak akses
+    if (!$card || !$card->listBoard || !$card->listBoard->board) {
+        return false;
+    }
+
+    // 3. Ambil ID tim dari board
+    $teamId = $card->listBoard->board->id_team;
+
+    // 4. Gunakan logika yang sama untuk mengecek keanggotaan user di tim tersebut
+    return TimPerusahaan::where('id', $teamId)
+        ->whereHas('anggota_tim_perusahaan', function ($query) use ($user) {
+            $query->where('id_users', $user->id);
+        })->exists();
+});
+
+
+Broadcast::channel('labeltim.{timId}', function ($user, $timId) {
+    // Logikanya lebih sederhana, langsung cek keanggotaan user pada timId yang diberikan
+    return TimPerusahaan::where('id', $timId)
+        ->whereHas('anggota_tim_perusahaan', function ($query) use ($user) {
+            $query->where('id_users', $user->id);
+        })->exists();
+});
+

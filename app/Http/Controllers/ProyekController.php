@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Events\BoardUpdated;
+use App\Events\LabelCard;
+use App\Events\LabelTim;
 use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\Card_listModel;
@@ -332,12 +334,14 @@ class ProyekController extends Controller
         //     'id_card' => $id_card
         // ]);
 
-        Label_tim::create([
+       $label = Label_tim::create([
             'id' => (string) Str::uuid(),
             'title' => $request->title,
             'warna' => $request->warna,
             'id_tim_perusahaan' => $id_tim
         ]);
+
+        broadcast(new LabelTim($id_tim, 'created', $label))->toOthers();
 
         return redirect()->back()->with('success', 'Berhasil menambahkan label');
         } catch (\Error $e){
@@ -357,7 +361,20 @@ class ProyekController extends Controller
 
         $label_tim->update($validated);
 
+        broadcast(new LabelTim($id_tim, 'updated', $label_tim->fresh()))->toOthers();
+
         return redirect()->back()->with('success', 'Berhasil update label');
+    }
+
+    public function label_delete ($id, $label_id) {
+        $label = Label_tim::findOrFail($label_id);
+        $id_tim = $label->id_tim_perusahaan;
+
+        $label->delete();
+
+        broadcast(new LabelTim($id_tim, 'deleted', ['id' => $label_id]))->toOthers();
+
+        return redirect()->back()->with('success', 'Berhasil delete label');
     }
 
     public function label_card_store (Request $request, $id, $card_id) {
@@ -368,20 +385,32 @@ class ProyekController extends Controller
 
         $label_tim = Label_tim::findOrFail($request->label_id);
 
-        Label_card::create([
+        
+        $label_card = Label_card::create([
             'id' => (string) Str::uuid(),
             'title' => $label_tim->title,
             'warna' => $label_tim->warna,
             'id_card' => $card_id,
             'id_label_tim' => $label_tim->id
         ]);
+
+        broadcast(new LabelCard($card_id, 'added', $label_card, $id))->toOthers();
+
         return redirect()->back()->with('success', 'berhasil menambahkan label');
     }
 
     public function label_card_delete ($id, $card_id, $label_id) {
 
-        Label_card::where('id_label_tim', $label_id)->delete();
+        $label_card = Label_card::where('id_card', $card_id)
+                    ->where('id_label_tim', $label_id)
+                    ->firstOrFail();
         
-        return redirect()->back()->with('success', 'Berhasil delete label');
+        $delete_data = $label_card->toArray();
+
+        $label_card->delete();
+
+        broadcast(new LabelCard($card_id, 'removed', $delete_data, $id))->toOthers();
+        
+        return response()->json(['success' => 'Berhasil delete label']);
     }
 }

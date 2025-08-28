@@ -2,10 +2,10 @@ import { router, useForm, usePage } from "@inertiajs/react";
 import { ChevronLeft, Pen, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export default function Label({ close, refTrigger, card_id, id_tim }) {
+export default function Label({ close, refTrigger, card_id, id_tim, label_tim_prop, label_card_prop}) {
 
     const user = usePage().props.auth.user;
-    const { label_tim, label_card } = usePage().props;
+    const [loading, setLoading] = useState(null);
     const [selectedLabel, setSelectedLabel] = useState([]);
     const [editLabel, setEditLabel] = useState(false);
      const [editingLabel, setEditingLabel] = useState(null);
@@ -39,53 +39,63 @@ export default function Label({ close, refTrigger, card_id, id_tim }) {
     ];
 
     useEffect(() => {
-        if(label_card) {
-            setSelectedLabel(label_card.map((lc) => lc.id_label_tim));
+        if(label_card_prop) {
+            setSelectedLabel(label_card_prop.map((lc) => lc.id_label_tim));
         }
-    }, [label_card]);
+    }, [label_card_prop]);
 
-    const handleCheckboxChange = (e, labelId) => {
+    const handleCheckboxChange = async (e, labelId) => {
         const isChecked = e.target.checked;
 
-        if (isChecked) {
-            router.post(route('label.card.store', {id: user.id, id_card: card_id}), {
-                label_id:labelId,
-            },
-            {
-                preserveState: true,
-                preserveScroll: true,
-                progress: false,
-                onSuccess: () => {
-                    setSelectedLabel((prev) => [...prev, labelId]);
-                },
-                onError: () => {
-                setSelectedLabel(prev => prev.filter(id => id !== labelId));
-                // Opsional: tampilkan notifikasi error
-                alert('Gagal menambahkan label. Silakan coba lagi.');
-            }});
-        }else{
-            router.delete(
-                route("label.card.delete", {
-                    id: user.id,
-                    card_id: card_id,
-                    label_id: labelId,
-                }),
+        setLoading(labelId);
+
+         if (isChecked) {
+             setSelectedLabel((prev) => [...prev, labelId]);
+         } else {
+             setSelectedLabel((prev) => prev.filter((id) => id !== labelId));
+         }
+
+         try{
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if(isChecked) {
+                const response = await fetch(route('label.card.store', {id: user.id, id_card: card_id}), 
                 {
-                    preserveState: true,
-                    preserveScroll: true,
-                    progress: false,
-                    onSuccess: () => {
-                        setSelectedLabel((prev) =>
-                            prev.filter((id) => id !== labelId)
-                        );
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                     },
-                    onError: () => {
-                        // Opsional: tampilkan notifikasi error
-                        alert("Gagal hapus label. Silakan coba lagi.");
-                    },
+                        body: JSON.stringify({
+                            label_id: labelId
+                        })
+                });
+
+                if(!response.ok){
+                    throw new Error('Gagal menambahkan label');
                 }
-            );
-        }
+            }else{
+                const response = await fetch(route('label.card.delete', {id: user.id, card_id: card_id, label_id: labelId}),
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                }
+            });
+            }
+         }catch(error){
+            if( isChecked) {
+                setSelectedLabel(prev => prev.filter(id => id !== labelId));
+            }else{
+                setSelectedLabel((prev) => [...prev, labelId]);
+            }
+            console.log("error: ", error);
+         }finally{
+            setLoading(null)
+         }
     }
 
     const handleEdit = (label) => {
@@ -151,7 +161,7 @@ export default function Label({ close, refTrigger, card_id, id_tim }) {
 
         if (isEditMode && editingLabel) {
             if (confirm("Apakah Anda yakin ingin menghapus label ini?")) {
-                destroy(route("label.destroy", editingLabel.id), {
+                destroy(route("label.delete", {id: user.id, label_id: editingLabel.id}), {
                     onSuccess: () => {
                         setEditLabel(false);
                         setEditingLabel(null);
@@ -186,8 +196,12 @@ export default function Label({ close, refTrigger, card_id, id_tim }) {
 
     return (
         <>
-            <div className="absolute top-11 right-10 bg-white shadow-[0_5px_10px_rgba(0,0,0,0.25)] rounded-lg min-w-[300px] max-h-[400px]">
-                <div className="py-4 px-4 relative">
+            <div className="absolute top-11 right-10 bg-white shadow-[0_5px_10px_rgba(0,0,0,0.25)] rounded-lg min-w-[300px] max-h-[400px] overflow-hidden">
+                <div
+                    className={`py-4 px-4 relative overflow-hidden ${
+                        editLabel ? "h-[400px]" : "max-h-[400px]"
+                    }`}
+                >
                     <div className="flex items-center justify-between mb-4">
                         <h1 className="text-lg font-semibold">Label</h1>
                         <X
@@ -196,7 +210,7 @@ export default function Label({ close, refTrigger, card_id, id_tim }) {
                             size={20}
                         />
                     </div>
-                    <div>
+                    <div className="h-[300px] p-2 overflow-y-auto my-scrollable-element">
                         <div>
                             <input
                                 type="text"
@@ -205,15 +219,19 @@ export default function Label({ close, refTrigger, card_id, id_tim }) {
                             />
                         </div>
                         <div className="mt-4 space-y-2">
-                            {label_tim.map((label) => (
+                            {label_tim_prop.map((label) => (
                                 <div
                                     key={label.id}
                                     className="flex items-center gap-2"
                                 >
-                                    <input 
-                                    type="checkbox"
-                                    checked={selectedLabel.includes(label.id)}
-                                    onChange={(e) => handleCheckboxChange(e, label.id)}
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedLabel.includes(
+                                            label.id
+                                        )}
+                                        onChange={(e) =>
+                                            handleCheckboxChange(e, label.id)
+                                        }
                                     />
                                     <div
                                         className={`w-full h-[30px] flex items-center p-2 rounded-sm text-white`}
@@ -239,8 +257,9 @@ export default function Label({ close, refTrigger, card_id, id_tim }) {
                             <button
                                 onClick={handleTambahLabel}
                                 className="p-2 bg-gray-200 hover:bg-gray-300 w-full rounded-sm transition-colors"
+                                disabled={loading !== null}
                             >
-                                Tambah Label
+                                {loading !== null ? "Loading..." : "Tambahkan Label"}
                             </button>
                         </div>
                     </div>

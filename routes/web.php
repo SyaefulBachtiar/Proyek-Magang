@@ -86,10 +86,12 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // LABEL TIM
     Route::post('proyek/card/{id_card}/{id_tim}/label', [ProyekController::class, 'label_store'])->name('label.store');
     Route::put('proyek/card/{id_tim}/{id_label}/label/update', [ProyekController::class, 'label_update'])->name('label.update');
+    Route::delete('proyek/card/{label_id}', [ProyekController::class, 'label_delete'])->name('label.delete');
     
     // LABEL CARD
     Route::post('card/{id_card}', [ProyekController::class, 'label_card_store'])->name('label.card.store');
     Route::delete('card/{card_id}/label/{label_id}', [ProyekController::class, 'label_card_delete'])->name('label.card.delete');
+    
 });
 
 Route::middleware('auth')->group(function () {

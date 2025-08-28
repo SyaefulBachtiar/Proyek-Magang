@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import { CalendarDays, Captions, MessageSquareText, Paperclip, Pencil, Plus, Save, SquareCheck, Tag, Tags, UserRoundPlus, X } from "lucide-react";
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import Proyek from "../Proyek";
@@ -37,7 +37,7 @@ function reducer (state, action) {
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
-    const { role, id_tim, card_id, anggota_card, kalender, label_tim } = usePage().props;
+    const { role, id_tim, card_id, anggota_card, kalender, label_card, label_tim } = usePage().props;
     const refs = useRef({});
     let date = "";
     let fullDate = "";
@@ -50,6 +50,43 @@ export default function Card_kanban() {
     });
     }
 
+    // REALTIME LISTENER
+    useEffect(() => {
+        if(!card_id || !id_tim) return;
+
+        // console.log(`Listen ke channel: labelcard.${card_id} dan lebeltim.${id_tim}`);
+
+        // LISTENER UNTUK PERUBAHAN LABEL PADA CARD
+        const labelCardChannel = window.Echo.private(`labelcard.${card_id}`);
+        labelCardChannel.listen(".label.card.updated", (event) => {
+            // console.log('label card event di terima: ', event);
+
+            router.reload({
+                only: ["label_card"],
+                preserveState: true,
+                preserveScroll: true
+            });
+        });
+
+        const labelTimChannel = window.Echo.private(`labeltim.${id_tim}`);
+        labelTimChannel.listen(".label.tim.updated", (event) => {
+            console.log("label card event di terima: ", event);
+
+            router.reload({
+                only: ["label_tim", "label_card"],
+                preserveState: true,
+                preserveScroll: true,
+            });
+        });
+
+        return () => {
+            console.log("Leaving Channel...");
+            labelCardChannel.stopListening(".label.card.updated");
+            labelTimChannel.stopListening(".label.tim.updated");
+            window.Echo.leave(`lablecard.${card_id}`);
+            window.Echo.leave(`labeltim.${id_tim}`);
+        }
+    }, [card_id, id_tim]);
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -257,13 +294,46 @@ export default function Card_kanban() {
                                     />
                                 )}
                                 {state.label && (
-                                    <Label 
-                                    close={() => dispatch({ type: "TOGGLE_LABEL" })}
-                                    refTrigger={refs.current['Label']}
-                                    card_id={card_id}
-                                    id_tim={id_tim}
+                                    <Label
+                                        close={() =>
+                                            dispatch({ type: "TOGGLE_LABEL" })
+                                        }
+                                        refTrigger={refs.current["Label"]}
+                                        card_id={card_id}
+                                        id_tim={id_tim}
+                                        label_tim_prop={label_tim}
+                                        label_card_prop={label_card}
                                     />
                                 )}
+                            </div>
+                            <div
+                                className={`${
+                                    label_card.length > 0 ? "visible" : "hidden"
+                                } mt-4`}
+                            >
+                                <h1 className="font-semibold text-gray-800">
+                                    Label
+                                </h1>
+                                <div className={`grid grid-cols-5 gap-10`}>
+                                    {label_card.length > 0
+                                        ? label_card.map((label, i) => (
+                                              <div
+                                                  key={i}
+                                                  className="w-[100px] min-h-[5px] hover:p-2 rounded-md group transition-all ease-in-out duration-150 cursor-pointer "
+                                                  style={{
+                                                      backgroundColor:
+                                                          label.warna,
+                                                  }}
+                                              >
+                                                  <p
+                                                      className={`group-hover:flex hidden`}
+                                                  >
+                                                      {label.title}
+                                                  </p>
+                                              </div>
+                                          ))
+                                        : ""}
+                                </div>
                             </div>
                             <div className="flex flex-col gap-1 mt-4">
                                 <h4 className="text-[14px] text-gray-700">
@@ -303,14 +373,21 @@ export default function Card_kanban() {
 
                             {kalender && (
                                 <div className="text-gray-800">
-                                    <h1>Tenggat Waktu</h1>
-                                    <div 
-                                    onClick={() => dispatch({
-                                        type: "TOGGLE_WAKTU"
-                                    })}
-                                    className="flex gap-2 items-center p-2 bg-gray-200 w-fit rounded-md cursor-pointer">
+                                    <h1 className="font-semibold">
+                                        Tenggat Waktu
+                                    </h1>
+                                    <div
+                                        onClick={() =>
+                                            dispatch({
+                                                type: "TOGGLE_WAKTU",
+                                            })
+                                        }
+                                        className="flex gap-2 items-center p-2 bg-gray-200 w-fit rounded-md cursor-pointer"
+                                    >
                                         <CalendarDays size={20} />
-                                        <p>{fullDate} jam: {kalender.due_time}</p>
+                                        <p>
+                                            {fullDate} jam: {kalender.due_time}
+                                        </p>
                                     </div>
                                 </div>
                             )}
