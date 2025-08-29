@@ -30,7 +30,7 @@ class ProyekController extends Controller
         }
         $board_data = List_boardModel::with(['cards' => function($query) {
                     $query->orderBy('urutan', 'asc')
-                    ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim');
+                    ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card');
                 }])
                 ->where('id_board', $id_board)
                 ->orderBy('urutan_posisi', 'asc')
@@ -177,7 +177,7 @@ class ProyekController extends Controller
     private function broadcastBoardUpdate ($id_board) {
         $updatedBoardData = List_boardModel::with(['cards' => function($query) {
                 $query->orderBy('urutan', 'asc')
-                      ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim');
+                      ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card');
             }])
             ->where('id_board', $id_board)
             ->orderBy('urutan_posisi', 'asc')

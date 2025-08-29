@@ -11,6 +11,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Proyek from "../Proyek";
 import TambahCard from "@/modal/Proyek/TambahCard";
 import TambahList from "@/modal/Proyek/TambahList";
+import TooltipAnggotaCard from "@/Components/TooltipAnggotaCard";
 
 // Helper function untuk memetakan data dari backend ke state frontend
 // Ini untuk menghindari duplikasi kode
@@ -34,19 +35,25 @@ const mapBoardData = (boardData) => {
                     image: ang.user.poto_profile_user
                 } : null,
             })) || [],
+            label: card.label_card?.map((lab) => ({
+                id: lab.id,
+                title: lab.title,
+                warna: lab.warna
+            })) || [],
         })),
     }));
 };
 
 
 export default function Kanban({ children, dashboardId, activePage, tim, dataBoard, id_tim }) {
-
     const user = usePage().props.auth.user;
     const {id_board} = usePage().props;
 
     const [tambahCard, setTambahCard] = useState("");
     const [tambahList, setTambahList] = useState(false);
 
+    const [hoveredAnggota, setHoverdAnggota] = useState(null);
+    const hoveredAnggotaRef = useRef(null);
     const [lists, setLists] = useState([]);
 
     useEffect(() => {
@@ -187,8 +194,15 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                         preserveState: true,
                         preserveScroll: true,
                         only: [],
+                        progress: false
                     }
                 );
+                router.reload({
+                    only: ["dataBoard"], // pastikan controller inertia return dataBoard
+                    onSuccess: (page) => {
+                        setLists(mapBoardData(page.props.dataBoard));
+                    },
+                });
             } catch (error) {
                 console.error("Error updating card order:", error);
                 // Rollback jika error
@@ -293,7 +307,11 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                 <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
-                                                    className="w-[280px] flex-shrink-0 bg-white/40 px-4 pb-4 rounded-lg"
+                                                    className={`w-[280px] flex-shrink-0 bg-white/40 px-4 pb-4 rounded-lg ${
+                                                        openElipsis === list.id
+                                                            ? "z-10"
+                                                            : "z-0"
+                                                    }`}
                                                 >
                                                     <div
                                                         className="w-full flex justify-between items-center my-3"
@@ -393,148 +411,181 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                             provided,
                                                             snapshot
                                                         ) => (
-                                                            <div
-                                                                ref={
-                                                                    provided.innerRef
-                                                                }
-                                                                {...provided.droppableProps}
-                                                                className={`flex flex-col gap-2 max-h-80 overflow-y-auto pr-1 transition-colors my-scrollable-element ${
-                                                                    snapshot.isDraggingOver
-                                                                        ? "bg-blue-100/40"
-                                                                        : ""
-                                                                }`}
-                                                                style={{
-                                                                    minHeight:
-                                                                        "40px",
-                                                                }}
-                                                            >
-                                                                {list.cards.map(
-                                                                    (
-                                                                        card,
-                                                                        cardIndex
-                                                                    ) => (
-                                                                        <Draggable
-                                                                            draggableId={
-                                                                                card.id
-                                                                            }
-                                                                            index={
-                                                                                cardIndex
-                                                                            }
-                                                                            key={
-                                                                                card.id
-                                                                            }
-                                                                        >
-                                                                            {(
-                                                                                provided,
-                                                                                snapshot
-                                                                            ) => (
-                                                                                <div>
-                                                                                    <div
-                                                                                        className={`bg-white p-2 group/elipsis rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 relative flex items-center space-x-2 ${
-                                                                                            snapshot.isDragging
-                                                                                                ? "shadow-lg border-blue-600"
-                                                                                                : "border-blue-500"
-                                                                                        }`}
-                                                                                        ref={
-                                                                                            provided.innerRef
-                                                                                        }
-                                                                                        {...provided.draggableProps}
-                                                                                        {...provided.dragHandleProps}
-                                                                                    >
-                                                                                        <Ellipsis
-                                                                                            className="absolute top-0 right-0 mt-3 mr-2 hidden group-hover/elipsis:flex cursor-pointer"
-                                                                                            size={
-                                                                                                18
-                                                                                            }
-                                                                                        />
-                                                                                        {card.image ? (
-                                                                                            <img
-                                                                                                src={`/storage/${
-                                                                                                    card.image ||
-                                                                                                    ""
-                                                                                                }`}
-                                                                                                alt="image"
-                                                                                                className="w-full object-cover mb-5 mt-5"
-                                                                                            />
-                                                                                        ) : (
-                                                                                            ""
-                                                                                        )}
+                                                            <>
+                                                                <div
+                                                                    ref={
+                                                                        provided.innerRef
+                                                                    }
+                                                                    {...provided.droppableProps}
+                                                                    className={`flex flex-col gap-2 max-h-80 overflow-y-auto pr-1 transition-colors my-scrollable-element relative z-0 ${
+                                                                        snapshot.isDraggingOver
+                                                                            ? "bg-blue-100/40"
+                                                                            : ""
+                                                                    }`}
+                                                                    style={{
+                                                                        minHeight:
+                                                                            "40px",
+                                                                    }}
+                                                                >
+                                                                    {list.cards.map(
+                                                                        (
+                                                                            card,
+                                                                            cardIndex
+                                                                        ) => (
+                                                                            <Draggable
+                                                                                draggableId={
+                                                                                    card.id
+                                                                                }
+                                                                                index={
+                                                                                    cardIndex
+                                                                                }
+                                                                                key={
+                                                                                    card.id
+                                                                                }
+                                                                            >
+                                                                                {(
+                                                                                    provided,
+                                                                                    snapshot
+                                                                                ) => (
+                                                                                    <div>
                                                                                         <div
-                                                                                            onClick={() => {
-                                                                                                handleLihatCard(
-                                                                                                    card.id,
-                                                                                                    card.title
-                                                                                                );
-                                                                                            }}
-                                                                                            className="cursor-pointer hover:underline"
+                                                                                            className={`bg-white p-2 group/elipsis rounded-md cursor-move hover:shadow-md transition-shadow border-l-4 relative flex flex-col items-start space-x-1 ${
+                                                                                                snapshot.isDragging
+                                                                                                    ? "shadow-lg border-blue-600"
+                                                                                                    : "border-blue-500"
+                                                                                            }`}
+                                                                                            ref={
+                                                                                                provided.innerRef
+                                                                                            }
+                                                                                            {...provided.draggableProps}
+                                                                                            {...provided.dragHandleProps}
                                                                                         >
-                                                                                            <h1 className="text-md break-words">
-                                                                                                {
-                                                                                                    card.title
+                                                                                            <Ellipsis
+                                                                                                className="absolute top-0 right-0 mt-3 mr-2 hidden group-hover/elipsis:flex cursor-pointer"
+                                                                                                size={
+                                                                                                    18
                                                                                                 }
-                                                                                            </h1>
-                                                                                        </div>
-                                                                                        <div className="flex relative ">
-                                                                                            {card.anggota.map(
-                                                                                                (
-                                                                                                    ang
-                                                                                                ) => (
-                                                                                                    <div
-                                                                                                        key={
-                                                                                                            ang.id
-                                                                                                        }
-                                                                                                        className="w-6 h-6 rounded-full group/anggota items-center overflow-hidden"
-                                                                                                    >
-                                                                                                        {ang.user ? (
-                                                                                                            ang
-                                                                                                                .user
-                                                                                                                .image ? (
-                                                                                                                <img
-                                                                                                                    src={`/storage/${ang.user.image}`}
-                                                                                                                    alt="image_user"
-                                                                                                                    className="object-cover h-full w-full"
-                                                                                                                />
-                                                                                                            ) : (
-                                                                                                                <div className="flex justify-center items-center w-full h-full bg-blue-600 text-white">
-                                                                                                                    <p className="text-xs">
-                                                                                                                        {ang.user.name.charAt(
-                                                                                                                            0
-                                                                                                                        )}
-                                                                                                                    </p>
-                                                                                                                </div>
-                                                                                                            )
-                                                                                                        ) : (
-                                                                                                            ""
-                                                                                                        )}
-
-                                                                                                        <div
-                                                                                                            className="absolute bottom-[1px] left-1/2 -translate-x-1/2 mb-2 
-                                                                                                                        hidden group-hover/anggota:flex bg-gray-800/70 text-gray-200 
-                                                                                                                        text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap z-50"
-                                                                                                        >
-                                                                                                            {
-                                                                                                                ang.user.name === user.name ? "Anda" : ang.user.name
-                                                                                                            }
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                )
+                                                                                            />
+                                                                                            {card.image ? (
+                                                                                                <img
+                                                                                                    src={`/storage/${
+                                                                                                        card.image ||
+                                                                                                        ""
+                                                                                                    }`}
+                                                                                                    alt="image"
+                                                                                                    className="w-full object-cover mb-5 mt-5"
+                                                                                                />
+                                                                                            ) : (
+                                                                                                ""
                                                                                             )}
+                                                                                            <div
+                                                                                                onClick={() => {
+                                                                                                    handleLihatCard(
+                                                                                                        card.id,
+                                                                                                        card.title
+                                                                                                    );
+                                                                                                }}
+                                                                                                className="cursor-pointer hover:underline"
+                                                                                            >
+                                                                                                <h1 className="text-md break-words">
+                                                                                                    {
+                                                                                                        card.title
+                                                                                                    }
+                                                                                                </h1>
+                                                                                            </div>
+                                                                                            <div className="flex w-full justify-between items-center gap-4 pr-4 relative">
+                                                                                                <div className="grid grid-cols-3 w-full">
+                                                                                                    {card.label.map(
+                                                                                                        (
+                                                                                                            label
+                                                                                                        ) => (
+                                                                                                            <div
+                                                                                                                key={`${card.id}-${label.id}`}
+                                                                                                                className="rounded-md h-[5px] group cursor-pointer overflow-hidden transition-all ease-in-out duration-150"
+                                                                                                                style={{
+                                                                                                                    backgroundColor:
+                                                                                                                        label.warna,
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                <p className="absolute hidden group-hover:flex -top-5 bg-gray-800/70 text-white text-xs px-2 py-1 rounded z-[9999]">
+                                                                                                                    {
+                                                                                                                        label.title
+                                                                                                                    }
+                                                                                                                </p>
+                                                                                                            </div>
+                                                                                                        )
+                                                                                                    )}
+                                                                                                </div>
+                                                                                                <div className="flex relative">
+                                                                                                    {card.anggota.map((ang) => {
+                                                                                                        const memberRef = useRef(null);
+
+                                                                                                        return (
+                                                                                                            <div
+                                                                                                                ref={memberRef}
+                                                                                                                key={ang.id}
+                                                                                                                onMouseEnter={() => {
+                                                                                                                    hoveredAnggotaRef.current = memberRef.current;
+                                                                                                                    setHoverdAnggota(ang);
+                                                                                                                }}
+                                                                                                                onMouseLeave={() => {
+                                                                                                                    setHoverdAnggota(null);
+                                                                                                                    hoveredAnggotaRef.current = null;
+                                                                                                                }}
+                                                                                                                className="relative cursor-pointer"
+                                                                                                            >
+                                                                                                                <div className="w-5 h-5 items-center">
+                                                                                                                    {ang.user ? (
+                                                                                                                        ang
+                                                                                                                            .user
+                                                                                                                            .image ? (
+                                                                                                                            <img
+                                                                                                                                src={`/storage/${ang.user.image}`}
+                                                                                                                                alt="image_user"
+                                                                                                                                className="object-cover h-full w-full rounded-full"
+                                                                                                                            />
+                                                                                                                        ) : (
+                                                                                                                            <div className="flex justify-center items-center w-full h-full rounded-full bg-blue-600 text-white">
+                                                                                                                                <p className="text-[10px]">
+                                                                                                                                    {ang.user.name.charAt(
+                                                                                                                                        0
+                                                                                                                                    )}
+                                                                                                                                </p>
+                                                                                                                            </div>
+                                                                                                                        )
+                                                                                                                    ) : (
+                                                                                                                        ""
+                                                                                                                    )}
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        );
+                                                                                                    }
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
-                                                                                </div>
-                                                                            )}
-                                                                        </Draggable>
-                                                                    )
-                                                                )}
-                                                                {
-                                                                    provided.placeholder
-                                                                }
-                                                                {list.cards
-                                                                    .length ===
-                                                                    0 && (
-                                                                    <div className="px-2 py-1"></div>
-                                                                )}
-                                                            </div>
+                                                                                )}
+                                                                            </Draggable>
+                                                                        )
+                                                                    )}
+                                                                    {
+                                                                        provided.placeholder
+                                                                    }
+                                                                    {list.cards
+                                                                        .length ===
+                                                                        0 && (
+                                                                        <div className="px-2 py-1"></div>
+                                                                    )}
+                                                                </div>
+                                                                        {hoveredAnggota && hoveredAnggotaRef.current && (
+                                                                            <TooltipAnggotaCard targetRef={hoveredAnggotaRef}>
+                                                                                {hoveredAnggota.user.name === user.name
+                                                                                    ? "Anda"
+                                                                                    : hoveredAnggota.user.name}
+                                                                            </TooltipAnggotaCard>
+                                                                        )}
+                                                            </>
                                                         )}
                                                     </Droppable>
 

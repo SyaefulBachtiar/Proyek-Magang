@@ -1,6 +1,6 @@
 import { router, useForm, usePage } from "@inertiajs/react";
 import { ChevronLeft, Pen, Save, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Label({ close, refTrigger, card_id, id_tim, label_tim_prop, label_card_prop}) {
 
@@ -8,8 +8,23 @@ export default function Label({ close, refTrigger, card_id, id_tim, label_tim_pr
     const [loading, setLoading] = useState(null);
     const [selectedLabel, setSelectedLabel] = useState([]);
     const [editLabel, setEditLabel] = useState(false);
-     const [editingLabel, setEditingLabel] = useState(null);
+    const [editingLabel, setEditingLabel] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false); // Untuk membedakan edit vs tambah baru
+    const modalRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside (e) {
+            if(modalRef.current && !modalRef.current.contains(e.target) && refTrigger && !refTrigger.contains(e.target)){
+                close();
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+    }, [modalRef, refTrigger]);
 
     const {
         data,
@@ -196,7 +211,7 @@ export default function Label({ close, refTrigger, card_id, id_tim, label_tim_pr
 
     return (
         <>
-            <div className="absolute top-11 right-10 bg-white shadow-[0_5px_10px_rgba(0,0,0,0.25)] rounded-lg min-w-[300px] max-h-[400px] overflow-hidden">
+            <div ref={modalRef} className="absolute top-11 right-10 bg-white shadow-[0_5px_10px_rgba(0,0,0,0.25)] rounded-lg min-w-[300px] max-h-[400px] overflow-hidden">
                 <div
                     className={`py-4 px-4 relative overflow-hidden ${
                         editLabel ? "h-[400px]" : "max-h-[400px]"
@@ -210,7 +225,7 @@ export default function Label({ close, refTrigger, card_id, id_tim, label_tim_pr
                             size={20}
                         />
                     </div>
-                    <div className="h-[300px] p-2 overflow-y-auto my-scrollable-element">
+                    <div className="p-2 overflow-y-auto my-scrollable-element">
                         <div>
                             <input
                                 type="text"
