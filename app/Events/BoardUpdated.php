@@ -15,14 +15,13 @@ class BoardUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $boardId;
-    public $boardData;
+
     /**
      * Create a new event instance.
      */
-    public function __construct($boardId, $boardData)
+    public function __construct($boardId)
     {
         $this->boardId = $boardId;
-        $this->boardData = $boardData;
     }
 
     /**

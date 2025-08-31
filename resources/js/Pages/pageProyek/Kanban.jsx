@@ -2,6 +2,7 @@ import { Head, router, usePage } from "@inertiajs/react";
 import {
     Archive,
     Check,
+    Clock,
     Ellipsis,
     Pencil,
     Plus,
@@ -24,28 +25,41 @@ const mapBoardData = (boardData) => {
             id: card.id.toString(),
             title: card.nama_card,
             image: card.image,
-            anggota: card.anggota_card_list?.map((ang) => ({
-                id: ang.id,
-                id_user: ang.id_user,
-                id_anggota_tim: ang.id_anggota_tim,
-                user: ang.user ? {
-                    id: ang.user.id,
-                    name: ang.user.name,
-                    email: ang.user.email,
-                    image: ang.user.poto_profile_user
-                } : null,
-            })) || [],
-            label: card.label_card?.map((lab) => ({
-                id: lab.id,
-                title: lab.title,
-                warna: lab.warna
-            })) || [],
+            anggota:
+                card.anggota_card_list?.map((ang) => ({
+                    id: ang.id,
+                    id_user: ang.id_user,
+                    id_anggota_tim: ang.id_anggota_tim,
+                    user: ang.user
+                        ? {
+                              id: ang.user.id,
+                              name: ang.user.name,
+                              email: ang.user.email,
+                              image: ang.user.poto_profile_user,
+                          }
+                        : null,
+                })) || [],
+            label:
+                card.label_card?.map((lab) => ({
+                    id: lab.id,
+                    title: lab.title,
+                    warna: lab.warna,
+                })) || [],
+            kalender:
+                card.kalender?.map((kal) => ({
+                    id: kal.id,
+                    start_date: kal.start_date,
+                    due_date: kal.due_date,
+                    due_time: kal.due_time,
+                    reminder: kal.reminder,
+                })) || [],
         })),
     }));
 };
 
 
 export default function Kanban({ children, dashboardId, activePage, tim, dataBoard, id_tim }) {
+    
     const user = usePage().props.auth.user;
     const {id_board} = usePage().props;
 
@@ -68,7 +82,9 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
 
             channel.listen('.board.updated', (event) => {
                 // console.log("Real-time event received:", event);
-                setLists(mapBoardData(event.boardData));;
+                router.reload({
+                    only: ["dataBoard"]
+                })
             });
 
             return () => {
@@ -81,6 +97,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
     const [editingListId, setEditingListId] = useState(null);
     const [openElipsis, setOpenElipsis] = useState(null);
     const elipsisRef = useRef({});
+    const memberRef = useRef({});
 
     const handleDragEnd = async (result) => {
         const { source, destination, type } = result;
@@ -493,74 +510,118 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                                     }
                                                                                                 </h1>
                                                                                             </div>
-                                                                                            <div className="flex w-full justify-between items-center gap-4 pr-4 relative">
-                                                                                                <div className="grid grid-cols-3 w-full">
-                                                                                                    {card.label.map(
-                                                                                                        (
-                                                                                                            label
-                                                                                                        ) => (
-                                                                                                            <div
-                                                                                                                key={`${card.id}-${label.id}`}
-                                                                                                                className="rounded-md h-[5px] group cursor-pointer overflow-hidden transition-all ease-in-out duration-150"
-                                                                                                                style={{
-                                                                                                                    backgroundColor:
-                                                                                                                        label.warna,
-                                                                                                                }}
-                                                                                                            >
-                                                                                                                <p className="absolute hidden group-hover:flex -top-5 bg-gray-800/70 text-white text-xs px-2 py-1 rounded z-[9999]">
-                                                                                                                    {
-                                                                                                                        label.title
-                                                                                                                    }
-                                                                                                                </p>
-                                                                                                            </div>
-                                                                                                        )
-                                                                                                    )}
-                                                                                                </div>
-                                                                                                <div className="flex relative">
-                                                                                                    {card.anggota.map((ang) => {
-                                                                                                        const memberRef = useRef(null);
 
-                                                                                                        return (
-                                                                                                            <div
-                                                                                                                ref={memberRef}
-                                                                                                                key={ang.id}
-                                                                                                                onMouseEnter={() => {
-                                                                                                                    hoveredAnggotaRef.current = memberRef.current;
-                                                                                                                    setHoverdAnggota(ang);
-                                                                                                                }}
-                                                                                                                onMouseLeave={() => {
-                                                                                                                    setHoverdAnggota(null);
-                                                                                                                    hoveredAnggotaRef.current = null;
-                                                                                                                }}
-                                                                                                                className="relative cursor-pointer"
-                                                                                                            >
-                                                                                                                <div className="w-5 h-5 items-center">
-                                                                                                                    {ang.user ? (
-                                                                                                                        ang
-                                                                                                                            .user
-                                                                                                                            .image ? (
-                                                                                                                            <img
-                                                                                                                                src={`/storage/${ang.user.image}`}
-                                                                                                                                alt="image_user"
-                                                                                                                                className="object-cover h-full w-full rounded-full"
-                                                                                                                            />
-                                                                                                                        ) : (
-                                                                                                                            <div className="flex justify-center items-center w-full h-full rounded-full bg-blue-600 text-white">
-                                                                                                                                <p className="text-[10px]">
-                                                                                                                                    {ang.user.name.charAt(
-                                                                                                                                        0
-                                                                                                                                    )}
-                                                                                                                                </p>
-                                                                                                                            </div>
-                                                                                                                        )
-                                                                                                                    ) : (
-                                                                                                                        ""
-                                                                                                                    )}
+                                                                                            <div className="w-full">
+                                                                                                <div className="flex w-full justify-between items-center gap-4 pr-4 relative mt-2">
+                                                                                                    <div
+                                                                                                        className={`w-full flex flex-col ${card.label.length > 0 ? 'gap-2' : 'gap-0'}`
+                                                                                                    }>
+                                                                                                        <div className="grid grid-cols-3 w-full">
+                                                                                                            {card.label.map(
+                                                                                                                (
+                                                                                                                    label
+                                                                                                                ) => (
+                                                                                                                    <div
+                                                                                                                        key={`${card.id}-${label.id}`}
+                                                                                                                        className="rounded-md h-[5px] group cursor-pointer overflow-hidden transition-all ease-in-out duration-150"
+                                                                                                                        style={{
+                                                                                                                            backgroundColor:
+                                                                                                                                label.warna,
+                                                                                                                        }}
+                                                                                                                    >
+                                                                                                                        <p className="absolute hidden group-hover:flex -top-5 bg-gray-800/70 text-white text-xs px-2 py-1 rounded z-[9999]">
+                                                                                                                            {
+                                                                                                                                label.title
+                                                                                                                            }
+                                                                                                                        </p>
+                                                                                                                    </div>
+                                                                                                                )
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                        <div>
+                                                                                                            {card.kalender.map((kal) => {
+                                                                                                                const dueDate = new Date(kal.due_date);
+
+                                                                                                                const tgl = dueDate.getDate();
+
+                                                                                                                const bulan = dueDate.toLocaleString('id-ID', {
+                                                                                                                    month: 'long'
+                                                                                                                }).slice(0, 4);
+
+                                                                                                                return (
+                                                                                                                <div
+                                                                                                                key={kal.id}
+                                                                                                                className="text-xs flex items-center gap-1 p-1"
+                                                                                                                >
+                                                                                                                    <Clock size={16}/>
+                                                                                                                    <p>{bulan}{" "}{tgl}</p>
                                                                                                                 </div>
-                                                                                                            </div>
-                                                                                                        );
-                                                                                                    }
-                                                                                                    )}
+                                                                                                                );
+                                                                                                            })}
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div className="flex relative">
+                                                                                                        {card.anggota.map(
+                                                                                                            (
+                                                                                                                ang
+                                                                                                            ) => {
+                                                                                                                
+
+                                                                                                                return (
+                                                                                                                    <div
+                                                                                                                        ref={(el) => {
+                                                                                                                            const key = `${card.id}-${ang.id}`;
+                                                                                                                            if(el) {
+                                                                                                                                memberRef.current[key] = el;
+                                                                                                                            }else{
+                                                                                                                                delete memberRef.current[key];
+                                                                                                                            }
+                                                                                                                        }}
+                                                                                                                        key={
+                                                                                                                            ang.id
+                                                                                                                        }
+                                                                                                                        onMouseEnter={() => {
+                                                                                                                                const key = `${card.id}-${ang.id}`;
+                                                                                                                                const targetRef = memberRef.current[key];
+                                                                                                                                if(targetRef){
+                                                                                                                                    hoveredAnggotaRef.current = targetRef;
+                                                                                                                                        setHoverdAnggota(ang);
+                                                                                                                                }
+                                                                                                                        }}
+                                                                                                                        onMouseLeave={() => {
+                                                                                                                            setHoverdAnggota(null);
+                                                                                                                            hoveredAnggotaRef.current =     null;
+                                                                                                                        }}
+                                                                                                                        className="relative cursor-pointer"
+                                                                                                                    >
+                                                                                                                        <div className="w-5 h-5 items-center">
+                                                                                                                            {ang.user ? (
+                                                                                                                                ang
+                                                                                                                                    .user
+                                                                                                                                    .image ? (
+                                                                                                                                    <img
+                                                                                                                                        src={`/storage/${ang.user.image}`}
+                                                                                                                                        alt="image_user"
+                                                                                                                                        className="object-cover h-full w-full rounded-full"
+                                                                                                                                    />
+                                                                                                                                ) : (
+                                                                                                                                    <div className="flex justify-center items-center w-full h-full rounded-full bg-blue-600 text-white">
+                                                                                                                                        <p className="text-[10px]">
+                                                                                                                                            {ang.user.name.charAt(
+                                                                                                                                                0
+                                                                                                                                            )}
+                                                                                                                                        </p>
+                                                                                                                                    </div>
+                                                                                                                                )
+                                                                                                                            ) : (
+                                                                                                                                ""
+                                                                                                                            )}
+                                                                                                                        </div>
+                                                                                                                    </div>
+                                                                                                                );
+                                                                                                            }
+                                                                                                        )}
+                                                                                                    </div>
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
@@ -578,13 +639,23 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                         <div className="px-2 py-1"></div>
                                                                     )}
                                                                 </div>
-                                                                        {hoveredAnggota && hoveredAnggotaRef.current && (
-                                                                            <TooltipAnggotaCard targetRef={hoveredAnggotaRef}>
-                                                                                {hoveredAnggota.user.name === user.name
-                                                                                    ? "Anda"
-                                                                                    : hoveredAnggota.user.name}
-                                                                            </TooltipAnggotaCard>
-                                                                        )}
+                                                                {hoveredAnggota &&
+                                                                    hoveredAnggotaRef.current && (
+                                                                        <TooltipAnggotaCard
+                                                                            targetRef={
+                                                                                hoveredAnggotaRef
+                                                                            }
+                                                                        >
+                                                                            {hoveredAnggota
+                                                                                .user
+                                                                                .name ===
+                                                                            user.name
+                                                                                ? "Anda"
+                                                                                : hoveredAnggota
+                                                                                      .user
+                                                                                      .name}
+                                                                        </TooltipAnggotaCard>
+                                                                    )}
                                                             </>
                                                         )}
                                                     </Droppable>

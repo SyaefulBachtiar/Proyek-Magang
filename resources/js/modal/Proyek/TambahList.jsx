@@ -48,7 +48,7 @@ export default function TambahList ({id, id_board, close}) {
         submitData.append("nama_list", formData.nama_list);
         submitData.append("id_board", formData.id_board);
 
-        router.post(route("proyek.list.store", {id: id}),
+        router.post(route("proyek.list.store", {id: id, id_board: id_board}),
         submitData,
         {
             forceFormData: true,

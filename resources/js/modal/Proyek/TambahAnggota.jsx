@@ -184,7 +184,9 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
                                         onClick={() =>
                                             router.delete(
                                                 route("proyek.card.destroy", {
-                                                    id: user.id, id_user: tim.id,
+                                                    id: user.id,
+                                                    id_user: tim.id,
+                                                    cardId: card_id,
                                                 })
                                             )
                                         }

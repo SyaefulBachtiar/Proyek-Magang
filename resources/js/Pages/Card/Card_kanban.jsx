@@ -37,7 +37,7 @@ function reducer (state, action) {
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
-    const { role, id_tim, card_id, anggota_card, kalender, label_card, label_tim } = usePage().props;
+    const { role, id_tim, card_id, anggota_card, kalender, label_card, label_tim, id_board } = usePage().props;
     const refs = useRef({});
     let date = "";
     let fullDate = "";
@@ -52,41 +52,31 @@ export default function Card_kanban() {
 
     // REALTIME LISTENER
     useEffect(() => {
-        if(!card_id || !id_tim) return;
+        if(!id_board) return;
 
         // console.log(`Listen ke channel: labelcard.${card_id} dan lebeltim.${id_tim}`);
 
-        // LISTENER UNTUK PERUBAHAN LABEL PADA CARD
-        const labelCardChannel = window.Echo.private(`labelcard.${card_id}`);
-        labelCardChannel.listen(".label.card.updated", (event) => {
-            // console.log('label card event di terima: ', event);
+        // LISTENER UNTUK PERUBAHAN DI BOARD
+         const channel = window.Echo.private(`board.${id_board}`);
+          channel.listen(".board.updated", (event) => {
+            //   console.log(
+            //       "Berhasil",
+            //       event
+            //   );
 
-            router.reload({
-                only: ["label_card"],
-                preserveState: true,
-                preserveScroll: true
-            });
-        });
+              // Cukup reload props yang relevan untuk halaman ini.
+              router.reload({
+                  only: ["label_card", "label_tim", "anggota_card", "kalender"], // sesuaikan dengan props halaman ini
+                  preserveState: true,
+                  preserveScroll: true,
+              });
+          });
 
-        const labelTimChannel = window.Echo.private(`labeltim.${id_tim}`);
-        labelTimChannel.listen(".label.tim.updated", (event) => {
-            console.log("label card event di terima: ", event);
-
-            router.reload({
-                only: ["label_tim", "label_card"],
-                preserveState: true,
-                preserveScroll: true,
-            });
-        });
 
         return () => {
-            console.log("Leaving Channel...");
-            labelCardChannel.stopListening(".label.card.updated");
-            labelTimChannel.stopListening(".label.tim.updated");
-            window.Echo.leave(`lablecard.${card_id}`);
-            window.Echo.leave(`labeltim.${id_tim}`);
+            window.Echo.leave(`board.${id_board}`);
         }
-    }, [card_id, id_tim]);
+    }, [id_board]);
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -144,7 +134,13 @@ export default function Card_kanban() {
                 lihatCardRef.current &&
                 !lihatCardRef.current.contains(e.target)
             ) {
-                window.history.back(); 
+                  router.visit(
+                      route("proyek", {
+                          id: user.id,
+                          id_tim: id_tim,
+                          id_board: id_board,
+                      })
+                  );
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
@@ -185,7 +181,13 @@ export default function Card_kanban() {
                     <div className="flex justify-end p-1 m-2">
                         <div
                             className="p-1 hover:bg-black/20 rounded-md cursor-pointer"
-                            onClick={() => window.history.back()}
+                            onClick={() => router.visit(
+                                route("proyek", {
+                                    id: user.id,
+                                    id_tim: id_tim,
+                                    id_board: id_board,
+                                })
+                            )}
                         >
                             <X />
                         </div>

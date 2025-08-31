@@ -42,13 +42,13 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // Tambah anggota Card Kanban
     Route::post('proyek/{id_user}/card/{cardId}', [ProyekController::class, 'tambah_anggota_card'])->name('proyek.card.invite');
-    Route::delete('proyek/{id_user}', [ProyekController::class, 'destroy_anggota_card'])->name('proyek.card.destroy');
+    Route::delete('proyek/{id_user}/{cardId}', [ProyekController::class, 'destroy_anggota_card'])->name('proyek.card.destroy');
 
     // Aksi Proyek (POST/PUT/DELETE)
     Route::post('/proyek/update-list-order', [ProyekController::class, 'updateListOrder'])->name('proyek.update-list-order');
     Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])->name('proyek.update-card-order');
     Route::post('/proyek/{id_tim}/board/{id_board}/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
-    Route::post('/proyek/list', [ProyekController::class, 'storeList'])->name('proyek.list.store');
+    Route::post('/proyek/list/{id_board}', [ProyekController::class, 'storeList'])->name('proyek.list.store');
     
     // Menghapus Anggota
     Route::delete('/proyek/{id_tim}/anggota/{id_user}', [ProyekController::class, 'hapusAnggota'])->name('proyek.anggota.destroy');

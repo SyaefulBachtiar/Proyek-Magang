@@ -7,6 +7,7 @@ use App\Events\LabelCard;
 use App\Events\LabelTim;
 use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
+use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\Kalender;
 use App\Models\timPerusahaan\Label_card;
@@ -16,6 +17,7 @@ use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 
@@ -30,7 +32,7 @@ class ProyekController extends Controller
         }
         $board_data = List_boardModel::with(['cards' => function($query) {
                     $query->orderBy('urutan', 'asc')
-                    ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card');
+                    ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card', 'kalender');
                 }])
                 ->where('id_board', $id_board)
                 ->orderBy('urutan_posisi', 'asc')
@@ -92,7 +94,9 @@ class ProyekController extends Controller
             'id_anggota_tim' => $anggota_tim->id,
         ]);
 
-        return redirect()->back()->with('success', 'Berhasil Menambahkan Card');
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'Berhasil Menambahkan Card');
 
     } catch (\Exception $e) {
         return redirect()->back()->with('gagal', 'Gagal Menambahkan Card: '. $e);
@@ -101,7 +105,7 @@ class ProyekController extends Controller
 }
 
      // list store
-    public function storeList (Request $request, $id) {
+    public function storeList (Request $request, $id, $id_board) {
 
     $request->validate([
     'nama_list' => 'required|string|max:50',
@@ -119,7 +123,9 @@ class ProyekController extends Controller
             'id_board' => $request->id_board,
         ]);
 
-        return redirect()->back()->with('success', 'Berhasil tambah list');
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'Berhasil tambah list');
     }catch(\Exception $e){
         return redirect()->back()->with('gagal', 'Gagal Menambahkan list: '. $e);
     }
@@ -129,19 +135,23 @@ class ProyekController extends Controller
         $kalender = Kalender::where('id_card', $cardId)->first();
         $label_tim = Label_tim::where('id_tim_perusahaan', $id_tim)->get();
         $label_card = Label_card::where('id_card', $cardId)->get();
+        $id_board = BoardModel::where('id_team', $id_tim)->value('id');
+
 
         return inertia('Card/Card_kanban', [
             'id_tim' => $id_tim,
             'card_id' => $cardId,
             'kalender' => $kalender,
             'label_tim' => $label_tim,
-            'label_card' => $label_card
+            'label_card' => $label_card,
+            'id_board' => $id_board
         ]);
     }
 
     // Tambah Anggota Card
     public function tambah_anggota_card ($id, $id_user, $cardId) {
         $id_anggota_tim = Anggota_tim::where('id_users', $id)->first();
+        $card = Card_listModel::findOrFail($cardId);
 
         Anggota_card::create([
             'id' => (string) Str::uuid(),
@@ -150,12 +160,32 @@ class ProyekController extends Controller
             'id_anggota_tim' => $id_anggota_tim->id
         ]);
 
+
+        $id_board = $card->listBoard->id_board;
+
+        $this->broadcastBoardUpdate($id_board);
+
         return redirect()->back()->with('success', 'Berhasil Menambahkan Anggota');
     }
 
     // Delete anggota Card
-    public function destroy_anggota_card ($id, $id_user) {
-        Anggota_card::where('id_user', $id_user)->delete();
+    public function destroy_anggota_card ($id, $id_user, $cardId) {
+        
+        $anggotaCard = Anggota_card::where('id_card', $cardId)
+                               ->where('id_user', $id_user);
+
+        if($anggotaCard->doesntExist()){
+             return back()->with('gagal', 'Anggota tidak ditemukan pada kartu ini.');
+        }
+
+        $anggotaCard->delete();
+
+        $card = Card_listModel::findOrFail($cardId);
+        $id_board = $card->listBoard->id_board;
+
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'Berhasil mengeluarkan anggota');
     }
     
 
@@ -175,17 +205,9 @@ class ProyekController extends Controller
     }
 
     private function broadcastBoardUpdate ($id_board) {
-        $updatedBoardData = List_boardModel::with(['cards' => function($query) {
-                $query->orderBy('urutan', 'asc')
-                      ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card');
-            }])
-            ->where('id_board', $id_board)
-            ->orderBy('urutan_posisi', 'asc')
-            ->get()
-            ->toArray();
 
         // Siarkan ke semua event client
-        broadcast(new BoardUpdated($id_board, $updatedBoardData));
+        broadcast(new BoardUpdated($id_board));
     }
 
     public function updateListOrder(Request $request, $id) {
@@ -286,7 +308,7 @@ class ProyekController extends Controller
             'reminder' => 'nullable||string',
         ]);
 
-        $kalender = Kalender::create([
+        Kalender::create([
             'id' => (string) Str::uuid(),
             'id_card' => $cardId,
             'start_date' => $validated['start_date'],
@@ -295,7 +317,13 @@ class ProyekController extends Controller
             'reminder' => $validated['reminder'],
         ]);
 
-        return redirect()->back()->with('success', 'berhasil menambahkan waktu');
+        $card = Card_listModel::findOrFail($cardId);
+
+        $id_board = $card->listBoard->id_board;
+
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'berhasil menambahkan waktu');
     }
 
     public function kalender_update (Request $request, $id, $kalender_id) {
@@ -308,15 +336,26 @@ class ProyekController extends Controller
 
 
         $kalender = Kalender::findOrFail($kalender_id);
-
+        $id_board = $kalender->card->listBoard->id_board;
         $kalender->update($validated);
 
-        return redirect()->back()->with("seccess", 'Berhasil Update');
+        $this->broadcastBoardUpdate($id_board);
+        
+        return back()->with("seccess", 'Berhasil Update');
     }
 
     public function kalender_delete ($id, $kalender_id) {
-        Kalender::where('id', $kalender_id)->delete();
-        return redirect()->back()->with('success', 'Berhasil hapus');
+        
+        // Kalender::where('id', $kalender_id)->delete();
+        $kalender = Kalender::findOrFail($kalender_id);
+
+        $id_board = $kalender->card->listBoard->id_board;
+
+        $kalender->delete();
+
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'Berhasil hapus');
     }
 
     public function label_store (Request $request, $id, $id_card, $id_tim) {
@@ -341,9 +380,12 @@ class ProyekController extends Controller
             'id_tim_perusahaan' => $id_tim
         ]);
 
-        broadcast(new LabelTim($id_tim, 'created', $label))->toOthers();
+        $card = Card_listModel::findOrFail($id_card);
+        $id_board = $card->listBoard->id_board;
 
-        return redirect()->back()->with('success', 'Berhasil menambahkan label');
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'Berhasil menambahkan label');
         } catch (\Error $e){
              return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
         }
@@ -361,9 +403,11 @@ class ProyekController extends Controller
 
         $label_tim->update($validated);
 
-        broadcast(new LabelTim($id_tim, 'updated', $label_tim->fresh()))->toOthers();
+        $id_board = BoardModel::where('id_team', $id_tim)->value('id');
+        
+        $this->broadcastBoardUpdate($id_board);
 
-        return redirect()->back()->with('success', 'Berhasil update label');
+        return back()->with('success', 'Berhasil update label');
     }
 
     public function label_delete ($id, $label_id) {
@@ -372,9 +416,11 @@ class ProyekController extends Controller
 
         $label->delete();
 
-        broadcast(new LabelTim($id_tim, 'deleted', ['id' => $label_id]))->toOthers();
+        $id_board = BoardModel::where('id_team', $id_tim)->value('id');
 
-        return redirect()->back()->with('success', 'Berhasil delete label');
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'Berhasil delete label');
     }
 
     public function label_card_store (Request $request, $id, $card_id) {
@@ -394,9 +440,12 @@ class ProyekController extends Controller
             'id_label_tim' => $label_tim->id
         ]);
 
-        broadcast(new LabelCard($card_id, 'added', $label_card, $id))->toOthers();
+        $card = Card_listModel::findOrFail($card_id);
+        $id_board = $card->listBoard->id_board;
 
-        return redirect()->back()->with('success', 'berhasil menambahkan label');
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'berhasil menambahkan label');
     }
 
     public function label_card_delete ($id, $card_id, $label_id) {
@@ -405,11 +454,12 @@ class ProyekController extends Controller
                     ->where('id_label_tim', $label_id)
                     ->firstOrFail();
         
-        $delete_data = $label_card->toArray();
 
         $label_card->delete();
 
-        broadcast(new LabelCard($card_id, 'removed', $delete_data, $id))->toOthers();
+        $id_board = $label_card->card->listBoard->id_board;
+
+        $this->broadcastBoardUpdate($id_board);
         
         return response()->json(['success' => 'Berhasil delete label']);
     }
