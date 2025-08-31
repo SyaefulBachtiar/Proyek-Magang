@@ -66,6 +66,21 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::put('/perusahaan', [DashboardController::class, 'update_perusahaan'])->name('perusahaan.update');
 });
 
+Route::middleware('auth')->group(function() {
+    
+    // Update data perusahaan dari frontend (nama + deskripsi + logo optional)
+    Route::put('/pengaturan/frontend', [PengaturanController::class, 'updateFrontend'])
+        ->name('pengaturan.frontend');
+    
+    // Upload logo terpisah (untuk AJAX request)
+    Route::post('/pengaturan/upload-logo', [PengaturanController::class, 'uploadLogo'])
+        ->name('pengaturan.upload-logo');
+    
+    // Update profile lengkap (semua field)
+    Route::put('/pengaturan/profile', [PengaturanController::class, 'updateProfile'])
+        ->name('pengaturan.update-profile');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/users', [Tim_perusahaanController::class, 'getUsers']); // untuk modal
 });
@@ -87,28 +102,6 @@ Route::middleware(['auth'])->prefix('chat')->name('chat.')->group(function () {
     Route::get('/tim/{timId}/baru', [ChatController::class, 'getNewMessages'])->name('baru');
 });
 
-Route::middleware(['auth'])->group(function () {
-    // Routes untuk pengaturan perusahaan utama
-    Route::get('/pengaturan', [ProfilePerusahaanController::class, 'index'])->name('pengaturan.index');
-    Route::put('/pengaturan', [ProfilePerusahaanController::class, 'update'])->name('pengaturan.update');
-    Route::post('/pengaturan/upload-logo', [ProfilePerusahaanController::class, 'uploadLogo'])->name('pengaturan.upload-logo');
-    
-    // Routes untuk mengelola profile perusahaan spesifik
-    Route::get('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'show'])->name('profile-perusahaan.show');
-    Route::put('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'update'])->name('profile-perusahaan.update');
-    Route::post('/profile-perusahaan/{id}/upload-logo', [ProfilePerusahaanController::class, 'uploadLogo'])->name('profile-perusahaan.upload-logo');
-    
-    // Route khusus untuk update dari frontend React
-    Route::put('/pengaturan/frontend', [ProfilePerusahaanController::class, 'updateFromFrontend'])->name('pengaturan.update-frontend');
-    Route::put('/profile-perusahaan/{id}/frontend', [ProfilePerusahaanController::class, 'updateFromFrontend'])->name('profile-perusahaan.update-frontend');
-});
-
-Route::middleware(['auth:sanctum'])->prefix('api')->group(function () {
-    Route::get('/profile-perusahaan', [ProfilePerusahaanController::class, 'apiIndex']);
-    Route::get('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'apiShow']);
-    Route::put('/profile-perusahaan/{id}', [ProfilePerusahaanController::class, 'updateFromFrontend']);
-    Route::post('/profile-perusahaan/{id}/logo', [ProfilePerusahaanController::class, 'uploadLogo']);
-});
 
 Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim');
 
