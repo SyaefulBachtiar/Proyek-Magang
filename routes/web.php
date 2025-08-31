@@ -8,6 +8,7 @@ use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProyekController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\Notif\NotifikasiController;
 use App\Http\Controllers\ProfilePerusahaanController;
 use App\Http\Controllers\Tim\Tim_perusahaanController;
 use App\Http\Controllers\Undangan\UndanganController;
@@ -91,6 +92,10 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // LABEL CARD
     Route::post('card/{id_card}', [ProyekController::class, 'label_card_store'])->name('label.card.store');
     Route::delete('card/{card_id}/label/{label_id}', [ProyekController::class, 'label_card_delete'])->name('label.card.delete');
+
+    // NOTIFIKASI
+    Route::post('notifikasi/{notif_id}/read', [NotifikasiController::class, 'mark_read'])->name('mark.read.notif');
+    Route::delete('notifikasi/{notif_id}/delete', [NotifikasiController::class, 'delete_notif'])->name('delete.notif');
     
 });
 

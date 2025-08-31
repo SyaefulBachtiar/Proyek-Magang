@@ -1,5 +1,5 @@
 
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 
 import { Bell, LogOut, Menu, Search, Settings, ShieldCheck, UserRoundPlus } from 'lucide-react';
 import { useState, useEffect,  createContext, useContext, useRef } from "react";
@@ -19,7 +19,7 @@ export default function AuthenticatedLayout({ children, header }) {
     // users dari db
     const user = usePage().props.auth.user;
 
-    const { perusahaan, timLayout, role } = usePage().props;
+    const { perusahaan, timLayout, role, notifikasi } = usePage().props;
     
     // notif state
     const [notif, setNotif] = useState(false);
@@ -44,6 +44,25 @@ export default function AuthenticatedLayout({ children, header }) {
 
     // profil dropdown ref
     const profileDropDownRef = useRef(null);
+
+    useEffect(() => {
+        if(user.id){
+            // console.log(`Subscribing to private channel: board.${user.id}`)
+            const channel = window.Echo.private(`user.${user.id}`);
+
+            channel.listen(".notif.updated", (event) => {
+                console.log("Real-time event received:", event);
+                router.reload({
+                    only: ["notifikasi"],
+                });
+            });
+
+            return () => {
+                // console.log(`Leaving channel: board.${user.id}`);
+                window.Echo.leave(`user.${user.id}`);
+            };
+        }
+    }, [user.id]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -204,12 +223,22 @@ export default function AuthenticatedLayout({ children, header }) {
 
                             <div
                                 onClick={() => setNotif(!notif)}
-                                className="p-2 bg-[#F0E460] rounded-lg text-white cursor-pointer"
+                                className="p-2 bg-[#F0E460] rounded-lg text-white cursor-pointer relative"
                             >
+                                    {notifikasi.unread_count > 0 ? (
+                                        <div className="absolute -top-2 -right-2 p-1 bg-blue-600 h-[20px] w-[20px] rounded-full flex items-center justify-center text-xs">
+                                                <span>{notifikasi.unread_count}</span>
+                                        </div>
+                                    ) : ""}
                                 <Bell size={20} />
                             </div>
 
-                            {notif && <Notif close={() => setNotif(false)} />}
+                            {notif && (
+                                <Notif
+                                    close={() => setNotif(false)}
+                                    notifData={notifikasi}
+                                />
+                            )}
 
                             {/* button tambah anggota */}
                             {role !== "Super User" || role !== "Admin" ? (
