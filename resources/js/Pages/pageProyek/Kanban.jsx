@@ -227,45 +227,39 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
         }
     };
 
-    // const handleAddList = () => {
-    //     const title = prompt("Masukkan judul list:");
-    //     if (!title?.trim()) return;
-    //     const newList = {
-    //         id: Date.now().toString(),
-    //         title: title.trim(),
-    //         cards: [],
-    //     };
-    //     setLists((prev) => [...prev, newList]);
-    // };
-
     const handleAddCard = (listId) => {
         setTambahCard(listId);
     };
 
-    //    const handleAddCard = (listId) => {
-    //        const title = prompt("Masukkan judul card:");
-    //        if (!title?.trim()) return;
-    //        const newCard = {
-    //            id: Date.now().toString(),
-    //            title: title.trim(),
-    //        };
-
-    //        setLists((prev) =>
-    //            prev.map((list) =>
-    //                list.id === listId
-    //                    ? { ...list, cards: [...list.cards, newCard] }
-    //                    : list
-    //            )
-    //        );
-    //    };
-
+    // --- FUNGSI UPDATE JUDUL LIST YANG BARU ---
     const handleUpdateListTitle = (listId, newTitle) => {
+        // Optimistic update: langsung ubah state di frontend
+        const originalLists = [...lists];
         setLists((prev) =>
             prev.map((list) =>
                 list.id === listId ? { ...list, title: newTitle } : list
             )
         );
         setEditingListId(null);
+
+        // Kirim perubahan ke server
+        router.put(
+            route("proyek.list.update.title", {
+                id: user.id, // Sesuaikan dengan parameter yang dibutuhkan route
+                id_list: listId,
+            }),
+            {
+                judul: newTitle,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onError: () => {
+                    // Jika terjadi error, kembalikan ke state semula
+                    setLists(originalLists);
+                },
+            }
+        );
     };
 
     const handleElipsis = (listId) => {
