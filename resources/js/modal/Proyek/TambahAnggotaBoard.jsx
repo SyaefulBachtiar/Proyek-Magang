@@ -1,6 +1,6 @@
-import { usePage } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { X, Search, Plus } from "lucide-react";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 
 export default function TambahAnggotaBoard({ close }) {
     
@@ -10,8 +10,27 @@ export default function TambahAnggotaBoard({ close }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRole, setSelectedRole] = useState("Member");
     const [isAdding, setIsAdding] = useState(false);
-
     // Filter anggota perusahaan berdasarkan query pencarian
+    console.log(anggota_board);
+    useEffect(() => {
+        if(auth.user.id){
+            // console.log(`Subscribing to private channel: user.${auth.user.id}`);
+            const channel = window.Echo.private(`user.${auth.user.id}`);
+
+            channel.listen(".notif.updated", (event) => {
+                console.log("Real-time event received:", event);
+                router.reload({
+                    only: ["anggota_tim", "anggota_board", "tim", "auth"]
+                })
+            });
+
+            return () => {
+                // console.log(`Leaving channel: user.${auth.user.id}`);
+                window.Echo.leave(`user.${auth.user.id}`);
+            }
+        }
+    }, [auth.user.id]);
+
     const filteredAnggotaTim = useMemo(() => {
         const anggotaBoardIds = new Set(
             anggota_board.map((anggota) => anggota.id)
@@ -56,7 +75,7 @@ export default function TambahAnggotaBoard({ close }) {
 
             setIsAdding(true);
             try {
-                const response = await fetch(`/dashboard/${auth.user.id}/proyek/${tim.id}/anggota`, {
+                const response = await fetch(route("proyek.anggota.store", {id: auth.user.id, id_tim: tim.id}), {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

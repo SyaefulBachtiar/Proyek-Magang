@@ -51,6 +51,22 @@ function MainDashboard() {
         setActiveEllipsisId(activeEllipsisId === timId ? null : timId);
     };
 
+    useEffect(() => {
+        if(id){
+            const channel = window.Echo.private(`user.${id}`);
+
+            channel.listen(".notif.updated", (event) => {
+                router.reload({
+                    only: ["data", "role", "perusahaan"]
+                });
+            });
+
+            return () => {
+                window.Echo.leave(`user.${id}`);
+            }
+        }
+    }, []);
+
     // Function untuk close dropdown ketika click di luar
     useEffect(() => {
         const handleClickOutside = () => {

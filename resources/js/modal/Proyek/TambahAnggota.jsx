@@ -156,7 +156,7 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
                             <div
                                 key={tim.id}
                                 onClick={() => handleSelectAnggota(tim)}
-                                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 group cursor-pointer transition-colors"
+                                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 group cursor-pointer transition-colors flex-wrap"
                                 disabled={isAdding}
                             >
                                 <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
                                         size={14}
                                         className={`${
                                             tim.name === user.name ||
-                                            tim.role !== "Ketua tim"
+                                            tim.role === "Ketua tim"
                                                 ? "hidden"
                                                 : "flex"
                                         }`}

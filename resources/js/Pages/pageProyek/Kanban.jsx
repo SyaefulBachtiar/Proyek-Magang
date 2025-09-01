@@ -76,7 +76,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
 
     useEffect(() => {
         if(id_board){
-            // console.log(`Subscribing to private channel: board.${id_board}`);
+            // console.log(`Subscribing to private channel: board.${id_board}`)
             
             const channel = window.Echo.private(`board.${id_board}`);
 

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\Card_listModel;
+use App\Models\timPerusahaan\Notifikasi;
 use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -128,26 +129,6 @@ class HandleInertiaRequests extends Middleware
                     return $role;
                 },
 
-                // anggota perusahaan
-                'anggota_tim' => function () use ($request) {
-                    $user = $request->user();
-                    if(!$user){
-                        return null;
-                    }
-
-                    $tim = User::leftJoin('perusahaan', 'users.id', '=', 'perusahaan.user_id')
-                    ->where('perusahaan.nama_perusahaan', $user->perusahaan->nama_perusahaan)
-                    ->select(
-                        'users.id',
-                        'users.name',
-                        'users.email',
-                        'perusahaan.role'
-                    )
-                    ->get();
-
-                    return $tim;
-                },
-
                 // anggota tim
                 'anggota_board' => function () use ($request) {
                 $user = $request->user();
@@ -168,7 +149,7 @@ class HandleInertiaRequests extends Middleware
                                 'id' => $anggota->user->id ?? null,
                                 'name' => $anggota->user->name ?? '',
                                 'email' => $anggota->user->email ?? null,
-                                'role' => $anggota->role_anggota,
+                                'role' => $anggota->role_anggota ?? null,
                             ])
                             ->toArray();
                     }
@@ -201,6 +182,27 @@ class HandleInertiaRequests extends Middleware
                     }
 
                     return $data;
+                },
+
+                // NOTIFIKASI
+                'notifikasi' => function () use ($request) {
+                    $user = $request->user();
+
+                    if(!$user){
+                         return [
+                        'unread_count' => 0,
+                        'items' => [],
+                    ];
+                    }
+
+                    $unreadCount = Notifikasi::where('user_id', $user->id)->where('is_read', false)->count();
+
+                    $items = Notifikasi::where('user_id', $user->id)->latest()->limit(5)->get();
+                    return [
+                    'unread_count' => $unreadCount,
+                    'items' => $items,
+                    ];
+
                 }
 
                 ]);

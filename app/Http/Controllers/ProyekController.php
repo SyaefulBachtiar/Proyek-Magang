@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\BoardUpdated;
 use App\Events\LabelCard;
 use App\Events\LabelTim;
+use App\Events\NotifikasiEvent;
 use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\BoardModel;
@@ -13,6 +14,7 @@ use App\Models\timPerusahaan\Kalender;
 use App\Models\timPerusahaan\Label_card;
 use App\Models\timPerusahaan\Label_tim;
 use App\Models\timPerusahaan\List_boardModel;
+use App\Models\timPerusahaan\Notifikasi;
 use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -37,6 +39,19 @@ class ProyekController extends Controller
                 ->where('id_board', $id_board)
                 ->orderBy('urutan_posisi', 'asc')
                 ->get();
+        
+        $user = Auth::user();
+        
+        $nama_perusahaan = $user->perusahaan->nama_perusahaan;
+        
+        $tim_anggota = User::query()->join('perusahaan', 'users.id', '=', 'perusahaan.user_id')
+        ->where('perusahaan.nama_perusahaan', $nama_perusahaan)
+        ->select(
+            'users.id',
+            'users.name',
+            'users.email',
+            'perusahaan.role'
+        )->get();
 
         return Inertia::render('pageProyek/Kanban', [
             'dashboardId' => $id,
@@ -45,6 +60,7 @@ class ProyekController extends Controller
             'activePage' => 'tugasPage',
             'tim' => $tim,
             'dataBoard' => $board_data,
+            'anggota_tim' => $tim_anggota
         ]);
     }
 
@@ -136,7 +152,23 @@ class ProyekController extends Controller
         $label_tim = Label_tim::where('id_tim_perusahaan', $id_tim)->get();
         $label_card = Label_card::where('id_card', $cardId)->get();
         $id_board = BoardModel::where('id_team', $id_tim)->value('id');
+        $dataCard = Card_listModel::where('id', $cardId)->firstOrFail();
 
+        $user = Auth::user();
+
+         $nama_perusahaan = $user->perusahaan->nama_perusahaan;
+
+                    $tim = User::query()->join('anggota_tim', 'users.id', '=', 'anggota_tim.id_users')
+                    ->join('perusahaan', 'users.id', '=', 'perusahaan.user_id')
+                    ->where('perusahaan.nama_perusahaan', $nama_perusahaan)
+                    ->select(
+                        'users.id',
+                        'users.name',
+                        'users.email',
+                        'perusahaan.role'
+                    )
+                    ->distinct()
+                    ->get();
 
         return inertia('Card/Card_kanban', [
             'id_tim' => $id_tim,
@@ -144,48 +176,71 @@ class ProyekController extends Controller
             'kalender' => $kalender,
             'label_tim' => $label_tim,
             'label_card' => $label_card,
-            'id_board' => $id_board
+            'id_board' => $id_board,
+            'anggota_tim' => $tim,
+            'dataCard' => $dataCard
         ]);
     }
 
     // Tambah Anggota Card
-    public function tambah_anggota_card ($id, $id_user, $cardId) {
+    public function tambah_anggota_card (Request $request, $id, $id_user, $cardId) {
         $id_anggota_tim = Anggota_tim::where('id_users', $id)->first();
         $card = Card_listModel::findOrFail($cardId);
 
-        Anggota_card::create([
-            'id' => (string) Str::uuid(),
-            'id_user' => $id_user,
-            'id_card' => $cardId,
-            'id_anggota_tim' => $id_anggota_tim->id
-        ]);
+        try{
+            Anggota_card::create([
+                'id' => (string) Str::uuid(),
+                'id_user' => $id_user,
+                'id_card' => $cardId,
+                'id_anggota_tim' => $id_anggota_tim->id
+            ]);
+            
+            $userYangMenambahkan = User::where('id', $id)->value('name');
+            Notifikasi::create([
+                'id' => (string) Str::uuid(),
+                'user_id' => $id_user,
+                'title' => 'Anda Di Tambahkan ke Tim Baru',
+                'message' => "Anda telah ditambahkan ke tim '{$card->nama_card}' oleh {$userYangMenambahkan}."
+            ]);
+    
+            $id_board = $card->listBoard->id_board;
+            
+            broadcast(new NotifikasiEvent($id_user));
 
+            $this->broadcastBoardUpdate($id_board);
+    
+            return redirect()->back()->with('success', 'Berhasil Menambahkan Anggota');
 
-        $id_board = $card->listBoard->id_board;
-
-        $this->broadcastBoardUpdate($id_board);
-
-        return redirect()->back()->with('success', 'Berhasil Menambahkan Anggota');
+        }catch (\Exception $e) {
+            return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
+        }
     }
 
     // Delete anggota Card
     public function destroy_anggota_card ($id, $id_user, $cardId) {
         
-        $anggotaCard = Anggota_card::where('id_card', $cardId)
-                               ->where('id_user', $id_user);
+        try{
+            $anggotaCard = Anggota_card::where('id_card', $cardId)
+                                   ->where('id_user', $id_user);
+    
+            if($anggotaCard->doesntExist()){
+                 return back()->with('gagal', 'Anggota tidak ditemukan pada kartu ini.');
+            }
+    
+            $anggotaCard->delete();
+    
+            $card = Card_listModel::findOrFail($cardId);
+            $id_board = $card->listBoard->id_board;
+            
+            broadcast(new NotifikasiEvent($id_user));
 
-        if($anggotaCard->doesntExist()){
-             return back()->with('gagal', 'Anggota tidak ditemukan pada kartu ini.');
+            $this->broadcastBoardUpdate($id_board);
+    
+            return back()->with('success', 'Berhasil mengeluarkan anggota');
+
+        }catch (\Exception $e) {
+            return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
         }
-
-        $anggotaCard->delete();
-
-        $card = Card_listModel::findOrFail($cardId);
-        $id_board = $card->listBoard->id_board;
-
-        $this->broadcastBoardUpdate($id_board);
-
-        return back()->with('success', 'Berhasil mengeluarkan anggota');
     }
     
 
@@ -248,6 +303,7 @@ class ProyekController extends Controller
     // --- FUNGSI BARU UNTUK MENAMBAH ANGGOTA TIM ---
     public function tambahAnggota(Request $request, $id, $id_tim) {
         // Validasi defensif untuk memastikan ID tim valid
+
         $tim = TimPerusahaan::find($id_tim);
         if (!$tim) {
             return response()->json(['message' => 'Tim perusahaan dengan ID yang diberikan tidak ditemukan.'], 404);
@@ -272,8 +328,19 @@ class ProyekController extends Controller
                 'role_anggota' => $request->role_anggota,
                 'id_tim_perusahaan' => $id_tim,
             ]);
+            $userYangMenambahkan = $request->user();
+            Notifikasi::create([
+                'id' => (string) Str::uuid(),
+                'user_id' => $request->id_users,
+                'title' => 'Anda Di Tambahkan ke Tim Baru',
+                'message' => "Anda telah ditambahkan ke tim '{$tim->nama_tim}' oleh {$userYangMenambahkan->name}."
+            ]);
 
-            return redirect()->back()->with('success', 'Anggota tim berhasil ditambahkan.');
+            broadcast(new NotifikasiEvent($request->id_users));
+
+            return response()->json([
+            'message' => 'Anggota tim berhasil ditambahkan.'
+            ], 201);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
         }
@@ -291,7 +358,13 @@ class ProyekController extends Controller
             if (!$anggota) {
                 return response()->json(['message' => 'Anggota tidak ditemukan di tim ini.'], 404);
             }
+
+            Anggota_card::where('id_user', $anggota->id_users)->delete();
+
             $anggota->delete();
+
+            broadcast(new NotifikasiEvent($id_user));
+
             return response()->json(['message' => 'Anggota tim berhasil dihapus.'], 200);
 
         } catch (\Exception $e) {
