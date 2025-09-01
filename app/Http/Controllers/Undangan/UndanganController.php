@@ -44,6 +44,6 @@ class UndanganController extends Controller
             new UndanganGabungTim($request->email, $request->role, $signedUrl)
         );
 
-        return back()->with('status', 'Undangan aman berhasil dikirim.');
+        return back()->with('success', 'Undangan aman berhasil dikirim.');
     }
 }

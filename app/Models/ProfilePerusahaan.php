@@ -24,6 +24,7 @@ class ProfilePerusahaan extends Model
         'deskripsi',
         'role_perusahaan',
         'foto_profile_perusahaan',
+        'perusahaan_id', // PASTIKAN INI ADA!
     ];
 
     protected $casts = [

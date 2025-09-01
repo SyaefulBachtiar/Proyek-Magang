@@ -56,6 +56,10 @@ class TimPerusahaan extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
+    public function label_tim () {
+        return $this->hasMany(Label_tim::class, 'id_tim_perusahaan', 'id');
+    }
+
 
     // Leader tim
     public function leader()
@@ -93,20 +97,5 @@ class TimPerusahaan extends Model
     {
         return $this->hasOne(BoardModel::class, 'id_team', 'id');
     }
-
-    public function anggota_card () {
-        return $this->hasMany(Anggota_card::class, 'id_tim_perusahaan');
-    }
-
-     // Method untuk mendapatkan semua anggota tim termasuk pembuat tim
-    // public function getAllMembers()
-    // {
-    //     return $this->anggotaTim()
-    //         ->with('user')
-    //         ->get()
-    //         ->pluck('user')
-    //         ->push($this->user)
-    //         ->unique('id');
-    // }
 
 }

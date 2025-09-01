@@ -16,7 +16,7 @@ import {
 import { useState } from "react";
 
 export default function Sidebar({ sidebarOpen, activePage, id }) {
-    const { timPerusahaan, id_board, role } = usePage().props;
+    const { timPerusahaan, role } = usePage().props;
 
     const proyekTim =
         timPerusahaan?.filter((tim) => tim.jenis_tim === "proyek") || [];
@@ -102,8 +102,8 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
             <div className="w-full flex flex-col justify-end my-10 rounded-lg gap-6 overflow-y-auto">
                 {/* Home sidebar */}
                 <div
-                    className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
-                        activePage === "DashboardMain" ? "bg-gray-200" : ""
+                    className={`w-full group cursor-pointer rounded-md hover:bg-[#F4F4F4] ${
+                        activePage === "DashboardMain" ? "bg-[#F4F4F4]" : ""
                     }`}
                     onClick={() =>
                         router.visit(route("dashboard.with.id", { id }))
@@ -111,16 +111,10 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                 >
                     <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                         <div
-                            className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                            className={`px-[5px] rounded-lg h-[42px] flex items-center`}
                         >
                             <div className="w-8 h-8 flex justify-center items-center">
-                                <House
-                                    className={`w-6 h-6 flex-shrink-0 ${
-                                        activePage === "DashboardMain"
-                                            ? "text-black"
-                                            : "text-gray-400"
-                                    }`}
-                                />
+                                <House size={25} />
                             </div>
                         </div>
                         <p className="w-[80px] flex-shrink-0">Dashboard</p>
@@ -129,15 +123,18 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
 
                 {/* search sidebar */}
                 <div className="w-full group cursor-pointer">
-                    <div className="w-full group flex overflow-hidden gap-4 relative items-center">
-                        <Search className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <div className="w-full group flex overflow-hidden gap-4 relative items-center py-1 px-[2px]">
+                        <Search
+                            className="absolute top-1/2 left-2 -translate-y-1/2"
+                            size={25}
+                        />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={handleSearchChange}
                             onFocus={handleSearchFocus}
                             onBlur={handleSearchBlur}
-                            className={`pr-4 py-2 border border-gray-300 rounded-lg focus:border-gray-400 focus:ring-gray-400 transition-all delay-150 ease-in-out duration-200 group-hover:pl-10 focus:pl-10 group-hover:w-full focus:w-full ${
+                            className={`pr-4 py-2 border-none rounded-lg focus:border-gray-400 focus:ring-gray-400 transition-all delay-150 ease-in-out duration-200 group-hover:pl-10 focus:pl-10 group-hover:w-full focus:w-full h-full ${
                                 sidebarOpen ? "w-0 pl-6" : "w-0 pl-6"
                             }`}
                             placeholder="Cari tim..."
@@ -220,7 +217,9 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                                                         id: id,
                                                                         id_tim: tim.id,
                                                                         id_board:
-                                                                            id_board,
+                                                                            tim
+                                                                                .board_tim
+                                                                                ?.id,
                                                                     }
                                                                 )
                                                             )
@@ -295,7 +294,9 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                                                         id: id,
                                                                         id_tim: anggota.id,
                                                                         id_board:
-                                                                            id_board,
+                                                                            anggota
+                                                                                .board_tim
+                                                                                ?.id,
                                                                     }
                                                                 )
                                                             )
@@ -333,13 +334,13 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                         )}
                     </div>
                 </div>
-                {role !== "Super User" || role !== "Admin" && (
+                {role !== "Member" ? (
                     <>
                         {/* akses tim sidebar */}
                         <div
-                            className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
+                            className={`w-full group cursor-pointer rounded-md hover:bg-[#F4F4F4] ${
                                 activePage === "DashboardAksesTim"
-                                    ? "bg-gray-200"
+                                    ? "bg-[#F4F4F4]"
                                     : ""
                             }`}
                             onClick={() =>
@@ -348,17 +349,10 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                         >
                             <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                                 <div
-                                    className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                                    className={`px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
                                 >
                                     <div className="w-8 h-8 flex justify-center items-center">
-                                        <ShieldCheck
-                                            className={`w-6 h-6 flex-shrink-0 ${
-                                                activePage ===
-                                                "DashboardAksesTim"
-                                                    ? "text-black"
-                                                    : "text-gray-400"
-                                            }`}
-                                        />
+                                        <ShieldCheck size={25} />
                                     </div>
                                 </div>
                                 <p className="w-[80px] flex-shrink-0">
@@ -369,9 +363,9 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
 
                         {/* Pengaturan sidebar */}
                         <div
-                            className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
+                            className={`w-full group cursor-pointer rounded-md hover:bg-[#F4F4F4] ${
                                 activePage === "DashboardPengaturan"
-                                    ? "bg-gray-200"
+                                    ? "bg-[#F4F4F4]"
                                     : ""
                             }`}
                             onClick={() =>
@@ -380,17 +374,10 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                         >
                             <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                                 <div
-                                    className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                                    className={`px-[5px] rounded-lg h-[42px] flex items-center`}
                                 >
                                     <div className="w-8 h-8 flex justify-center items-center">
-                                        <Settings
-                                            className={`w-6 h-6 flex-shrink-0 ${
-                                                activePage ===
-                                                "DashboardPengaturan"
-                                                    ? "text-black"
-                                                    : "text-gray-400"
-                                            }`}
-                                        />
+                                        <Settings size={25} />
                                     </div>
                                 </div>
                                 <p className="w-[80px] flex-shrink-0">
@@ -412,17 +399,10 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                         >
                             <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
                                 <div
-                                    className={`border px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
+                                    className={`px-[5px] rounded-lg h-[42px] flex items-center`}
                                 >
                                     <div className="w-8 h-8 flex justify-center items-center">
-                                        <Medal
-                                            className={`w-6 h-6 flex-shrink-0 ${
-                                                activePage ===
-                                                "DashboardLeaderboard"
-                                                    ? "text-black"
-                                                    : "text-gray-400"
-                                            }`}
-                                        />
+                                        <Medal size={25}/>
                                     </div>
                                 </div>
                                 <p className="w-[80px] flex-shrink-0">
@@ -431,6 +411,8 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                             </div>
                         </div>
                     </>
+                ) : (
+                    ""
                 )}
             </div>
         </>

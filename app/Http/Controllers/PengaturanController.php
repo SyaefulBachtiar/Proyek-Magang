@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 
 class PengaturanController extends Controller
 {
@@ -61,6 +63,72 @@ class PengaturanController extends Controller
             return Inertia::render('pageDashboard/ContentPengaturan', [
                 'activePage' => 'pengaturan',
                 'company' => null,
+                'flash' => [
+                    'error' => 'Terjadi kesalahan saat memuat data pengaturan.'
+                ]
+            ]);
+        }
+    }
+
+    /**
+     * Tampilkan halaman pengaturan dengan parameter ID (alternative method)
+     */
+    public function indexWithId($id)
+    {
+        try {
+            // Cek otorisasi user
+            if (Auth::id() != $id) {
+                abort(403, 'Unauthorized.');
+            }
+
+            $user = Auth::user();
+            $perusahaan = $user->perusahaan;
+
+            // Siapkan data default untuk dikirim ke frontend
+            $perusahaanData = [
+                'id' => null,
+                'nama_perusahaan' => 'Nama Perusahaan Anda',
+                'deskripsi' => 'Deskripsi perusahaan Anda.',
+                'logo_url' => asset('images/default-company-logo.png'), 
+            ];
+
+            if ($perusahaan) {
+                // Pastikan profile perusahaan ada, jika tidak, buat baru.
+                $profile = $perusahaan->profilePerusahaan()->firstOrCreate(
+                    ['perusahaan_id' => $perusahaan->id],
+                    ['role_perusahaan' => 'main']
+                );
+
+                // Gabungkan data dari kedua tabel
+                $perusahaanData = [
+                    'id' => $perusahaan->id,
+                    'nama_perusahaan' => $perusahaan->nama_perusahaan,
+                    'deskripsi' => $profile->deskripsi,
+                    'logo_url' => $profile->logo_url, 
+                ];
+            }
+
+            return Inertia::render('pageDashboard/ContentPengaturan', [
+                'activePage' => 'DashboardPengaturan',
+                'perusahaanData' => $perusahaanData,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in pengaturan indexWithId', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id() ?? 'guest',
+                'requested_id' => $id
+            ]);
+            
+            return Inertia::render('pageDashboard/ContentPengaturan', [
+                'activePage' => 'DashboardPengaturan',
+                'perusahaanData' => [
+                    'id' => null,
+                    'nama_perusahaan' => 'Nama Perusahaan Anda',
+                    'deskripsi' => 'Deskripsi perusahaan Anda.',
+                    'logo_url' => asset('images/default-company-logo.png'),
+                ],
                 'flash' => [
                     'error' => 'Terjadi kesalahan saat memuat data pengaturan.'
                 ]
@@ -324,6 +392,81 @@ class PengaturanController extends Controller
             return back()->with('flash', [
                 'error' => 'Terjadi kesalahan saat menyimpan profil.'
             ]);
+        }
+    }
+
+    /**
+     * Update pengaturan dengan parameter ID dan data gabungan
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            // Cek otorisasi user
+            if (Auth::id() != $id) {
+                abort(403, 'Unauthorized.');
+            }
+
+            // Validasi input
+            $request->validate([
+                'nama' => 'required|string|max:100',
+                'deskripsi' => 'nullable|string|max:1000',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ]);
+
+            $user = Auth::user();
+            $perusahaan = Perusahaan::where('user_id', $user->id)->firstOrFail();
+            $profilePerusahaan = $perusahaan->profilePerusahaan()->firstOrFail();
+
+            DB::beginTransaction();
+            
+            try {
+                // Update nama perusahaan
+                $perusahaan->nama_perusahaan = $request->input('nama');
+                $perusahaan->save();
+
+                // Update deskripsi profile
+                $profilePerusahaan->deskripsi = $request->input('deskripsi');
+
+                // Handle logo upload jika ada
+                if ($request->hasFile('logo')) {
+                    $oldLogoPath = $profilePerusahaan->foto_profile_perusahaan;
+                    
+                    // Store new logo
+                    $newLogoPath = $request->file('logo')->store('company-logos', 'public');
+                    $profilePerusahaan->foto_profile_perusahaan = $newLogoPath;
+                    
+                    // Delete old logo if exists
+                    if ($oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
+                        Storage::disk('public')->delete($oldLogoPath);
+                    }
+                }
+                
+                $profilePerusahaan->save();
+
+                DB::commit();
+
+                Log::info('Company settings updated successfully', [
+                    'user_id' => Auth::id(),
+                    'company_id' => $perusahaan->id,
+                    'updated_name' => $perusahaan->nama_perusahaan
+                ]);
+
+                return Redirect::back()->with('success', 'Pengaturan perusahaan berhasil diperbarui.');
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error in update method', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id() ?? 'guest',
+                'company_id' => $id
+            ]);
+            
+            return Redirect::back()->with('error', 'Gagal memperbarui pengaturan perusahaan: ' . $e->getMessage());
         }
     }
 }

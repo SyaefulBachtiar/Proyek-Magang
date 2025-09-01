@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\ProfilePengaturanController;
 use App\Http\Controllers\AksesTimController;
 use App\Http\Controllers\LeaderboardController;
@@ -38,20 +39,32 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::get('/proyek/{id_tim}/laporan', [ProyekController::class, 'laporan'])->name('proyek.laporan');
     Route::get('/proyek/{id_tim}/chatgrup', [ProyekController::class, 'chatgrup'])->name('proyek.chatgrup');
     Route::get('/proyek/{id_tim}/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
-    
+
+    // Tambah anggota Card Kanban
+    Route::post('proyek/{id_user}/card/{cardId}', [ProyekController::class, 'tambah_anggota_card'])->name('proyek.card.invite');
+    Route::delete('proyek/{id_user}/{cardId}', [ProyekController::class, 'destroy_anggota_card'])->name('proyek.card.destroy');
+
     // Aksi Proyek (POST/PUT/DELETE)
     Route::post('/proyek/update-list-order', [ProyekController::class, 'updateListOrder'])->name('proyek.update-list-order');
     Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])->name('proyek.update-card-order');
-    Route::post('/proyek/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
-    Route::post('/proyek/list', [ProyekController::class, 'storeList'])->name('proyek.list.store');
+    Route::post('/proyek/{id_tim}/board/{id_board}/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
+    Route::post('/proyek/list/{id_board}', [ProyekController::class, 'storeList'])->name('proyek.list.store');
     
+    // Menghapus Anggota
+    Route::delete('/proyek/{id_tim}/anggota/{id_user}', [ProyekController::class, 'hapusAnggota'])->name('proyek.anggota.destroy');
+
     //  MENAMBAH ANGGOTA TIM
     Route::post('/proyek/{id_tim}/anggota', [ProyekController::class, 'tambahAnggota'])->name('proyek.anggota.store');
 
     // Halaman lain
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
     Route::put('/aksestim/{user}/update-role', [AksesTimController::class, 'updateRole'])->name('aksestim.updateRole');
+    
+    // Rute untuk halaman Pengaturan
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
+    // Rute untuk menangani update form
+    Route::post('/pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
+
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 
     // Profile
@@ -64,6 +77,21 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::delete('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'destroy'])->name('tim-perusahaan.destroy');
     Route::put('/tim-perusahaan/{id_tim}', [Tim_perusahaanController::class, 'update'])->name('tim-perusahaan.update');
     Route::put('/perusahaan', [DashboardController::class, 'update_perusahaan'])->name('perusahaan.update');
+
+    // KALENDER
+    Route::post('proyek/card/{cardId}', [ProyekController::class, 'kalender_store'])->name('kalender.store');
+    Route::put('proyek/card/{kalender_id}/update', [ProyekController::class, 'kalender_update'])->name('kalender.update');
+    Route::delete('proyek/card/{kalender_id}/update', [ProyekController::class, 'kalender_delete'])->name('kalender.delete');
+
+    // LABEL TIM
+    Route::post('proyek/card/{id_card}/{id_tim}/label', [ProyekController::class, 'label_store'])->name('label.store');
+    Route::put('proyek/card/{id_tim}/{id_label}/label/update', [ProyekController::class, 'label_update'])->name('label.update');
+    Route::delete('proyek/card/{label_id}', [ProyekController::class, 'label_delete'])->name('label.delete');
+    
+    // LABEL CARD
+    Route::post('card/{id_card}', [ProyekController::class, 'label_card_store'])->name('label.card.store');
+    Route::delete('card/{card_id}/label/{label_id}', [ProyekController::class, 'label_card_delete'])->name('label.card.delete');
+    
 });
 
 Route::middleware('auth')->group(function() {
@@ -101,7 +129,6 @@ Route::middleware(['auth'])->prefix('chat')->name('chat.')->group(function () {
     // API ambil pesan baru
     Route::get('/tim/{timId}/baru', [ChatController::class, 'getNewMessages'])->name('baru');
 });
-
 
 Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim');
 

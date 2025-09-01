@@ -1,5 +1,5 @@
 import { Head, usePage, router } from "@inertiajs/react";
-import Dashboard, {DashboardState} from "../Dashboard";
+import Dashboard, { DashboardState } from "../Dashboard";
 import { useEffect, useState, useRef, useCallback } from "react";
 
 export default function ContentPengaturan() {
@@ -13,7 +13,8 @@ export default function ContentPengaturan() {
 
 function Pengaturan() {
     // Props dari controller
-    const { activePage, company: initialCompany, flash, errors } = usePage().props;
+    const { props, url } = usePage();
+    const { activePage, company: initialCompany, flash, errors } = props;
     
     // Dashboard state
     const { setActivePage } = DashboardState();
@@ -54,34 +55,33 @@ function Pengaturan() {
         };
     }, []);
 
-    // Update form ketika company data berubah
+    // Update active page
     useEffect(() => {
-    // Selalu update ketika initialCompany berubah, tanpa pengecekan ID
-    if (initialCompany) {
-        console.log('Updating company data:', initialCompany); // untuk debug
-        
-        const companyData = {
-            id: initialCompany.perusahaan_id,
-            name: initialCompany.nama_perusahaan,
-            description: initialCompany.deskripsi,
-            logo: initialCompany.logo,
-        };
-        
-        setCompany(companyData);
-        setForm({
-            name: initialCompany.name || '',
-            description: initialCompany.description || '',
-        });
-        setLogoError(false);
-    }
-}, [initialCompany]); // Hanya depend pada initialCompany
-
-
-    useEffect(() => {
-        if(activePage && setActivePage){
+        if (activePage && setActivePage) {
             setActivePage(activePage);
         }
     }, [activePage, setActivePage]);
+
+    // Update form ketika company data berubah
+    useEffect(() => {
+        if (initialCompany) {
+            console.log('Updating company data:', initialCompany);
+            
+            const companyData = {
+                id: initialCompany.perusahaan_id || initialCompany.id,
+                name: initialCompany.nama_perusahaan || initialCompany.name,
+                description: initialCompany.deskripsi || initialCompany.description,
+                logo: initialCompany.logo_url || initialCompany.logo,
+            };
+            
+            setCompany(companyData);
+            setForm({
+                name: companyData.name || '',
+                description: companyData.description || '',
+            });
+            setLogoError(false);
+        }
+    }, [initialCompany]);
 
     // Stabilized validation function
     const validateForm = useCallback(() => {
@@ -275,7 +275,7 @@ function Pengaturan() {
                         ...prev,
                         logo: result.logo_url
                     }));
-                    setLogoError(false); // Reset error state on successful upload
+                    setLogoError(false);
                     showNotification('success', 'Logo berhasil diupload');
                 }
             } else {
@@ -339,218 +339,251 @@ function Pengaturan() {
     }, [company.logo]);
 
     return (
-        <div className="max-w-3xl mx-auto px-4 py-5">
-            <h1 className="text-3xl font-bold mb-6">Pengaturan Perusahaan</h1>
-
-            {/* Notification */}
-            {notification.show && (
-                <div className={`mb-4 p-4 rounded-lg flex items-center justify-between transition-all duration-300 ${
-                    notification.type === 'success' 
-                        ? 'bg-green-100 text-green-800 border border-green-300' 
-                        : 'bg-red-100 text-red-800 border border-red-300'
-                }`}>
-                    <div className="flex items-center">
-                        {notification.type === 'success' ? (
-                            <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                        ) : (
-                            <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        )}
-                        <span>{notification.message}</span>
-                    </div>
-                    <button 
-                        onClick={hideNotification} 
-                        className="ml-4 text-gray-500 hover:text-gray-700 transition-colors"
-                        aria-label="Tutup notifikasi"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+        <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
+                    <h1 className="text-3xl font-bold text-white mb-2">Pengaturan Perusahaan</h1>
+                    <p className="text-blue-100">Kelola informasi dan profil perusahaan Anda</p>
                 </div>
-            )}
-
-            <div className="bg-white p-6 rounded-2xl shadow space-y-6">
-                {/* Logo dan Nama */}
-                <div className="flex items-start space-x-4">
-                    <div className="relative">
-                        <img
-                            src={company.logo}
-                            alt={`${company.name} logo`}
-                            className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
-                            onError={handleLogoError}
-                            onLoad={() => setLogoError(false)}
-                        />
-                        {/* Upload button overlay */}
-                        <button
-                            onClick={triggerFileInput}
-                            disabled={uploadingLogo}
-                            className="absolute inset-0 bg-black bg-opacity-50 text-white text-xs rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
-                            title="Klik untuk mengubah logo"
-                            aria-label="Upload logo perusahaan"
-                        >
-                            {uploadingLogo ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                            ) : (
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                </svg>
-                            )}
-                        </button>
-                        {/* Hidden file input */}
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleLogoUpload}
-                            className="hidden"
-                            disabled={uploadingLogo}
-                        />
-                    </div>
-                    
-                    <div className="flex-1">
-                        {editing ? (
-                            <div>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={form.name}
-                                    onChange={handleChange}
-                                    className={`text-xl font-semibold w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                                        formErrors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                                    }`}
-                                    placeholder="Nama Perusahaan"
-                                    required
-                                    maxLength={100}
-                                    disabled={loading}
-                                />
-                                {formErrors.name && (
-                                    <p className="text-red-500 text-sm mt-1 flex items-center">
-                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        {formErrors.name}
-                                    </p>
-                                )}
-                                <p className="text-gray-500 text-xs mt-1">
-                                    {form.name.length}/100 karakter
-                                </p>
-                            </div>
-                        ) : (
-                            <h2 className="text-2xl font-semibold text-gray-800">
-                                {company.name}
-                            </h2>
-                        )}
-                    </div>
-                </div>
-
-                {/* Upload Logo Info */}
-                <div className="flex items-center space-x-2 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                    <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Klik pada logo untuk mengubahnya (Max: 2MB, Format: JPEG, PNG, JPG, GIF, SVG)</span>
-                </div>
-
-                {/* Deskripsi */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Deskripsi Perusahaan
-                    </label>
-                    {editing ? (
-                        <div>
-                            <textarea
-                                name="description"
-                                value={form.description}
-                                onChange={handleChange}
-                                rows={4}
-                                maxLength={500}
-                                disabled={loading}
-                                className={`w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical transition-colors ${
-                                    formErrors.description ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                                } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                placeholder="Deskripsi perusahaan..."
-                            />
-                            {formErrors.description && (
-                                <p className="text-red-500 text-sm mt-1 flex items-center">
-                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                
+                <div className="p-8">
+                    {/* Notification */}
+                    {notification.show && (
+                        <div className={`mb-6 p-4 rounded-lg flex items-center justify-between transition-all duration-300 ${
+                            notification.type === 'success' 
+                                ? 'bg-green-100 text-green-800 border border-green-300' 
+                                : 'bg-red-100 text-red-800 border border-red-300'
+                        }`}>
+                            <div className="flex items-center">
+                                {notification.type === 'success' ? (
+                                    <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    {formErrors.description}
-                                </p>
-                            )}
-                            <p className={`text-xs mt-1 ${
-                                form.description.length > 450 ? 'text-orange-500' : 'text-gray-500'
-                            }`}>
-                                {form.description.length}/500 karakter
-                            </p>
-                        </div>
-                    ) : (
-                        <p className="text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg">
-                            {company.description || "Belum ada deskripsi"}
-                        </p>
-                    )}
-                </div>
-
-                {/* Company ID (Hidden, for debugging) */}
-                {company.id && process.env.NODE_ENV === 'development' && (
-                    <div className="text-xs text-gray-400 font-mono bg-gray-100 p-2 rounded">
-                        ID: {company.id}
-                    </div>
-                )}
-
-                {/* Tombol Aksi */}
-                <div className="flex justify-between items-center pt-4 border-t">
-                    {editing && (
-                        <div className="text-sm text-gray-600 flex items-center space-x-2">
-                            <span className="flex items-center">
-                                <kbd className="px-2 py-1 text-xs bg-gray-100 rounded font-mono">Ctrl+S</kbd>
-                                <span className="ml-1">simpan</span>
-                            </span>
-                            <span className="text-gray-400">•</span>
-                            <span className="flex items-center">
-                                <kbd className="px-2 py-1 text-xs bg-gray-100 rounded font-mono">Esc</kbd>
-                                <span className="ml-1">batal</span>
-                            </span>
-                        </div>
-                    )}
-                    
-                    <div className="flex space-x-3 ml-auto">
-                        {editing ? (
-                            <>
-                                <button
-                                    onClick={handleSave}
-                                    disabled={loading || !form.name.trim() || uploadingLogo}
-                                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                >
-                                    {loading && (
-                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                    )}
-                                    <span>{loading ? 'Menyimpan...' : 'Simpan'}</span>
-                                </button>
-                                <button
-                                    onClick={handleCancel}
-                                    disabled={loading || uploadingLogo}
-                                    className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 disabled:opacity-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                                >
-                                    Batal
-                                </button>
-                            </>
-                        ) : (
-                            <button
-                                onClick={() => setEditing(true)}
-                                disabled={uploadingLogo}
-                                className="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 flex items-center space-x-2 transition-all duration-200 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+                                )}
+                                <span>{notification.message}</span>
+                            </div>
+                            <button 
+                                onClick={hideNotification} 
+                                className="ml-4 text-gray-500 hover:text-gray-700 transition-colors"
+                                aria-label="Tutup notifikasi"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                <span>Edit Profil</span>
                             </button>
+                        </div>
+                    )}
+
+                    {/* Logo Section */}
+                    <div className="mb-8">
+                        <label className="block text-sm font-semibold text-gray-700 mb-4 text-center">
+                            Logo Perusahaan
+                        </label>
+                        
+                        <div className="text-center">
+                            <div className="inline-block mb-4 relative">
+                                <img
+                                    src={company.logo}
+                                    alt={`${company.name} logo`}
+                                    className="w-32 h-32 rounded-2xl object-cover border-2 border-gray-200 shadow-lg"
+                                    onError={handleLogoError}
+                                    onLoad={() => setLogoError(false)}
+                                />
+                                
+                                {/* Upload button overlay */}
+                                <button
+                                    onClick={triggerFileInput}
+                                    disabled={uploadingLogo}
+                                    className="absolute inset-0 bg-black bg-opacity-50 text-white text-xs rounded-2xl opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50"
+                                    title="Klik untuk mengubah logo"
+                                    aria-label="Upload logo perusahaan"
+                                >
+                                    {uploadingLogo ? (
+                                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                                    ) : (
+                                        <div className="flex flex-col items-center">
+                                            <svg className="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                            </svg>
+                                            <span className="text-xs">Upload</span>
+                                        </div>
+                                    )}
+                                </button>
+                                
+                                {/* Hidden file input */}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleLogoUpload}
+                                    className="hidden"
+                                    disabled={uploadingLogo}
+                                />
+                            </div>
+
+                            <div className="space-y-1">
+                                <p className="text-sm text-gray-600">
+                                    Klik logo untuk mengubah foto profil
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    Maksimal 2MB (JPEG, PNG, JPG, GIF, SVG)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Form Section */}
+                    <div className="space-y-6">
+                        {/* Nama Perusahaan */}
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                                Nama Perusahaan
+                            </label>
+                            {editing ? (
+                                <div>
+                                    <input
+                                        type="text"
+                                        id="name"
+                                        name="name"
+                                        value={form.name}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                                            formErrors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                                        }`}
+                                        placeholder="Nama Perusahaan"
+                                        required
+                                        maxLength={100}
+                                        disabled={loading}
+                                    />
+                                    {formErrors.name && (
+                                        <p className="text-red-500 text-sm mt-1 flex items-center">
+                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            {formErrors.name}
+                                        </p>
+                                    )}
+                                    <p className="text-gray-500 text-xs mt-1">
+                                        {form.name.length}/100 karakter
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                                    <h2 className="text-xl font-semibold text-gray-800">
+                                        {company.name}
+                                    </h2>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Deskripsi */}
+                        <div>
+                            <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2">
+                                Deskripsi Perusahaan
+                            </label>
+                            {editing ? (
+                                <div>
+                                    <textarea
+                                        id="description"
+                                        name="description"
+                                        value={form.description}
+                                        onChange={handleChange}
+                                        rows={4}
+                                        maxLength={500}
+                                        disabled={loading}
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical transition-colors ${
+                                            formErrors.description ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                                        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        placeholder="Deskripsi perusahaan..."
+                                    />
+                                    {formErrors.description && (
+                                        <p className="text-red-500 text-sm mt-1 flex items-center">
+                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            {formErrors.description}
+                                        </p>
+                                    )}
+                                    <p className={`text-xs mt-1 ${
+                                        form.description.length > 450 ? 'text-orange-500' : 'text-gray-500'
+                                    }`}>
+                                        {form.description.length}/500 karakter
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="px-4 py-3 bg-gray-50 rounded-lg">
+                                    <p className="text-gray-700 leading-relaxed">
+                                        {company.description || "Belum ada deskripsi"}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Company ID (Hidden, for debugging) */}
+                    {company.id && process.env.NODE_ENV === 'development' && (
+                        <div className="mt-6 text-xs text-gray-400 font-mono bg-gray-100 p-2 rounded">
+                            ID: {company.id}
+                        </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-between items-center pt-6 border-t mt-8">
+                        {editing && (
+                            <div className="text-sm text-gray-600 flex items-center space-x-2">
+                                <span className="flex items-center">
+                                    <kbd className="px-2 py-1 text-xs bg-gray-100 rounded font-mono">Ctrl+S</kbd>
+                                    <span className="ml-1">simpan</span>
+                                </span>
+                                <span className="text-gray-400">•</span>
+                                <span className="flex items-center">
+                                    <kbd className="px-2 py-1 text-xs bg-gray-100 rounded font-mono">Esc</kbd>
+                                    <span className="ml-1">batal</span>
+                                </span>
+                            </div>
                         )}
+                        
+                        <div className="flex space-x-3 ml-auto">
+                            {editing ? (
+                                <>
+                                    <button
+                                        onClick={handleCancel}
+                                        disabled={loading || uploadingLogo}
+                                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg disabled:opacity-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={loading || !form.name.trim() || uploadingLogo}
+                                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 shadow-lg hover:shadow-xl"
+                                    >
+                                        {loading && (
+                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                        )}
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span>{loading ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => setEditing(true)}
+                                    disabled={uploadingLogo}
+                                    className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-all duration-200 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 shadow-lg hover:shadow-xl"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    <span>Edit Profil</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

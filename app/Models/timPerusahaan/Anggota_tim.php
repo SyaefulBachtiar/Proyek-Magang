@@ -42,12 +42,11 @@ class Anggota_tim extends Model
     // relasi ke table user
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_users');
+        return $this->belongsTo(User::class, 'id_users', 'id');
     }
 
     public function anggota_card () {
-        return $this->hasMany(Anggota_card::class, 'id_anggota_tim');
+        return $this->hasMany(Anggota_card::class, 'id_anggota_tim', 'id');
     }
-
 
 }

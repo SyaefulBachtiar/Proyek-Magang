@@ -3,8 +3,11 @@
 namespace App\Http\Middleware;
 
 use App\Models\timPerusahaan\BoardModel;
+use App\Models\timPerusahaan\Card_listModel;
+use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -42,11 +45,21 @@ class HandleInertiaRequests extends Middleware
                     ]
                     : null,
             ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error')
+            ],
              'perusahaan' => function () use ($request) {
                 $user = $request->user();
                 return $user && $user->perusahaan 
                     ? $user->perusahaan->nama_perusahaan
                     : null;
+                },
+                'nama_board' => function () use ($request) {
+                    $id_tim = $request->route('id_tim');
+                    $nama_tim = TimPerusahaan::where('id', $id_tim)->value('nama_tim');
+
+                    return $nama_tim;
                 },
                 'timLayout' => function () use ($request) {
                     // 1. Ambil user yang sedang login beserta relasi perusahaannya
@@ -84,11 +97,16 @@ class HandleInertiaRequests extends Middleware
                 'timPerusahaan' => function () use ($request) {
                     $user = $request->user();
 
-                    if(!$user){
+                    if(!$user) {
                         return [];
                     }
 
-                    return $user->tim_perusahaan()->with('anggota_tim_perusahaan.user')->get();
+                    $user->load([
+                    'tim_perusahaan.anggota_tim_perusahaan.user',
+                    'tim_perusahaan.board_tim.listBoards'
+                    ]);
+
+                    return $user->tim_perusahaan;
                 },
                 'id_board' => function () use ($request) {
                     $id_tim = $request->route('id_tim');
@@ -109,6 +127,8 @@ class HandleInertiaRequests extends Middleware
                     $role = optional($user->perusahaan)->role;
                     return $role;
                 },
+
+                // anggota perusahaan
                 'anggota_tim' => function () use ($request) {
                     $user = $request->user();
                     if(!$user){
@@ -127,6 +147,8 @@ class HandleInertiaRequests extends Middleware
 
                     return $tim;
                 },
+
+                // anggota tim
                 'anggota_board' => function () use ($request) {
                 $user = $request->user();
                 $id_tim = $request->route('id_tim');
@@ -144,14 +166,43 @@ class HandleInertiaRequests extends Middleware
                         $data = $tim->anggota_tim_perusahaan
                             ->map(fn($anggota) => [
                                 'id' => $anggota->user->id ?? null,
-                                'name' => $anggota->user->name ?? ''
+                                'name' => $anggota->user->name ?? '',
+                                'email' => $anggota->user->email ?? null,
+                                'role' => $anggota->role_anggota,
                             ])
                             ->toArray();
                     }
-                    
+
                 return $data;
+                },
+
+                // anggota card
+                'anggota_card' => function () use ($request) {
+                    $id_card = $request->route('cardId');
+
+                    if(!$id_card) {
+                        return null;
+                    }
+
+                    $tim = Card_listModel::with(['anggota_card_list.user', 'anggota_card_list.anggota_tim'])
+                    ->find($id_card);
+                    
+                    $data = [];
+                    if($tim) {
+                        $data = $tim->anggota_card_list
+                        ->map(fn($anggota) => [
+                            'id' => $anggota->user->id ?? null,
+                            'name' => $anggota->user->name ?? '',
+                            'email' => $anggota->user->email ?? null,
+                            'image' => $anggota->user->poto_profile_user ?? null,
+                            'role' => $anggota->anggota_tim->role_anggota ?? null
+                        ])
+                        ->toArray();
+                    }
+
+                    return $data;
                 }
 
-                    ]);
+                ]);
     }
 }

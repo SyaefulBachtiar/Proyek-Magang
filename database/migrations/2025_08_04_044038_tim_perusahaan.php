@@ -30,27 +30,15 @@ return new class extends Migration
             $table->string('id_users', 36)->nullable();
             $table->string('role_anggota')->nullable();
             $table->foreign('id_users')->references('id')->on('users')->onDelete('cascade');
-            $table->string('id_tim_perusahaan', 36);
-            $table->foreign('id_tim_perusahaan')->references('id')->on('tim_perusahaan')->onDelete('cascade');
-            $table->timestamps();
-        });
-
-        // anggota card
-        Schema::create('anggota_card', function (Blueprint $table) {
-             $table->string('id', 36)->primary();
-            $table->string('id_user', 36)->nullable();
             $table->string('id_tim_perusahaan', 36)->nullable();
-            $table->string('id_anggota_tim', 36)->nullable();
-            $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('id_tim_perusahaan')->references('id')->on('tim_perusahaan')->onDelete('cascade');
-            $table->foreign('id_anggota_tim')->references('id')->on('anggota_tim')->onDelete('cascade');
             $table->timestamps();
         });
 
         // board
         Schema::create('board_tim', function (Blueprint $table){
             $table->string('id', 36)->primary();
-            $table->string('id_team', 36);
+            $table->string('id_team', 36)->nullable();
             $table->foreign('id_team')->references('id')->on('tim_perusahaan')->onDelete('cascade');
             $table->timestamps();
         });
@@ -61,7 +49,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('anggota_card');
         Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('tim_perusahaan');
         Schema::enableForeignKeyConstraints();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tim;
 
 use App\Http\Controllers\Controller;
+use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\List_boardModel;
 use App\Models\timPerusahaan\TimPerusahaan;
@@ -75,7 +76,7 @@ class Tim_perusahaanController extends Controller
             ]);
             // Buat card_list untuk setiap list_board
             foreach ($cards as $index => $card) {
-                Card_listModel::create([
+                $cardList = Card_listModel::create([
                     'id' => (string) Str::uuid(),
                     'nama_card' => $card['nama_card'],
                     'pembuat' => $card['pembuat'],
@@ -83,10 +84,45 @@ class Tim_perusahaanController extends Controller
                     'id_list' => $listBoard->id,
                     'urutan' => $index + 1,
                 ]);
+
+                $anggotaTim = $tim->anggota_tim_perusahaan()
+                ->where('id_users', $user->id)
+                ->first();
+
+                if ($anggotaTim) {
+                    Anggota_card::create([
+                        'id' => (string) Str::uuid(),
+                        'id_user' => $user->id,
+                        'id_card' => $cardList->id,
+                        'id_anggota_tim' => $anggotaTim->id
+                    ]);
+                }
             }
         }
 
         return redirect()->back()->with('success', 'Tim berhasil dibuat.');
+    }
+
+    public function update(Request $request, $id, $id_tim)
+    {
+        // 1. Validasi input dari form
+        $request->validate([
+            'nama_tim' => 'required|string|max:255',
+            'deskripsi_tim' => 'nullable|string',
+        ]);
+
+        // 2. Cari tim menggunakan Model `TimPerusahaan` Anda
+        $tim = TimPerusahaan::findOrFail($id_tim);
+
+        // 3. Update data tim dengan data yang sudah divalidasi
+        $tim->nama_tim = $request->nama_tim;
+        $tim->deskripsi_tim = $request->deskripsi_tim;
+
+        // 4. Simpan perubahan ke database
+        $tim->save();
+
+        // 5. Kembalikan ke halaman sebelumnya
+        return redirect()->back()->with('success', 'Tim berhasil diperbarui.');
     }
 
     public function destroy($id, $id_tim)

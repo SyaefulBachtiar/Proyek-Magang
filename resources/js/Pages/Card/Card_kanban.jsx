@@ -1,34 +1,153 @@
-import { useEffect, useRef, useState } from "react";
-import { CalendarDays, Captions, MessageSquareText, Paperclip, Pencil, Plus, Save, SquareCheck, Tags, UserRoundPlus, X } from "lucide-react";
-import { usePage } from "@inertiajs/react";
+import { useEffect, useReducer, useRef, useState } from "react";
+import { CalendarDays, Captions, MessageSquareText, Paperclip, Pencil, Plus, Save, SquareCheck, Tag, Tags, UserRoundPlus, X } from "lucide-react";
+import { router, usePage } from "@inertiajs/react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import Proyek from "../Proyek";
-import Input from "@/modal/input/Input";
 import TambahAnggota from "@/modal/Proyek/TambahAnggota";
+import Kalender from "@/modal/Proyek/Kalender";
+import Label from "@/modal/Proyek/Label";
+
+const initialState = {
+    tambahAnggota: false,
+    checklist: false,
+    label: false,
+    waktu: false,
+    lampiran: false
+};
+
+function reducer (state, action) {
+    switch (action.type) {
+        case "TOGGLE_TAMBAH_ANGGOTA":
+            return { ...state, tambahAnggota: !state.tambahAnggota };
+        case "TOGGLE_CHECKLIST":
+            return { ...state, checklist: !state.checklist };
+        case "TOGGLE_LABEL":
+            return { ...state, label: !state.label };
+        case "TOGGLE_WAKTU":
+            return { ...state, waktu: !state.waktu };
+        case "TOGGLE_LAMPIRAN":
+            return { ...state, lampiran: !state.lampiran}
+        default:
+            return state;
+    }
+}
+
 
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
-    const [tambahAnggota, setTambahAnggota] = useState(false);
+    const { role, id_tim, card_id, anggota_card, kalender, label_card, label_tim, id_board } = usePage().props;
+    const refs = useRef({});
+    let date = "";
+    let fullDate = "";
+    if(kalender){
+    date = new Date(kalender.due_date);
+    fullDate = date.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+    }
+
+    // REALTIME LISTENER
+    useEffect(() => {
+        if(!id_board) return;
+
+        // console.log(`Listen ke channel: labelcard.${card_id} dan lebeltim.${id_tim}`);
+
+        // LISTENER UNTUK PERUBAHAN DI BOARD
+         const channel = window.Echo.private(`board.${id_board}`);
+          channel.listen(".board.updated", (event) => {
+            //   console.log(
+            //       "Berhasil",
+            //       event
+            //   );
+
+              // Cukup reload props yang relevan untuk halaman ini.
+              router.reload({
+                  only: ["label_card", "label_tim", "anggota_card", "kalender"], // sesuaikan dengan props halaman ini
+                  preserveState: true,
+                  preserveScroll: true,
+              });
+          });
+
+
+        return () => {
+            window.Echo.leave(`board.${id_board}`);
+        }
+    }, [id_board]);
+
+    const [state, dispatch] = useReducer(reducer, initialState);
+
+    const buttonFitur = [
+        {
+            name: "Tambah",
+            icon: <Plus size={14} />,
+            onclick: () => console.log("Tambah klik"),
+            show: true,
+            active: "",
+        },
+        {
+            name: "Checklist",
+            icon: <SquareCheck size={14} />,
+            onclick: () => console.log("Cehcklist klik"),
+            show: true,
+            active: "",
+        },
+        {
+            name: "Label",
+            icon: <Tag size={14} />,
+            onclick: () => dispatch({ type: "TOGGLE_LABEL"}),
+            show: true,
+            active: "",
+        },
+        {
+            name: "Waktu",
+            icon: <CalendarDays size={14} />,
+            onclick: () => dispatch({ type: "TOGGLE_WAKTU" }),
+            show: true,
+            active: state.waktu,
+        },
+        {
+            name: "Anggota",
+            icon: <UserRoundPlus size={14} />,
+            onclick: () => dispatch({ type: "TOGGLE_TAMBAH_ANGGOTA" }),
+            show: role !== "Member",
+            active: state.tambahAnggota,
+        },
+        {
+            name: "Lampiran",
+            icon: <Paperclip size={14} />,
+            onclick: () => dispatch({ type: "TOGGLE_LAMPIRAN" }),
+            show: true,
+            active: state.lampiran,
+        },
+    ];
 
     // ref lihat card
     const lihatCardRef = useRef(null);
 
-    // useEffect(() => {
-    //     function handleClickOutside(e) {
-    //         if (
-    //             lihatCardRef.current &&
-    //             !lihatCardRef.current.contains(e.target)
-    //         ) {
-    //             onClose();
-    //         }
-    //     }
-    //     document.addEventListener("mousedown", handleClickOutside);
-    //     return () => {
-    //         document.removeEventListener("mousedown", handleClickOutside);
-    //     };
-    // }, [onClose]);
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (
+                lihatCardRef.current &&
+                !lihatCardRef.current.contains(e.target)
+            ) {
+                  router.visit(
+                      route("proyek", {
+                          id: user.id,
+                          id_tim: id_tim,
+                          id_board: id_board,
+                      })
+                  );
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     // State untuk toggle dan isi deskripsi
     const [isEditing, setIsEditing] = useState(false);
@@ -62,7 +181,13 @@ export default function Card_kanban() {
                     <div className="flex justify-end p-1 m-2">
                         <div
                             className="p-1 hover:bg-black/20 rounded-md cursor-pointer"
-                            onClick={() => window.history.back()}
+                            onClick={() => router.visit(
+                                route("proyek", {
+                                    id: user.id,
+                                    id_tim: id_tim,
+                                    id_board: id_board,
+                                })
+                            )}
                         >
                             <X />
                         </div>
@@ -77,21 +202,6 @@ export default function Card_kanban() {
                     <div className="px-4 flex-1 flex flex-col lg:flex-row overflow-y-auto gap-4 ">
                         {/* Konten Kiri */}
                         <div className="flex flex-col gap-4 w-full py-4 lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element">
-                            {/* Avatar
-                            <div className="flex gap-2 items-center">
-                                <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center">
-                                    <p>{user.name.charAt(0)}</p>
-                                </div>
-                                <div>
-                                    <p className="font-bold text-lg">
-                                        {user.name}
-                                    </p>
-                                    <p className="p-1 bg-gray-200 rounded-md text-sm">
-                                        2 jam yang lalu
-                                    </p>
-                                </div>
-                            </div> */}
-
                             {/* Deskripsi */}
                             <div className="px-2 border border-gray-200 py-3 rounded-lg">
                                 <div className="flex justify-between items-center mb-4">
@@ -144,53 +254,148 @@ export default function Card_kanban() {
                             {/* Tombol Aksi */}
                             <div className="flex gap-3 mt-4 text-sm flex-wrap relative">
                                 {/* button pilihan */}
-                                <div className="flex gap-2 items-center p-2 rounded-md cursor-pointer bg-gray-200 hover:bg-gray-300">
-                                    <Plus size={14} />
-                                    Tambah
-                                </div>
+                                {buttonFitur
+                                    .filter((btn) => btn.show)
+                                    .map((btn, i) => (
+                                        <div
+                                            ref={(el) =>
+                                                (refs.current[btn.name] = el)
+                                            }
+                                            key={i}
+                                            onClick={btn.onclick}
+                                            className={`flex gap-2 items-center p-2 ${
+                                                btn.active
+                                                    ? "bg-gray-600 text-white"
+                                                    : "bg-gray-200"
+                                            } rounded-md cursor-pointer hover:bg-gray-300`}
+                                        >
+                                            {btn.icon}
+                                            <p>{btn.name}</p>
+                                        </div>
+                                    ))}
 
-                                {/* button tambah anggota */}
-                                <div
-                                    onClick={() =>
-                                        setTambahAnggota(!tambahAnggota)
-                                    }
-                                    className={`flex gap-2 items-center p-2 ${
-                                        tambahAnggota
-                                            ? "bg-gray-600 text-white"
-                                            : "bg-gray-200"
-                                    } rounded-md cursor-pointer hover:bg-gray-300`}
-                                >
-                                    <UserRoundPlus size={14} />
-                                    <p>Anggota</p>
-                                </div>
-
-                                {tambahAnggota && (
+                                {state.tambahAnggota && (
                                     <TambahAnggota
-                                        close={() => setTambahAnggota(false)}
+                                        close={() =>
+                                            dispatch({
+                                                type: "TOGGLE_TAMBAH_ANGGOTA",
+                                            })
+                                        }
+                                        card_id={card_id}
+                                        id_tim={id_tim}
+                                        refTrigger={refs.current["Anggota"]}
                                     />
                                 )}
-
-                                {/* button checklist */}
-                                <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                    <SquareCheck size={14} />
-                                    <p>Checklist</p>
+                                {state.waktu && (
+                                    <Kalender
+                                        close={() =>
+                                            dispatch({ type: "TOGGLE_WAKTU" })
+                                        }
+                                        refTrigger={refs.current["Waktu"]}
+                                        card_id={card_id}
+                                    />
+                                )}
+                                {state.label && (
+                                    <Label
+                                        close={() =>
+                                            dispatch({ type: "TOGGLE_LABEL" })
+                                        }
+                                        refTrigger={refs.current["Label"]}
+                                        card_id={card_id}
+                                        id_tim={id_tim}
+                                        label_tim_prop={label_tim}
+                                        label_card_prop={label_card}
+                                    />
+                                )}
+                            </div>
+                            <div
+                                className={`${
+                                    label_card.length > 0 ? "visible" : "hidden"
+                                } mt-4`}
+                            >
+                                <h1 className="font-semibold text-gray-800">
+                                    Label
+                                </h1>
+                                <div className={`grid grid-cols-5 gap-10`}>
+                                    {label_card.length > 0
+                                        ? label_card.map((label, i) => (
+                                              <div
+                                                  key={i}
+                                                  className="w-[100px] min-h-[5px] hover:p-2 rounded-md group transition-all ease-in-out duration-150 cursor-pointer "
+                                                  style={{
+                                                      backgroundColor:
+                                                          label.warna,
+                                                  }}
+                                              >
+                                                  <p
+                                                      className={`group-hover:flex hidden`}
+                                                  >
+                                                      {label.title}
+                                                  </p>
+                                              </div>
+                                          ))
+                                        : ""}
                                 </div>
+                            </div>
+                            <div className="flex flex-col gap-1 mt-4">
+                                <h4 className="text-[14px] text-gray-700">
+                                    Anggota
+                                </h4>
 
-                                {/* button label */}
-                                <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                    <Tags size={14} />
-                                    <p>Label</p>
-                                </div>
-
-                                {/* button tanggal */}
-                                <div className="flex gap-2 items-center p-2 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300">
-                                    <CalendarDays size={14} />
-                                    <p>Waktu</p>
+                                <div className="flex gap-1 items-center">
+                                    {anggota_card.map((data, i) => (
+                                        <div
+                                            key={i}
+                                            className="w-6 h-6 rounded-full overflow-hidden"
+                                        >
+                                            {data.image ? (
+                                                <img
+                                                    src={`/storage/${data.image}`}
+                                                    alt={data.name}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-blue-500 flex justify-center items-center text-white text-xs">
+                                                    <p>{data.name.charAt(0)}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <div className="w-6 h-6 flex justify-center items-center cursor-pointer">
+                                        <Plus
+                                            onClick={() =>
+                                                dispatch({
+                                                    type: "TOGGLE_TAMBAH_ANGGOTA",
+                                                })
+                                            }
+                                            size={14}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
+                            {kalender && (
+                                <div className="text-gray-800">
+                                    <h1 className="font-semibold">
+                                        Tenggat Waktu
+                                    </h1>
+                                    <div
+                                        onClick={() =>
+                                            dispatch({
+                                                type: "TOGGLE_WAKTU",
+                                            })
+                                        }
+                                        className="flex gap-2 items-center p-2 bg-gray-200 w-fit rounded-md cursor-pointer"
+                                    >
+                                        <CalendarDays size={20} />
+                                        <p>
+                                            {fullDate} jam: {kalender.due_time}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* lampilan */}
-                            <div className="border border-gray-200 py-3 px-2 rounded-md">
+                            <div className="border border-gray-200 py-3 px-2 rounded-md mt-4">
                                 <div className="flex items-center gap-2">
                                     <Paperclip size={14} />
                                     <h1>Lampiran</h1>

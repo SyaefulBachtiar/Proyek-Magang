@@ -3,7 +3,7 @@ import Input from "../input/Input";
 import { useState } from "react";
 import { router } from "@inertiajs/react";
 
-export default function TambahCard({ id_list, close, id }) {
+export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
     const [formData, setFormData] = useState({
         nama_tugas: "",
         id_list: id_list,
@@ -61,7 +61,7 @@ export default function TambahCard({ id_list, close, id }) {
         }
 
         // Submit menggunakan Inertia
-        router.post(route('proyek.card.store', { id: id }),
+        router.post(route('proyek.card.store', { id: id, id_tim: id_tim, id_board: id_board }),
             submitData,
             {
                 forceFormData: true,

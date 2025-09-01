@@ -1,12 +1,13 @@
 
 import { Link, usePage } from '@inertiajs/react';
 
-import { LogOut, Menu, Search, Settings, ShieldCheck, UserRoundPlus } from 'lucide-react';
+import { Bell, LogOut, Menu, Search, Settings, ShieldCheck, UserRoundPlus } from 'lucide-react';
 import { useState, useEffect,  createContext, useContext, useRef } from "react";
 
 
 import SearchModal from '../modal/SearchModal';
 import TambahAnggotaModal from '@/modal/TambahAnggotaModal';
+import Notif from '@/modal/Notifikasi/Notif';
 
 
 // untuk sidebar
@@ -19,6 +20,9 @@ export default function AuthenticatedLayout({ children, header }) {
     const user = usePage().props.auth.user;
 
     const { perusahaan, timLayout, role } = usePage().props;
+    
+    // notif state
+    const [notif, setNotif] = useState(false);
 
     // sidebar state
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -69,11 +73,11 @@ export default function AuthenticatedLayout({ children, header }) {
         >
             <div className="h-screen flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="p-2 px-4 bg-gray-200/30">
+                <div className="py-1 px-3 bg-white relative">
                     <div className="flex py-2 gap-5">
                         <div className="flex items-center w-[500px] justify-between">
-                            <div className="flex items-center gap-5">
-                                <div className="w-[40px]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-[40px] h-[40px]">
                                     {/* image perusahaan */}
                                     <img
                                         src="/img/kemenkes.png"
@@ -82,7 +86,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                     />
                                 </div>
                                 {/* Nama perusahaan */}
-                                <h1 className="text-sm text-gray-500 sm:text-sm md:text-sm lg:text-lg xl:text-xl uppercase">
+                                <h1 className="text-sm font-semibold sm:text-sm md:text-sm lg:text-lg xl:text-2xl uppercase">
                                     {perusahaan || "Belum ada nama perusahaan"}
                                 </h1>
                             </div>
@@ -90,6 +94,7 @@ export default function AuthenticatedLayout({ children, header }) {
                             {/* Menu icon */}
                             <div>
                                 <Menu
+                                    size={30}
                                     ref={buttonMenu}
                                     onClick={() =>
                                         setSidebarOpen((prev) => !prev)
@@ -99,36 +104,23 @@ export default function AuthenticatedLayout({ children, header }) {
                             </div>
                         </div>
 
-                        {/* Search */}
-                        <div className="w-[250px] flex items-center ">
-                            <div
-                                className="group flex items-center gap-4 h-[30px] justify-start mx-4 border border-gray-400 p-[7px] rounded-xl w-[35px] overflow-hidden transition-all duration-500 hover:w-full cursor-pointer"
-                                onClick={() => setSearch(true)}
-                            >
-                                <Search className="text-gray-400 min-w-5 h-5 group-hover:text-black" />
-                                <p className="text-gray-400 group-hover:text-black">
-                                    Cari..
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="w-full justify-end items-center hidden gap-5 sm:flex md:flex lg:flex xl:flex">
+                        <div className="w-full justify-end items-center hidden mr-5 gap-8 sm:flex md:flex lg:flex xl:flex">
                             {/* Users */}
                             <div className="flex">
                                 {onlineUsers
-                                    ? onlineUsers.map((user, i) => (
+                                    ? onlineUsers.map((users, i) => (
                                           <div
                                               key={i}
                                               className="relative group mx-1"
                                           >
                                               {/* Avatar */}
 
-                                              {user.poto_profile_user ? (
+                                              {users.poto_profile_user ? (
                                                   <div
                                                       className={`w-[30px] h-[30px] rounded-[50%] cursor-pointer flex items-center justify-center overflow-hidden`}
                                                   >
                                                       <img
-                                                          src={`/storage/${user.poto_profile_user}`}
+                                                          src={`/storage/${users.poto_profile_user}`}
                                                           alt="Foto Profil"
                                                           className="object-cover h-full"
                                                       />
@@ -138,7 +130,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                                       className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
                                                   >
                                                       <p>
-                                                          {user.name.charAt(0)}
+                                                          {users.name.charAt(0)}
                                                       </p>
                                                   </div>
                                               )}
@@ -149,30 +141,32 @@ export default function AuthenticatedLayout({ children, header }) {
                                               {/* Hover modal/info box */}
                                               <div className="absolute top-[40px] left-1/2 -translate-x-1/2 z-10 w-max px-3 py-2 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                                                   <p className="text-sm font-semibold">
-                                                      {user.name}
+                                                      {users.name === user.name
+                                                          ? "Anda"
+                                                          : users.name}
                                                   </p>
                                                   <p className="text-xs text-gray-600">
-                                                      {user.jabatan}
+                                                      {users.jabatan}
                                                   </p>
                                                   <p className="text-xs text-gray-400">
-                                                      {user.role}
+                                                      {users.role}
                                                   </p>
                                               </div>
                                           </div>
                                       ))
-                                    : offlineUsers.map((user, i) => (
+                                    : offlineUsers.map((users, i) => (
                                           <div
                                               key={i}
                                               className="relative group mx-1"
                                           >
                                               {/* Avatar */}
 
-                                              {user.poto_profile_user ? (
+                                              {users.poto_profile_user ? (
                                                   <div
                                                       className={`w-[30px] h-[30px] rounded-[50%] cursor-pointer flex items-center justify-center overflow-hidden`}
                                                   >
                                                       <img
-                                                          src={`/storage/${user.poto_profile_user}`}
+                                                          src={`/storage/${users.poto_profile_user}`}
                                                           alt="Foto Profil"
                                                           className="object-cover h-full"
                                                       />
@@ -182,7 +176,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                                       className={`w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white`}
                                                   >
                                                       <p>
-                                                          {user.name.charAt(0)}
+                                                          {users.name.charAt(0)}
                                                       </p>
                                                   </div>
                                               )}
@@ -193,34 +187,44 @@ export default function AuthenticatedLayout({ children, header }) {
                                               {/* Hover modal/info box */}
                                               <div className="absolute top-[40px] left-1/2 -translate-x-1/2 z-10 w-max px-3 py-2 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                                                   <p className="text-sm font-semibold">
-                                                      {user.name}
+                                                      {users.name === user.name
+                                                          ? "Anda"
+                                                          : users.name}
                                                   </p>
                                                   <p className="text-xs text-gray-600">
-                                                      {user.jabatan}
+                                                      {users.jabatan}
                                                   </p>
                                                   <p className="text-xs text-gray-400">
-                                                      {user.role}
+                                                      {users.role}
                                                   </p>
                                               </div>
                                           </div>
                                       ))}
                             </div>
 
+                            <div
+                                onClick={() => setNotif(!notif)}
+                                className="p-2 bg-[#F0E460] rounded-lg text-white cursor-pointer"
+                            >
+                                <Bell size={20} />
+                            </div>
+
+                            {notif && <Notif close={() => setNotif(false)} />}
+
                             {/* button tambah anggota */}
-                            {role !== "Super User" ||
-                                (role !== "Admin" && (
-                                    <button
-                                        className="px-4 py-2 bg-blue-400/50 rounded-lg flex items-center text-gray-600 gap-2"
-                                        onClick={() =>
-                                            setTambahAnggotaModal(true)
-                                        }
-                                    >
-                                        <UserRoundPlus />
-                                        <p className="text-xs sm:text-sm">
-                                            Tambah anggota
-                                        </p>
-                                    </button>
-                                ))}
+                            {role !== "Super User" || role !== "Admin" ? (
+                                <button
+                                    className="p-2 bg-[#0076FD] rounded-lg flex items-center text-white gap-2"
+                                    onClick={() => setTambahAnggotaModal(true)}
+                                >
+                                    <UserRoundPlus size={20} />
+                                    <p className="text-xs sm:text-[15px]">
+                                        Tambah anggota
+                                    </p>
+                                </button>
+                            ) : (
+                                ""
+                            )}
 
                             {/* Profil icon user */}
                             <div ref={profileDropDownRef} className="relative">
@@ -229,12 +233,12 @@ export default function AuthenticatedLayout({ children, header }) {
                                         onClick={() =>
                                             setProfileDown((prev) => !prev)
                                         }
-                                        className="w-[40px] h-[40px] rounded-[50%] flex justify-center items-center text-md text-white text-xl overflow-hidden cursor-pointer"
+                                        className="w-[50px] h-[50px] rounded-[50%] flex justify-center items-center text-md text-white text-xl overflow-hidden cursor-pointer"
                                     >
                                         <img
                                             src={`/storage/${user.poto_profile_user}`}
                                             alt="profile"
-                                            className="object-cover w-full"
+                                            className="object-cover w-full h-full"
                                         />
                                     </div>
                                 ) : (
@@ -284,25 +288,12 @@ export default function AuthenticatedLayout({ children, header }) {
                         </div>
                     </div>
 
-                    {header && (
-                        <div className="w-full p-2 px-8 rounded-md flex justify-end space-x-6">
-                            <header>{header}</header>
-                        </div>
-                    )}
-
-                    {/* {/* <div className="flex items-center gap-1 cursor-pointer"> */}
-                    {/* <Settings className="w-5 text-gray-500" />
-                            <p className="text-sm text-gray-500">Pengaturan</p>
-                        </div> */}
-                    {/* </div> */}
+                    {header && <header className="w-full">{header}</header>}
                 </div>
 
                 <main className="flex-1 h-full flex flex-col overflow-hidden">
                     {children}
                 </main>
-
-                {/* modal search */}
-                {search && <SearchModal onClose={() => setSearch(false)} />}
 
                 {/* Modal Tambah Anggota */}
                 {tambahAnggotaModal && (

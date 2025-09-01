@@ -23,13 +23,23 @@ class DashboardController extends Controller
 
         $perusahaan = optional($user->perusahaan)->nama_perusahaan;
 
-         $user = User::with([
-        'tim_perusahaan.anggota_tim_perusahaan.user',
-        'tim_perusahaan.board_tim.listBoards' // kalau mau langsung list_board nya juga
-            ])->findOrFail(Auth::id());
+        $query = TimPerusahaan::with([
+            'anggota_tim_perusahaan.user',
+            'board_tim.listBoards',
+            'perusahaan'
+        ])->whereHas('perusahaan', function($q) use ($perusahaan){
+            $q->where('nama_perusahaan', $perusahaan);
+        });
 
-        $data = $user->tim_perusahaan;
+        // filter sesuai role
+    if (!in_array($role, ['Super User', 'Admin'])) {
+        // kalau member → hanya tim yang dia bergabung
+        $query->whereHas('anggota_tim_perusahaan', function ($q) {
+            $q->where('id_users', Auth::id());
+        });
+    }
 
+    $data = $query->get();
 
         return Inertia::render('pageDashboard/ContentMainDashboard', [
             'activePage' => 'DashboardMain',

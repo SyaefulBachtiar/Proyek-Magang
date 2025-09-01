@@ -4,7 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
+use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -96,11 +98,6 @@ class User extends Authenticatable
     public function isOnline(): bool
     {
         return Cache::has('user-is-online-' . $this->id);
-    }
-
-    public function messages()
-    {
-        return $this->hasMany(Message::class);
     }
     
 }
