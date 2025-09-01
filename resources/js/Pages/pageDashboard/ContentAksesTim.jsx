@@ -94,9 +94,18 @@ function AksesTim() {
     };
 
     const handleDelete = (member) => {
-        const confirmDelete = window.confirm(`Hapus anggota ${member.name}?`);
+        const confirmDelete = window.confirm(`Apakah Anda yakin ingin menghapus ${member.name}? Tindakan ini tidak dapat diurungkan.`);
         if (confirmDelete) {
-            console.log("Hapus:", member.name);
+            // Mengirim request hapus ke server
+            router.delete(route('aksestim.destroy', {
+                id: auth.user.id, // ID dari user yang login untuk parameter {id} di URL
+                user: member.id,  // ID dari user yang akan dihapus untuk parameter {user}
+            }), {
+                preserveScroll: true, // Agar halaman tidak scroll ke atas setelah aksi
+                onSuccess: () => {
+                    setMenuOpen(null); // Menutup menu setelah berhasil
+                }
+            });
         }
     };
 
