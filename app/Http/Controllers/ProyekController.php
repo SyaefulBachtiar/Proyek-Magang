@@ -528,4 +528,27 @@ class ProyekController extends Controller
         
         return response()->json(['success' => 'Berhasil delete label']);
     }
+
+
+    // update
+    public function updateListTitle(Request $request, $id, $id_list)
+    {
+        $request->validate([
+            'judul' => 'required|string|max:50',
+        ]);
+
+        try {
+            $list = List_boardModel::findOrFail($id_list);
+            $list->update([
+                'judul' => $request->judul,
+            ]);
+
+            // Panggil broadcast agar update realtime di semua client
+            $this->broadcastBoardUpdate($list->id_board);
+
+            return back()->with('success', 'Judul list berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return back()->with('gagal', 'Gagal memperbarui judul list: ' . $e->getMessage());
+        }
+    }
 }
