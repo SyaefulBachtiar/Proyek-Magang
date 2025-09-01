@@ -37,7 +37,7 @@ function reducer (state, action) {
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
-    const { role, id_tim, card_id, anggota_card, kalender, label_card, label_tim, id_board } = usePage().props;
+    const { role, id_tim, card_id, anggota_card, kalender, label_card, label_tim, id_board, dataCard } = usePage().props;
     const refs = useRef({});
     let date = "";
     let fullDate = "";
@@ -195,7 +195,7 @@ export default function Card_kanban() {
 
                     {/* Judul */}
                     <div className="pb-2 border-b-2 px-4 border-b-gray-200">
-                        <h1 className="font-bold text-xl">Judul/Title</h1>
+                        <h1 className="font-bold text-xl">{dataCard?.nama_card}</h1>
                     </div>
 
                     {/* Konten */}

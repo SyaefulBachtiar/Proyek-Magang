@@ -152,6 +152,7 @@ class ProyekController extends Controller
         $label_tim = Label_tim::where('id_tim_perusahaan', $id_tim)->get();
         $label_card = Label_card::where('id_card', $cardId)->get();
         $id_board = BoardModel::where('id_team', $id_tim)->value('id');
+        $dataCard = Card_listModel::where('id', $cardId)->firstOrFail();
 
         $user = Auth::user();
 
@@ -176,7 +177,8 @@ class ProyekController extends Controller
             'label_tim' => $label_tim,
             'label_card' => $label_card,
             'id_board' => $id_board,
-            'anggota_tim' => $tim
+            'anggota_tim' => $tim,
+            'dataCard' => $dataCard
         ]);
     }
 
