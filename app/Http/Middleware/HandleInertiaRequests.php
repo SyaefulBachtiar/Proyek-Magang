@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Anggota_perusahaan;
 use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\Notifikasi;
@@ -79,7 +80,6 @@ class HandleInertiaRequests extends Middleware
                     return User::whereHas('perusahaan', function ($query) use ($namaPerusahaan) {
                         $query->where('nama_perusahaan', $namaPerusahaan);
                     })
-                    ->with('perusahaan:id,user_id,role,jabatan') // Eager load hanya kolom yang perlu
                     ->get()
                     ->map(function ($user) {
                         // 5. Bentuk data secara manual agar struktur outputnya pasti dan tidak bocor
@@ -89,8 +89,8 @@ class HandleInertiaRequests extends Middleware
                             'email' => $user->email,
                             'poto_profile_user' => $user->poto_profile_user,
                             // Gunakan null-safe di sini untuk keamanan ekstra
-                            'role' => $user->perusahaan?->role, 
-                            'jabatan' => $user->perusahaan?->jabatan, // Tambahkan jabatan jika ada
+                            'role' => $user->perusahaan->anggotaPerusahaan->role, 
+                            'jabatan' => $user->perusahaan->anggotaPerusahaan->jabatan, // Tambahkan jabatan jika ada
                             'is_online' => $user->isOnline()
                         ];
                     });
@@ -125,7 +125,7 @@ class HandleInertiaRequests extends Middleware
                         return [];
                     }
 
-                    $role = optional($user->perusahaan)->role;
+                    $role = optional($user->anggotaPerusahaan)->role;
                     return $role;
                 },
 
@@ -155,6 +155,35 @@ class HandleInertiaRequests extends Middleware
                     }
 
                 return $data;
+                },
+
+                'anggota_tim' => function () use ($request) {
+                    $user = $request->user();
+                    if(!$user){
+                        return collect();
+                    }
+                    $user->load('anggotaPerusahaan');
+
+                    $perusahaan_id = $user->anggotaPerusahaan?->perusahaan_id;
+
+                    if(!$perusahaan_id) {
+                        return collect();
+                    }
+
+
+
+                    $anggota = Anggota_perusahaan::with('user:id,name,email')
+                    ->where('perusahaan_id', $perusahaan_id)
+                    ->get();
+
+                    return $anggota->map(function ($item){
+                        return [
+                            'id' => $item->user->id,
+                            'name' => $item->user->name,
+                            'email' => $item->user->email,
+                            'role' => $item->role,
+                        ];
+                    });
                 },
 
                 // anggota card

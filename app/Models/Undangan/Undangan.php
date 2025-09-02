@@ -15,6 +15,7 @@ class Undangan extends Model
         'email',
         'role',
         'nama_perusahaan',
+        'id_perusahaan',
     ];
 
      protected static function boot()

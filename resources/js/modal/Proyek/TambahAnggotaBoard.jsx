@@ -11,7 +11,7 @@ export default function TambahAnggotaBoard({ close }) {
     const [selectedRole, setSelectedRole] = useState("Member");
     const [isAdding, setIsAdding] = useState(false);
     // Filter anggota perusahaan berdasarkan query pencarian
-    console.log(anggota_board);
+    console.log(anggota_tim);
     useEffect(() => {
         if(auth.user.id){
             // console.log(`Subscribing to private channel: user.${auth.user.id}`);

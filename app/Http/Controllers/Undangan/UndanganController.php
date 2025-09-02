@@ -22,11 +22,14 @@ class UndanganController extends Controller
 
     $user = Auth::user();
     $perusahaan = optional($user->perusahaan)->nama_perusahaan;
+    $id_perusahaan = optional($user->perusahaan)->id;
+
     $undangan = Undangan::create([
         'id' => strtoupper(Str::random(20)),
         'email' => $request->email,
         'role' => $request->role,
-        'nama_perusahaan' => $perusahaan, // ambil dari user yang login
+        'nama_perusahaan' => $perusahaan,
+        'id_perusahaan' => $id_perusahaan,
     ]);
 
         // 1. SIMPAN UNDUANGAN KE DATABASE

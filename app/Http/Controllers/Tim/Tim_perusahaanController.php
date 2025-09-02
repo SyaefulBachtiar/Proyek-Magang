@@ -24,7 +24,7 @@ class Tim_perusahaanController extends Controller
         $user = Auth::user();
 
         // Pastikan user memiliki relasi ke perusahaan
-        if (!$user->perusahaan) {
+        if (!$user->anggotaPerusahaan) {
             return response()->json(['error' => 'User tidak terkait dengan perusahaan.'], 403);
         }
 
@@ -33,7 +33,7 @@ class Tim_perusahaanController extends Controller
             'nama_tim' => $request->nama_tim,
             'deskripsi_tim' => $request->deskripsi_tim,
             'jenis_tim' => $request->jenis_tim,
-            'perusahaan_id' => $user->perusahaan->id,
+            'perusahaan_id' => $user->anggotaPerusahaan?->perusahaan?->id,
             'user_id' => $user->id,
         ]);
 

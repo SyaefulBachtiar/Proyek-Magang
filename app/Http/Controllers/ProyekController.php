@@ -42,16 +42,7 @@ class ProyekController extends Controller
         
         $user = Auth::user();
         
-        $nama_perusahaan = $user->perusahaan->nama_perusahaan;
-        
-        $tim_anggota = User::query()->join('perusahaan', 'users.id', '=', 'perusahaan.user_id')
-        ->where('perusahaan.nama_perusahaan', $nama_perusahaan)
-        ->select(
-            'users.id',
-            'users.name',
-            'users.email',
-            'perusahaan.role'
-        )->get();
+        $nama_perusahaan = $user->anggotaPerusahaan?->perusahaan?->nama_perusahaan;
 
         return Inertia::render('pageProyek/Kanban', [
             'dashboardId' => $id,
@@ -60,7 +51,6 @@ class ProyekController extends Controller
             'activePage' => 'tugasPage',
             'tim' => $tim,
             'dataBoard' => $board_data,
-            'anggota_tim' => $tim_anggota
         ]);
     }
 

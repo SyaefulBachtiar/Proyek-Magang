@@ -144,11 +144,17 @@ function MainDashboard() {
                                     id="nama_perusahaan"
                                     name="nama_perusahaan"
                                     value={formData.nama_perusahaan}
-                                    onChange={(e) => setData("nama_perusahaan", e.target.value)}
-                                    className={`w-full py-3 px-4 border rounded-lg text-gray-700 leading-tight focus:outline-none focus:ring-2 transition-all duration-200 ${errors.nama_perusahaan
+                                    onChange={(e) =>
+                                        setData(
+                                            "nama_perusahaan",
+                                            e.target.value
+                                        )
+                                    }
+                                    className={`w-full py-3 px-4 border rounded-lg text-gray-700 leading-tight focus:outline-none focus:ring-2 transition-all duration-200 ${
+                                        errors.nama_perusahaan
                                             ? "border-red-400 focus:ring-red-400 bg-red-50"
                                             : "border-gray-300 focus:ring-blue-400 focus:border-blue-400 bg-white"
-                                        }`}
+                                    }`}
                                     placeholder="PT. Contoh Perusahaan"
                                     required
                                     disabled={processing}
@@ -163,15 +169,25 @@ function MainDashboard() {
                             <div className="flex items-center justify-center">
                                 <button
                                     type="submit"
-                                    disabled={processing || !formData.nama_perusahaan.trim() || !isDirty}
-                                    className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 ${processing || !formData.nama_perusahaan.trim() || !isDirty
+                                    disabled={
+                                        processing ||
+                                        !formData.nama_perusahaan.trim() ||
+                                        !isDirty
+                                    }
+                                    className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2 ${
+                                        processing ||
+                                        !formData.nama_perusahaan.trim() ||
+                                        !isDirty
                                             ? "bg-gray-400 cursor-not-allowed"
                                             : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transform hover:scale-[1.02]"
-                                        }`}
+                                    }`}
                                 >
                                     {processing ? (
                                         <>
-                                            <Loader2 size={18} className="animate-spin" />
+                                            <Loader2
+                                                size={18}
+                                                className="animate-spin"
+                                            />
                                             Mengupdate...
                                         </>
                                     ) : (
@@ -210,25 +226,49 @@ function MainDashboard() {
                                                 key={tim.id}
                                                 className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] hover:shadow-lg bg-[#F0E460] rounded-xl group relative"
                                             >
-                                                {activeEllipsisId === tim.id && (
+                                                {activeEllipsisId ===
+                                                    tim.id && (
                                                     <div className="absolute left-72 z-50 top-8 bg-white rounded-md p-2 min-w-[120px]">
                                                         <ul className="space-y-2">
                                                             <li
                                                                 className="cursor-pointer text-gray-700 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(e) => {
+                                                                onClick={(
+                                                                    e
+                                                                ) => {
                                                                     e.stopPropagation();
-                                                                    handleEditClick(tim);
+                                                                    handleEditClick(
+                                                                        tim
+                                                                    );
                                                                 }}
                                                             >
                                                                 Edit
                                                             </li>
                                                             <li
                                                                 className="cursor-pointer text-red-600 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(e) => {
+                                                                onClick={(
+                                                                    e
+                                                                ) => {
                                                                     e.stopPropagation();
-                                                                    setActiveEllipsisId(null);
-                                                                    if (confirm("Apakah Anda yakin ingin menghapus tim ini?")) {
-                                                                        router.delete(route("tim-perusahaan.destroy", { id: id, id_tim: tim.id }), { preserveScroll: true });
+                                                                    setActiveEllipsisId(
+                                                                        null
+                                                                    );
+                                                                    if (
+                                                                        confirm(
+                                                                            "Apakah Anda yakin ingin menghapus tim ini?"
+                                                                        )
+                                                                    ) {
+                                                                        router.delete(
+                                                                            route(
+                                                                                "tim-perusahaan.destroy",
+                                                                                {
+                                                                                    id: id,
+                                                                                    id_tim: tim.id,
+                                                                                }
+                                                                            ),
+                                                                            {
+                                                                                preserveScroll: true,
+                                                                            }
+                                                                        );
                                                                     }
                                                                 }}
                                                             >
@@ -243,12 +283,25 @@ function MainDashboard() {
                                                         className="text-black hover:text-gray-700"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            toggleEllipsis(tim.id);
+                                                            toggleEllipsis(
+                                                                tim.id
+                                                            );
                                                         }}
                                                     />
                                                 </div>
                                                 <div
-                                                    onClick={() => router.visit(route("proyek", { id: id, id_tim: tim.id, id_board: tim.board_tim?.id }))}
+                                                    onClick={() =>
+                                                        router.visit(
+                                                            route("proyek", {
+                                                                id: id,
+                                                                id_tim: tim.id,
+                                                                id_board:
+                                                                    tim
+                                                                        .board_tim
+                                                                        ?.id,
+                                                            })
+                                                        )
+                                                    }
                                                     className="rounded-xl h-full overflow-hidden"
                                                 >
                                                     <div className="h-[168px] relative flex justify-center items-center">
@@ -267,7 +320,9 @@ function MainDashboard() {
                                                                 {tim.nama_tim}
                                                             </h1>
                                                             <p className="text-sm text-gray-400">
-                                                                {tim.deskripsi_tim}
+                                                                {
+                                                                    tim.deskripsi_tim
+                                                                }
                                                             </p>
                                                         </div>
                                                     </div>
@@ -289,25 +344,49 @@ function MainDashboard() {
                                                 key={tim.id}
                                                 className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] bg-[#F0E460] hover:shadow-lg rounded-xl group relative"
                                             >
-                                                {activeEllipsisId === tim.id && (
+                                                {activeEllipsisId ===
+                                                    tim.id && (
                                                     <div className="absolute left-72 z-50 top-8 bg-white shadow-lg rounded-md p-2 min-w-[120px]">
                                                         <ul className="space-y-2">
                                                             <li
                                                                 className="cursor-pointer text-gray-700 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(e) => {
+                                                                onClick={(
+                                                                    e
+                                                                ) => {
                                                                     e.stopPropagation();
-                                                                    handleEditClick(tim);
+                                                                    handleEditClick(
+                                                                        tim
+                                                                    );
                                                                 }}
                                                             >
                                                                 Edit
                                                             </li>
                                                             <li
                                                                 className="cursor-pointer text-red-600 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(e) => {
+                                                                onClick={(
+                                                                    e
+                                                                ) => {
                                                                     e.stopPropagation();
-                                                                    setActiveEllipsisId(null);
-                                                                    if (confirm("Apakah Anda yakin ingin menghapus tim ini?")) {
-                                                                        router.delete(route("tim-perusahaan.destroy", { id: id, id_tim: tim.id }), { preserveScroll: true });
+                                                                    setActiveEllipsisId(
+                                                                        null
+                                                                    );
+                                                                    if (
+                                                                        confirm(
+                                                                            "Apakah Anda yakin ingin menghapus tim ini?"
+                                                                        )
+                                                                    ) {
+                                                                        router.delete(
+                                                                            route(
+                                                                                "tim-perusahaan.destroy",
+                                                                                {
+                                                                                    id: id,
+                                                                                    id_tim: tim.id,
+                                                                                }
+                                                                            ),
+                                                                            {
+                                                                                preserveScroll: true,
+                                                                            }
+                                                                        );
                                                                     }
                                                                 }}
                                                             >
@@ -322,12 +401,25 @@ function MainDashboard() {
                                                         className="text-black hover:text-gray-700"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            toggleEllipsis(tim.id);
+                                                            toggleEllipsis(
+                                                                tim.id
+                                                            );
                                                         }}
                                                     />
                                                 </div>
                                                 <div
-                                                    onClick={() => router.visit(route("proyek", { id: id, id_tim: tim.id, id_board: tim.board_tim?.id }))}
+                                                    onClick={() =>
+                                                        router.visit(
+                                                            route("proyek", {
+                                                                id: id,
+                                                                id_tim: tim.id,
+                                                                id_board:
+                                                                    tim
+                                                                        .board_tim
+                                                                        ?.id,
+                                                            })
+                                                        )
+                                                    }
                                                     className="rounded-xl h-full overflow-hidden"
                                                 >
                                                     <div className="h-[168px] relative flex justify-center items-center">
@@ -346,7 +438,9 @@ function MainDashboard() {
                                                                 {tim.nama_tim}
                                                             </h1>
                                                             <p className="text-sm text-gray-400">
-                                                                {tim.deskripsi_tim}
+                                                                {
+                                                                    tim.deskripsi_tim
+                                                                }
                                                             </p>
                                                         </div>
                                                     </div>
@@ -358,10 +452,16 @@ function MainDashboard() {
                             )}
                         </div>
                     </div>
+                ) : !perusahaan ? (
+                    ""
                 ) : (
                     <div className="w-full mt-10 flex justify-center items-center">
                         <div className="w-[500px]">
-                            <img src="/img/ilustrasi.png" alt="ilustrasi" className="w-full h-full object-cover" />
+                            <img
+                                src="/img/ilustrasi.png"
+                                alt="ilustrasi"
+                                className="w-full h-full object-cover"
+                            />
                         </div>
                     </div>
                 )}

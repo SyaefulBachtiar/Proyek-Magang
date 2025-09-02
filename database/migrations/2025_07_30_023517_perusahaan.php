@@ -15,19 +15,20 @@ return new class extends Migration
         Schema::create('perusahaan', function (Blueprint $table) {
             $table->string('id', 36)->primary();
             $table->string('nama_perusahaan', 100)->nullable();
-            $table->string('role', 10)->nullable();
-            $table->string('jabatan', 20)->nullable();
+            $table->string('deskripsi')->nullable();
+            $table->string('image')->nullable();
             $table->string('user_id', 36);
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
 
         // table profile perusahaan
-        Schema::create('profile_perusahaan', function (Blueprint $table) {
+        Schema::create('anggota_perusahaan', function (Blueprint $table) {
             $table->string('id', 36)->primary();
-            $table->string('foto_profile_perusahaan')->nullable();
-            $table->text('deskripsi')->nullable();
-            $table->string('role_perusahaan', 20)->nullable();
+            $table->string('role')->nullable();
+            $table->text('jabatan')->nullable();
+             $table->string('user_id', 36);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('perusahaan_id', 36);
             $table->foreign('perusahaan_id')->references('id')->on('perusahaan')->onDelete('cascade');
             $table->timestamps();
@@ -40,6 +41,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('perusahaan');
-        Schema::dropIfExists('profile_perusahaan');
+        Schema::dropIfExists('anggota_perusahaan');
     }
 };

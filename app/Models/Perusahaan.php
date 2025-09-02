@@ -13,10 +13,11 @@ class Perusahaan extends Model
     protected $keyType = 'string'; 
     
     protected $fillable = [
-        'role',
-        'jabatan',
-        'user_id',
+        'id',
         'nama_perusahaan',
+        'deskripsi',
+        'image',
+        'user_id',
     ];
 
     // generate id secara otomatis saat membuat model
@@ -32,15 +33,10 @@ class Perusahaan extends Model
             }
         });
     }
-    
-    // relasi ke table user many to one
-    public function user () {
-        return $this->belongsTo(User::class);
-    }
 
-    // relasi ke table profile perusahaan one to one
-    public function profilePerusahaan() {
-        return $this->hasOne(ProfilePerusahaan::class, 'perusahaan_id');
+    // relasi ke table angota perusahaan one to many
+    public function anggotaPerusahaan () {
+        return $this->hasOne(Anggota_perusahaan::class, 'perusahaan_id', 'id');
     }
 
     // relasi ke table tim perusahaan one to many
@@ -48,5 +44,8 @@ class Perusahaan extends Model
         return $this->hasMany(TimPerusahaan::class);
     }
 
+    public function user () {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 
 }
