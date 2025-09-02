@@ -127,14 +127,14 @@ function MainDashboard() {
                                     />
                                 </div>
                                 <h2 className="text-2xl font-bold text-gray-800">
-                                    Masukan Nama Perusahaan
+                                    Masukan Nama Instansi
                                 </h2>
                             </div>
                             {recentlySuccessful && (
                                 <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
                                     <CheckCircle size={16} />
                                     <span className="text-sm">
-                                        Perusahaan berhasil di tambahkan!
+                                        Instansi berhasil di tambahkan!
                                     </span>
                                 </div>
                             )}
