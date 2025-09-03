@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Anggota_perusahaan;
+// Ganti model Perusahaan dengan Anggota_perusahaan
+use App\Models\Anggota_perusahaan; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -12,47 +13,28 @@ class AksesTimController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+        $currentUser = Auth::user();
 
-        // --- PERUBAHAN LOGIKA DIMULAI DI SINI ---
-        // 1. Dapatkan informasi keanggotaan user yang sedang login secara langsung dari tabel.
-        // Ini lebih andal daripada mengandalkan relasi $user->anggota.
-        $anggotaInfo = Anggota_perusahaan::where('user_id', $user->id)->first();
-
-        // Jika user tidak terdaftar di perusahaan manapun, kembalikan array kosong.
-        // Kondisi ini akan terpenuhi jika tidak ada baris di `anggota_perusahaan` untuk user ini.
-        if (!$anggotaInfo) {
-            return Inertia::render('pageDashboard/ContentAksesTim', [
-                'activePage' => 'DashboardAksesTim',
-                'tim' => [],
-            ]);
-        }
-
-        // 2. Dapatkan ID perusahaan dari user yang login
+        // 1. Cari data keanggotaan dari user yang sedang login untuk mendapatkan perusahaan_id
+        $anggotaInfo = Anggota_perusahaan::where('user_id', $currentUser->id)->firstOrFail();
         $perusahaanId = $anggotaInfo->perusahaan_id;
-        // --- AKHIR PERUBAHAN LOGIKA ---
 
-        // 3. Cari semua anggota yang berada di perusahaan yang sama
-        //    dan ambil data user yang berelasi menggunakan with('user')
-        $tim = Anggota_perusahaan::where('perusahaan_id', $perusahaanId)
-            // ->where('user_id', '!=', $user->id) // <-- Baris ini tetap dinonaktifkan agar Anda bisa melihat data Anda sendiri muncul untuk tes.
-            ->with('user') // Eager Loading untuk efisiensi query
-            ->get()
-            // 4. Ubah struktur data agar sesuai dengan yang dibutuhkan frontend
-            ->map(function ($anggota) {
-                // Pastikan relasi user tidak null untuk menghindari error
-                if ($anggota->user) {
-                    return [
-                        'id' => $anggota->user->id,
-                        'name' => $anggota->user->name,
-                        'email' => $anggota->user->email,
-                        'role' => $anggota->role, // Ambil role dari tabel anggota_perusahaan
-                    ];
-                }
-                return null;
-            })
-            ->filter(); // Hapus item yang null dari koleksi
+        // 2. Ambil semua anggota dari perusahaan yang sama menggunakan perusahaan_id
+        // Gunakan 'with('user')' untuk Eager Loading data dari tabel users (lebih efisien)
+        $semuaAnggota = Anggota_perusahaan::where('perusahaan_id', $perusahaanId)
+            ->with('user')
+            ->get();
 
+        // 3. Ubah (map) data ke format yang dibutuhkan oleh frontend
+        $tim = $semuaAnggota->map(function ($anggota) {
+            return [
+                'id'    => $anggota->user->id,       // id dari user
+                'name'  => $anggota->user->name,     // nama dari user
+                'email' => $anggota->user->email,    // email dari user
+                'role'  => $anggota->role,           // role dari tabel anggota_perusahaan
+            ];
+        });
+            
         return Inertia::render('pageDashboard/ContentAksesTim', [
             'activePage' => 'DashboardAksesTim',
             'tim' => $tim,
@@ -69,7 +51,7 @@ class AksesTimController extends Controller
             'role' => 'required|string|in:Admin,Member',
         ]);
 
-        // Cari data keanggotaan berdasarkan user_id
+        // Cari data keanggotaan berdasarkan user_id yang akan diubah
         $anggota = Anggota_perusahaan::where('user_id', $userId)->firstOrFail();
 
         // Pastikan role Super User tidak diubah
@@ -81,7 +63,6 @@ class AksesTimController extends Controller
         $anggota->role = $request->input('role');
         $anggota->save();
 
-        // Redirect kembali.
         return back()->with('success', 'Role berhasil diperbarui.');
     }
 
@@ -90,21 +71,22 @@ class AksesTimController extends Controller
      */
     public function destroy($id, $userId)
     {
-        // Cari data keanggotaan user yang akan dihapus untuk memeriksa role
+        // Cari data keanggotaan untuk memeriksa role
         $anggota = Anggota_perusahaan::where('user_id', $userId)->first();
 
         // Pencegahan: Jangan hapus user jika rolenya adalah 'Super User'
         if ($anggota && $anggota->role === 'Super User') {
-            return back()->withErrors(['error' => 'User dengan role Super User tidak dapat diubah.']);
+            return back()->withErrors(['error' => 'User dengan role Super User tidak dapat dihapus.']);
         }
         
-        // Cari user yang akan dihapus berdasarkan ID dan hapus
-        // Jika relasi database diatur dengan 'onDelete cascade',
-        // record di 'anggota_perusahaan' akan otomatis terhapus.
+        // Cari user yang akan dihapus berdasarkan ID
         $userToDelete = User::findOrFail($userId);
+
+        // Hapus user. Jika Anda mengatur 'onDelete cascade' pada foreign key di migrasi database,
+        // data di 'anggota_perusahaan' akan terhapus otomatis. Jika tidak, baris di 'anggota_perusahaan'
+        // akan tetap ada dan bisa menyebabkan error. Menghapus user-nya langsung sudah sesuai permintaan.
         $userToDelete->delete();
 
-        // Redirect kembali dengan pesan sukses
         return back()->with('success', 'Anggota tim berhasil dihapus.');
     }
 }
