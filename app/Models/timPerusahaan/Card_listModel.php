@@ -40,4 +40,8 @@ class Card_listModel extends Model
     public function checklist () {
         return $this->hasMany(Checklist::class, 'id_card', 'id');
     }
+
+    public function title_checklist () {
+        return $this->hasMany(Title_Checklist::class, 'id_card', 'id');
+    }
 }

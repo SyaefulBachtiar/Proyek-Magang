@@ -4,7 +4,7 @@ namespace App\Models\timPerusahaan;
 
 use App\Models\Message;
 use App\Models\Perusahaan;
-use App\Models\TimPerusahaan\Title_Checklist;
+use App\Models\timPerusahaan\Title_Checklist;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;

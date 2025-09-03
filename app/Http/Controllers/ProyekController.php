@@ -36,7 +36,11 @@ class ProyekController extends Controller
         }
         $board_data = List_boardModel::with(['cards' => function($query) {
                     $query->orderBy('urutan', 'asc')
-                    ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card', 'kalender');
+                    ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card', 'kalender', 'title_checklist.checklist')
+                    ->withCount('checklist')
+                    ->withCount(['checklist as completed_checklist_count' => function ($query){
+                        $query->where('is_checked', true);
+                    }]);
                 }])
                 ->where('id_board', $id_board)
                 ->orderBy('urutan_posisi', 'asc')
