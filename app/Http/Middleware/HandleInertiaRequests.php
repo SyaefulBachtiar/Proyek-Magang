@@ -49,7 +49,8 @@ class HandleInertiaRequests extends Middleware
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error')
+                'error' => fn () => $request->session()->get('error'),
+                'new_checklist' => fn () => $request->session()->get('new_checklist'),
             ],
              'perusahaan' => function () use ($request) {
                 $user = $request->user();

@@ -96,7 +96,12 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // NOTIFIKASI
     Route::post('notifikasi/{notif_id}/read', [NotifikasiController::class, 'mark_read'])->name('mark.read.notif');
     Route::delete('notifikasi/{notif_id}/delete', [NotifikasiController::class, 'delete_notif'])->name('delete.notif');
-    
+
+    // CHECKLIST
+    Route::post('{id_tim}/title-checklist', [ProyekController::class, 'store_checklist'])->name('store.title.checklist');
+    Route::post('checklist/{id_card}', [ProyekController::class, 'store_item_checklist'])->name('store.item.checklist');
+    Route::put('{checklist_id}/checklist', [ProyekController::class, 'update_checklist'])->name('update.checklist.check');
+    Route::put('{checklist_id}', [ProyekController::class, 'update_notchecklist'])->name('update.checklist.notcheck');
 });
 
 Route::middleware('auth')->group(function () {

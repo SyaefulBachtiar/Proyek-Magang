@@ -2,6 +2,7 @@
 
 namespace App\Models\timPerusahaan;
 
+use App\Models\TimPerusahaan\Checklist;
 use Illuminate\Database\Eloquent\Model;
 
 class Card_listModel extends Model
@@ -34,5 +35,9 @@ class Card_listModel extends Model
 
     public function label_card () {
         return $this->hasMany(Label_card::class, 'id_card', 'id');
+    }
+
+    public function checklist () {
+        return $this->hasMany(Checklist::class, 'id_card', 'id');
     }
 }

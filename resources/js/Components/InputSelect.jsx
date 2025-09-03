@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-export default function InputSelect() {
+export default function InputSelect({title_check, onSelectChange}) {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedValue, setSelectedValue] = useState("(none)");
     const [searchTerm, setSearchTerm] = useState("");
@@ -9,39 +9,17 @@ export default function InputSelect() {
     const inputRef = useRef(null);
 
     const options = [
-        { value: "(none)", label: "(none)" },
-        {
-            value: "capture-email",
-            label: "Capture from email, Slack, and Teams",
-            description: "Try capturing to-dos from Email and Slack",
-        },
-        { value: "trello-basics", label: "Dive into Trello basics" },
-        { value: "boards-cards", label: "Boards and Cards" },
-        {
-            value: "notifications",
-            label: "Manage notifications",
-            description: "Control your notification preferences",
-        },
-        {
-            value: "automation",
-            label: "Automation rules",
-            description: "Set up automated workflows",
-        },
-        {
-            value: "team-collab",
-            label: "Team collaboration",
-            description: "Collaborate effectively with your team",
-        },
+        { id: "", title: "(none)" },
+        ...(title_check || []).map((check) => ({
+            id: check.id,
+            title: check.title,
+        })),
     ];
 
     // Filter options based on search term
     const filteredOptions = options.filter(
         (option) =>
-            option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (option.description &&
-                option.description
-                    .toLowerCase()
-                    .includes(searchTerm.toLowerCase()))
+            option.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Close dropdown when clicking outside
@@ -62,7 +40,10 @@ export default function InputSelect() {
     }, []);
 
     const handleOptionClick = (option) => {
-        setSelectedValue(option.label);
+        setSelectedValue(option.title);
+        if(onSelectChange){
+            onSelectChange(option.id)
+        }
         setSearchTerm("");
         setIsOpen(false);
     };
@@ -121,22 +102,17 @@ export default function InputSelect() {
                                     Tidak ada opsi yang ditemukan
                                 </div>
                             ) : (
-                                filteredOptions.map((option, index) => (
+                                filteredOptions.map((option) => (
                                     <div
-                                        key={index}
+                                        key={option.id}
                                         onClick={() =>
                                             handleOptionClick(option)
                                         }
                                         className="px-3 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                                     >
                                         <div className="text-gray-800 font-medium">
-                                            {option.label}
+                                            {option.title}
                                         </div>
-                                        {option.description && (
-                                            <div className="text-sm text-gray-500 mt-1">
-                                                {option.description}
-                                            </div>
-                                        )}
                                     </div>
                                 ))
                             )}

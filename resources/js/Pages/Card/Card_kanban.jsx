@@ -1,5 +1,19 @@
 import { useEffect, useReducer, useRef, useState } from "react";
-import { CalendarDays, Captions, MessageSquareText, Paperclip, Pencil, Plus, Save, SquareCheck, Tag, Tags, UserRoundPlus, X } from "lucide-react";
+import {
+    CalendarDays,
+    Captions,
+    CopyCheck,
+    MessageSquareText,
+    Paperclip,
+    Pencil,
+    Plus,
+    Save,
+    SquareCheck,
+    Tag,
+    Tags,
+    UserRoundPlus,
+    X,
+} from "lucide-react";
 import { router, usePage } from "@inertiajs/react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -14,10 +28,14 @@ const initialState = {
     checklist: false,
     label: false,
     waktu: false,
-    lampiran: false
+    lampiran: false,
+    addChecklistId: null,
+    newItemText: "",
+    checklistItems: [],
+    loading: false,
 };
 
-function reducer (state, action) {
+function reducer(state, action) {
     switch (action.type) {
         case "TOGGLE_TAMBAH_ANGGOTA":
             return { ...state, tambahAnggota: !state.tambahAnggota };
@@ -28,58 +46,192 @@ function reducer (state, action) {
         case "TOGGLE_WAKTU":
             return { ...state, waktu: !state.waktu };
         case "TOGGLE_LAMPIRAN":
-            return { ...state, lampiran: !state.lampiran}
+            return { ...state, lampiran: !state.lampiran };
+        case "START_ADDING":
+            return {
+                ...state,
+                addChecklistId: action.payload.id,
+                newItemText: "",
+            };
+        case "UPDATE_NEW_ITEM_TEXT":
+            return { ...state, newItemText: action.payload.text };
+        case "FINISH_ADDING":
+            return { ...state, addChecklistId: null, newItemText: "" };
+        case "TOGGLE_CHECKLIST_ITEM":
+            return {
+                ...state,
+                checklistItems: state.checklistItems.map((title) => ({
+                    ...title,
+                    checklist: title.checklist.map((check) =>
+                        check.id === action.payload.checklistId
+                            ? { ...check, is_checked: !check.is_checked }
+                            : check
+                    ),
+                })),
+            };
+        case "SET_INITIAL_CHECKLISTS":
+            return { ...state, checklistItems: action.payload.checklists };
+        case "SET_LOADING":
+            return { ...state, loading: action.payload };
         default:
             return state;
     }
 }
 
-
 export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
-    const { role, id_tim, card_id, anggota_card, kalender, label_card, label_tim, id_board, dataCard } = usePage().props;
+    const {
+        role,
+        id_tim,
+        card_id,
+        anggota_card,
+        kalender,
+        label_card,
+        label_tim,
+        id_board,
+        dataCard,
+        title_checklist,
+        checklist: checklistProps,
+        flash,
+    } = usePage().props;
+
     const refs = useRef({});
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const newItemInputRef = useRef({});
+
     let date = "";
     let fullDate = "";
-    if(kalender){
-    date = new Date(kalender.due_date);
-    fullDate = date.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
+
+    // Fix: Use checklistProps instead of undefined checklist variable
+    useEffect(() => {
+        if (checklistProps) {
+            dispatch({
+                type: "SET_INITIAL_CHECKLISTS",
+                payload: { checklists: checklistProps },
+            });
+        }
+    }, [checklistProps]);
+
+    useEffect(() => {
+        if (flash && flash.new_checklist) {
+            dispatch({
+                type: "START_ADDING",
+                payload: { id: flash.new_checklist },
+            });
+        }
+    }, [flash]);
+
+    useEffect(() => {
+        if (
+            state.addChecklistId &&
+            newItemInputRef.current[state.addChecklistId]
+        ) {
+            setTimeout(() => {
+                newItemInputRef.current[state.addChecklistId].focus();
+            }, 100);
+        }
+    }, [state.addChecklistId]);
+
+    const handleSaveNewItem = (title_checklist_id) => {
+        if (!state.newItemText) return;
+        dispatch({ type: "SET_LOADING", payload: true });
+
+        router.post(
+            route("store.item.checklist", { id: user.id, id_card: card_id }),
+            {
+                title_checklist_id: title_checklist_id,
+                item_text: state.newItemText,
+            },
+            {
+                preserveState: true,
+                onSuccess: () => {
+                    dispatch({ type: "FINISH_ADDING" });
+                },
+                onFinish: () => {
+                    dispatch({ type: "SET_LOADING", payload: false });
+                },
+                onError: (error) => {
+                    dispatch({ type: "SET_LOADING", payload: false });
+                    console.log(error);
+                },
+            }
+        );
+    };
+
+    if (kalender) {
+        date = new Date(kalender.due_date);
+        fullDate = date.toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
     }
+
+    const handleCheckboxChange = async (e, checklistId) => {
+        const isChecked = e.target.checked;
+
+        dispatch({ type: "TOGGLE_CHECKLIST_ITEM", payload: { checklistId } });
+        dispatch({ type: "SET_LOADING", payload: true });
+
+        try {
+            const endpoint = isChecked
+                ? route("update.checklist.check", {
+                      id: user.id,
+                      checklist_id: checklistId,
+                  })
+                : route("update.checklist.notcheck", {
+                      id: user.id,
+                      checklist_id: checklistId,
+                  });
+
+            const response = await fetch(endpoint, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document
+                        .querySelector('meta[name="csrf-token"]')
+                        .getAttribute("content"),
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                body: JSON.stringify({
+                    is_checked: isChecked,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+        } catch (error) {
+            console.error("Error updating checklist item:", error);
+            // Revert the optimistic update on error
+            dispatch({
+                type: "TOGGLE_CHECKLIST_ITEM",
+                payload: { checklistId },
+            });
+        } finally {
+            dispatch({ type: "SET_LOADING", payload: false });
+        }
+    };
 
     // REALTIME LISTENER
     useEffect(() => {
-        if(!id_board) return;
+        if (!id_board) return;
 
-        // console.log(`Listen ke channel: labelcard.${card_id} dan lebeltim.${id_tim}`);
-
-        // LISTENER UNTUK PERUBAHAN DI BOARD
-         const channel = window.Echo.private(`board.${id_board}`);
-          channel.listen(".board.updated", (event) => {
-            //   console.log(
-            //       "Berhasil",
-            //       event
-            //   );
-
-              // Cukup reload props yang relevan untuk halaman ini.
-              router.reload({
-                  only: ["label_card", "label_tim", "anggota_card", "kalender"], // sesuaikan dengan props halaman ini
-                  preserveState: true,
-                  preserveScroll: true,
-              });
-          });
-
+        const channel = window.Echo.private(`board.${id_board}`);
+        channel.listen(".board.updated", (event) => {
+            router.reload({
+                only: ["label_card", "label_tim", "anggota_card", "kalender"],
+                preserveState: true,
+                preserveScroll: true,
+            });
+        });
 
         return () => {
             window.Echo.leave(`board.${id_board}`);
-        }
+        };
     }, [id_board]);
-
-    const [state, dispatch] = useReducer(reducer, initialState);
 
     const buttonFitur = [
         {
@@ -87,21 +239,21 @@ export default function Card_kanban() {
             icon: <Plus size={14} />,
             onclick: () => console.log("Tambah klik"),
             show: true,
-            active: "",
+            active: false,
         },
         {
             name: "Checklist",
             icon: <SquareCheck size={14} />,
-            onclick: () => dispatch({ type: "TOGGLE_CHECKLIST"}),
+            onclick: () => dispatch({ type: "TOGGLE_CHECKLIST" }),
             show: true,
-            active: "",
+            active: state.checklist,
         },
         {
             name: "Label",
             icon: <Tag size={14} />,
-            onclick: () => dispatch({ type: "TOGGLE_LABEL"}),
+            onclick: () => dispatch({ type: "TOGGLE_LABEL" }),
             show: true,
-            active: "",
+            active: state.label,
         },
         {
             name: "Waktu",
@@ -135,41 +287,40 @@ export default function Card_kanban() {
                 lihatCardRef.current &&
                 !lihatCardRef.current.contains(e.target)
             ) {
-                  router.visit(
-                      route("proyek", {
-                          id: user.id,
-                          id_tim: id_tim,
-                          id_board: id_board,
-                      })
-                  );
+                router.visit(
+                    route("proyek", {
+                        id: user.id,
+                        id_tim: id_tim,
+                        id_board: id_board,
+                    })
+                );
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, []);
+    }, [user.id, id_tim, id_board]);
 
     // State untuk toggle dan isi deskripsi
     const [isEditing, setIsEditing] = useState(false);
     const [description, setDescription] = useState(
-        "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sint hic veritatis sapiente!"
+        dataCard?.description ||
+            "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sint hic veritatis sapiente!"
     );
 
-    // ✅ State baru untuk komentar
+    // State baru untuk komentar
     const [isCommenting, setIsCommenting] = useState(false);
     const [comment, setComment] = useState("");
 
-    // ✅ Fungsi untuk menyimpan komentar (placeholder)
+    // Fungsi untuk menyimpan komentar
     const handleSaveComment = () => {
-        if (!comment) return; // Jangan simpan jika kosong
+        if (!comment.trim()) return;
         console.log("Komentar disimpan:", comment);
-        // Di sini Anda akan mengirim 'comment' ke backend
-        // Setelah berhasil, reset state
+        // TODO: Send comment to backend
         setComment("");
         setIsCommenting(false);
     };
-
 
     return (
         <Proyek>
@@ -182,13 +333,15 @@ export default function Card_kanban() {
                     <div className="flex justify-end p-1 m-2">
                         <div
                             className="p-1 hover:bg-black/20 rounded-md cursor-pointer"
-                            onClick={() => router.visit(
-                                route("proyek", {
-                                    id: user.id,
-                                    id_tim: id_tim,
-                                    id_board: id_board,
-                                })
-                            )}
+                            onClick={() =>
+                                router.visit(
+                                    route("proyek", {
+                                        id: user.id,
+                                        id_tim: id_tim,
+                                        id_board: id_board,
+                                    })
+                                )
+                            }
                         >
                             <X />
                         </div>
@@ -196,11 +349,13 @@ export default function Card_kanban() {
 
                     {/* Judul */}
                     <div className="pb-2 border-b-2 px-4 border-b-gray-200">
-                        <h1 className="font-bold text-xl">{dataCard?.nama_card}</h1>
+                        <h1 className="font-bold text-xl">
+                            {dataCard?.nama_card}
+                        </h1>
                     </div>
 
                     {/* Konten */}
-                    <div className="px-4 flex-1 flex flex-col lg:flex-row overflow-y-auto gap-4 ">
+                    <div className="px-4 flex-1 flex flex-col lg:flex-row overflow-y-auto gap-4">
                         {/* Konten Kiri */}
                         <div className="flex flex-col gap-4 w-full py-4 lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element">
                             {/* Deskripsi */}
@@ -254,7 +409,6 @@ export default function Card_kanban() {
 
                             {/* Tombol Aksi */}
                             <div className="flex gap-3 mt-4 text-sm flex-wrap relative">
-                                {/* button pilihan */}
                                 {buttonFitur
                                     .filter((btn) => btn.show)
                                     .map((btn, i) => (
@@ -309,65 +463,74 @@ export default function Card_kanban() {
                                     />
                                 )}
                                 {state.checklist && (
-                                    <Checklist 
-                                    close={() => dispatch({ type: "TOGGLE_CHECKLIST" })}
-                                    card_id={card_id}
-                                    refTrigger={refs.current["Checklist"]}
+                                    <Checklist
+                                        close={() =>
+                                            dispatch({
+                                                type: "TOGGLE_CHECKLIST",
+                                            })
+                                        }
+                                        card_id={card_id}
+                                        id_tim={id_tim}
+                                        refTrigger={refs.current["Checklist"]}
+                                        title_check={title_checklist}
                                     />
                                 )}
                             </div>
-                            <div
-                                className={`${
-                                    label_card.length > 0 ? "visible" : "hidden"
-                                } mt-4`}
-                            >
-                                <h1 className="font-semibold text-gray-800">
-                                    Label
-                                </h1>
-                                <div className={`grid grid-cols-5 gap-10`}>
-                                    {label_card.length > 0
-                                        ? label_card.map((label, i) => (
-                                              <div
-                                                  key={i}
-                                                  className="w-[100px] min-h-[5px] hover:p-2 rounded-md group transition-all ease-in-out duration-150 cursor-pointer "
-                                                  style={{
-                                                      backgroundColor:
-                                                          label.warna,
-                                                  }}
-                                              >
-                                                  <p
-                                                      className={`group-hover:flex hidden`}
-                                                  >
-                                                      {label.title}
-                                                  </p>
-                                              </div>
-                                          ))
-                                        : ""}
+
+                            {/* Label Section */}
+                            {label_card && label_card.length > 0 && (
+                                <div className="mt-4">
+                                    <h1 className="font-semibold text-gray-800">
+                                        Label
+                                    </h1>
+                                    <div className="grid grid-cols-5 gap-10">
+                                        {label_card.map((label, i) => (
+                                            <div
+                                                key={i}
+                                                className="w-[100px] min-h-[5px] hover:p-2 rounded-md group transition-all ease-in-out duration-150 cursor-pointer"
+                                                style={{
+                                                    backgroundColor:
+                                                        label.warna,
+                                                }}
+                                            >
+                                                <p className="group-hover:flex hidden">
+                                                    {label.title}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* Anggota Section */}
                             <div className="flex flex-col gap-1 mt-4">
                                 <h4 className="text-[14px] text-gray-700">
                                     Anggota
                                 </h4>
-
                                 <div className="flex gap-1 items-center">
-                                    {anggota_card.map((data, i) => (
-                                        <div
-                                            key={i}
-                                            className="w-6 h-6 rounded-full overflow-hidden"
-                                        >
-                                            {data.image ? (
-                                                <img
-                                                    src={`/storage/${data.image}`}
-                                                    alt={data.name}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full bg-blue-500 flex justify-center items-center text-white text-xs">
-                                                    <p>{data.name.charAt(0)}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                    {anggota_card &&
+                                        anggota_card.map((data, i) => (
+                                            <div
+                                                key={i}
+                                                className="w-6 h-6 rounded-full overflow-hidden"
+                                            >
+                                                {data.image ? (
+                                                    <img
+                                                        src={`/storage/${data.image}`}
+                                                        alt={data.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-blue-500 flex justify-center items-center text-white text-xs">
+                                                        <p>
+                                                            {data.name.charAt(
+                                                                0
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
                                     <div className="w-6 h-6 flex justify-center items-center cursor-pointer">
                                         <Plus
                                             onClick={() =>
@@ -381,6 +544,7 @@ export default function Card_kanban() {
                                 </div>
                             </div>
 
+                            {/* Kalender Section */}
                             {kalender && (
                                 <div className="text-gray-800">
                                     <h1 className="font-semibold">
@@ -402,13 +566,12 @@ export default function Card_kanban() {
                                 </div>
                             )}
 
-                            {/* lampilan */}
+                            {/* Lampiran Section */}
                             <div className="border border-gray-200 py-3 px-2 rounded-md mt-4">
                                 <div className="flex items-center gap-2">
                                     <Paperclip size={14} />
                                     <h1>Lampiran</h1>
                                 </div>
-
                                 <div className="w-[200px] h-[200px] flex justify-center items-center px-4">
                                     <img
                                         src="/img/img_proyek.png"
@@ -417,13 +580,152 @@ export default function Card_kanban() {
                                     />
                                 </div>
                             </div>
-                            
 
-
+                            {/* CHECKLIST Section */}
+                            {state.checklistItems.length > 0 && (
+                                <div className="p-2">
+                                    {state.checklistItems.map((title) => (
+                                        <div key={title.id} className="mt-4">
+                                            <div className="flex items-center gap-2">
+                                                <SquareCheck size={14} />
+                                                <span className="text-[14px] text-gray-700 font-semibold">
+                                                    {title.title}
+                                                </span>
+                                            </div>
+                                            <div className="mt-2 p-4">
+                                                {title.checklist &&
+                                                title.checklist.length > 0 ? (
+                                                    title.checklist.map(
+                                                        (check) => (
+                                                            <div
+                                                                key={check.id}
+                                                                className="space-x-2 flex items-center"
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="rounded"
+                                                                    checked={
+                                                                        !!check.is_checked
+                                                                    }
+                                                                    onChange={(
+                                                                        e
+                                                                    ) =>
+                                                                        handleCheckboxChange(
+                                                                            e,
+                                                                            check.id
+                                                                        )
+                                                                    }
+                                                                />
+                                                                <span>
+                                                                    {
+                                                                        check.title
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                    )
+                                                ) : (
+                                                    <div className="flex flex-col gap-3">
+                                                        <div className="flex items-center text-gray-400 gap-2">
+                                                            <CopyCheck
+                                                                size={20}
+                                                            />
+                                                            <p>
+                                                                Belum ada
+                                                                checklist
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="mt-3">
+                                                {state.addChecklistId ===
+                                                title.id ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        <input
+                                                            type="text"
+                                                            ref={(el) =>
+                                                                (newItemInputRef.current[
+                                                                    title.id
+                                                                ] = el)
+                                                            }
+                                                            value={
+                                                                state.newItemText
+                                                            }
+                                                            onChange={(e) =>
+                                                                dispatch({
+                                                                    type: "UPDATE_NEW_ITEM_TEXT",
+                                                                    payload: {
+                                                                        text: e
+                                                                            .target
+                                                                            .value,
+                                                                    },
+                                                                })
+                                                            }
+                                                            onKeyDown={(e) =>
+                                                                e.key ===
+                                                                    "Enter" &&
+                                                                handleSaveNewItem(
+                                                                    title.id
+                                                                )
+                                                            }
+                                                            placeholder="Tambahkan item..."
+                                                            className="w-full text-sm rounded-md h-9 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                                        />
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleSaveNewItem(
+                                                                        title.id
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    state.loading
+                                                                }
+                                                                className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
+                                                            >
+                                                                {state.loading
+                                                                    ? "Menyimpan..."
+                                                                    : "Simpan"}
+                                                            </button>
+                                                            <button
+                                                                onClick={() =>
+                                                                    dispatch({
+                                                                        type: "FINISH_ADDING",
+                                                                    })
+                                                                }
+                                                                className="px-3 py-1 bg-gray-200 rounded-md text-sm hover:bg-gray-300"
+                                                            >
+                                                                Batal
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="px-4">
+                                                        <button
+                                                            onClick={() =>
+                                                                dispatch({
+                                                                    type: "START_ADDING",
+                                                                    payload: {
+                                                                        id: title.id,
+                                                                    },
+                                                                })
+                                                            }
+                                                            className="p-2 text-xs bg-gray-300 text-gray-900 rounded-md hover:bg-gray-400"
+                                                        >
+                                                            Tambah Checklist
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
-                        {/* Konten Kanan */}
-                        <div className="w-full lg:w-1/2 px-0 lg:px-4 my-4 ">
+                        {/* Konten Kanan - Comments Section */}
+                        <div className="w-full lg:w-1/2 px-0 lg:px-4 my-4">
                             <div className="flex gap-2 items-center mb-4">
                                 <MessageSquareText />
                                 <p className="font-bold text-lg">Komentar</p>
@@ -453,9 +755,10 @@ export default function Card_kanban() {
                                             Simpan
                                         </button>
                                         <button
-                                            onClick={() =>
-                                                setIsCommenting(false)
-                                            }
+                                            onClick={() => {
+                                                setIsCommenting(false);
+                                                setComment("");
+                                            }}
                                             className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
                                         >
                                             Batal
@@ -464,7 +767,7 @@ export default function Card_kanban() {
                                 </div>
                             )}
 
-                            {/* Komentar */}
+                            {/* Example Comment */}
                             <div className="mt-6">
                                 <div className="flex items-start gap-3">
                                     <div className="w-8 h-8 mt-1 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-sm">

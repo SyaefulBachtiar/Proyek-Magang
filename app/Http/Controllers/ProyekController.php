@@ -10,12 +10,14 @@ use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\Card_listModel;
+use App\Models\timPerusahaan\Checklist;
 use App\Models\timPerusahaan\Kalender;
 use App\Models\timPerusahaan\Label_card;
 use App\Models\timPerusahaan\Label_tim;
 use App\Models\timPerusahaan\List_boardModel;
 use App\Models\timPerusahaan\Notifikasi;
 use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\timPerusahaan\Title_Checklist;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -143,6 +145,10 @@ class ProyekController extends Controller
         $label_card = Label_card::where('id_card', $cardId)->get();
         $id_board = BoardModel::where('id_team', $id_tim)->value('id');
         $dataCard = Card_listModel::where('id', $cardId)->firstOrFail();
+        $title_checklist = Title_Checklist::where('id_tim_perusahaan', $id_tim)->get();
+        $checklist = Title_Checklist::with(['checklist' => function ($query) use ($cardId){
+            $query->where('id_card', $cardId);
+        }])->where('id_tim_perusahaan', $id_tim)->get();
 
         $user = Auth::user();
 
@@ -170,7 +176,9 @@ class ProyekController extends Controller
             'label_card' => $label_card,
             'id_board' => $id_board,
             'anggota_tim' => $formatedTim,
-            'dataCard' => $dataCard
+            'dataCard' => $dataCard,
+            'title_checklist' => $title_checklist,
+            'checklist' => $checklist,
         ]);
     }
 
@@ -527,5 +535,86 @@ class ProyekController extends Controller
         $this->broadcastBoardUpdate($id_board);
         
         return response()->json(['success' => 'Berhasil delete label']);
+    }
+
+    // CHECKLIST
+    public function store_checklist (Request $request, $id, $id_tim) {
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'template_id' => 'nullable|string'
+        ]);
+        
+        try{
+
+            $chekclist_title = Title_Checklist::create([
+                'id' => (string) Str::uuid(),
+                'title' => $request->title,
+                'id_tim_perusahaan' => $id_tim
+            ]);
+            $id_board = BoardModel::where('id_team', $id_tim)->value('id');
+
+            $this->broadcastBoardUpdate($id_board);
+    
+            return redirect()->back()->with('success', 'Berhasil menambahkan title checklist')->with('new_checklist', $chekclist_title->id);
+        } catch (\Exception $e) { // <-- PERUBAHAN UTAMA ADA DI SINI
+        // Sekarang semua jenis error dari database akan tertangkap
+        dd($e->getMessage()); 
+    }
+    }
+
+    public function store_item_checklist (Request $request, $id, $id_card){
+
+        $request->validate([
+            'title_checklist_id' => 'required|string|exists:title_checklist,id',
+            'item_text' => 'required|string|max:255',
+        ]);
+
+        try{
+            Checklist::create([
+                'id' => (string) Str::uuid(),
+                'id_card' => $id_card,
+                'id_title_checklist' => $request->title_checklist_id,
+                'title' => $request->item_text,
+                'is_checked' => false,
+                'image' => null,
+            ]);
+        }catch (\Exception $e) {
+            return redirect()->back()->with('gagal', 'Gagal Menambahkan Item Checklist: '. $e);
+        }
+    }
+
+    public function update_checklist (Request $request, $id, $checklist_id) {
+        $request->validate([
+            'is_checked' => 'required|boolean',
+        ]);
+
+        $checklist = Checklist::findOrFail($checklist_id);
+        $checklist->update([
+            'is_checked' => $request->is_checked,
+        ]);
+
+        $id_board = $checklist->card->listBoard->id_board;
+
+        $this->broadcastBoardUpdate($id_board);
+
+        return response()->json(['success' => 'Checklist updated successfully']);
+    }
+
+    public function update_notchecklist (Request $request, $id, $checklist_id) {
+        $request->validate([
+            'is_checked' => 'required|boolean',
+        ]);
+        
+        $checklist = Checklist::findOrFail($checklist_id);
+        $checklist->update([
+            'is_checked' => $request->is_checked,
+        ]);
+
+        $id_board = $checklist->card->listBoard->id_board;
+
+        $this->broadcastBoardUpdate($id_board);
+
+        return response()->json(['success' => 'Checklist updated successfully']);
     }
 }
