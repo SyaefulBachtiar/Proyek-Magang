@@ -15,12 +15,9 @@ class AksesTimController extends Controller
     {
         $currentUser = Auth::user();
 
-        // 1. Cari data keanggotaan dari user yang sedang login untuk mendapatkan perusahaan_id
         $anggotaInfo = Anggota_perusahaan::where('user_id', $currentUser->id)->firstOrFail();
         $perusahaanId = $anggotaInfo->perusahaan_id;
 
-        // 2. Ambil semua anggota dari perusahaan yang sama menggunakan perusahaan_id
-        // Gunakan 'with('user')' untuk Eager Loading data dari tabel users (lebih efisien)
         $semuaAnggota = Anggota_perusahaan::where('perusahaan_id', $perusahaanId)
             ->with('user')
             ->get();
@@ -28,10 +25,10 @@ class AksesTimController extends Controller
         // 3. Ubah (map) data ke format yang dibutuhkan oleh frontend
         $tim = $semuaAnggota->map(function ($anggota) {
             return [
-                'id'    => $anggota->user->id,       // id dari user
-                'name'  => $anggota->user->name,     // nama dari user
-                'email' => $anggota->user->email,    // email dari user
-                'role'  => $anggota->role,           // role dari tabel anggota_perusahaan
+                'id'    => $anggota->user->id,       
+                'name'  => $anggota->user->name,     
+                'email' => $anggota->user->email,   
+                'role'  => $anggota->role,           
             ];
         });
             
@@ -82,9 +79,6 @@ class AksesTimController extends Controller
         // Cari user yang akan dihapus berdasarkan ID
         $userToDelete = User::findOrFail($userId);
 
-        // Hapus user. Jika Anda mengatur 'onDelete cascade' pada foreign key di migrasi database,
-        // data di 'anggota_perusahaan' akan terhapus otomatis. Jika tidak, baris di 'anggota_perusahaan'
-        // akan tetap ada dan bisa menyebabkan error. Menghapus user-nya langsung sudah sesuai permintaan.
         $userToDelete->delete();
 
         return back()->with('success', 'Anggota tim berhasil dihapus.');
