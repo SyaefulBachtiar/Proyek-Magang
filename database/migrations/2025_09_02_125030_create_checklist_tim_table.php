@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('title');
             $table->string('id_tim_perusahaan', 36)->nullable();
             $table->foreign('id_tim_perusahaan')->references('id')->on('tim_perusahaan')->onDelete('cascade');
+            $table->string('id_card', 36)->nullable();
+            $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
             $table->timestamps();
         });
 

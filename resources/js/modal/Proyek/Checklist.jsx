@@ -47,6 +47,7 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
             route("store.title.checklist", {
                 id: auth.user.id,
                 id_tim: id_tim,
+                id_card: card_id
             }),
             data,
             {

@@ -148,7 +148,7 @@ class ProyekController extends Controller
         $title_checklist = Title_Checklist::where('id_tim_perusahaan', $id_tim)->get();
         $checklist = Title_Checklist::with(['checklist' => function ($query) use ($cardId){
             $query->where('id_card', $cardId);
-        }])->where('id_tim_perusahaan', $id_tim)->get();
+        }])->where('id_card', $cardId)->get();
 
         $user = Auth::user();
 
@@ -538,27 +538,50 @@ class ProyekController extends Controller
     }
 
     // CHECKLIST
-    public function store_checklist (Request $request, $id, $id_tim) {
+    public function store_checklist (Request $request, $id, $id_tim, $id_card) {
+        if($request->template_id){
+            $request->validate([
+                    'title' => 'nullable|string|max:255',
+                    'template_id' => 'nullable|string'
+                ]);
+        }else{
+            $request->validate([
+                    'title' => 'required|string|max:255',
+                    'template_id' => 'nullable|string'
+                ]);
+        }
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'template_id' => 'nullable|string'
-        ]);
-        
-        try{
+        try{    
 
-            $chekclist_title = Title_Checklist::create([
+            if($request->template_id){
+                 $request->validate([
+                'title' => 'nullable|string|max:255',
+                'template_id' => 'nullable|string'
+                ]);
+
+                $chekclist_title = Title_Checklist::findOrFail($request->template_id);
+                $chekclist_title->update([
+                    'id_card' => $id_card
+                ]);
+                $chekclist_title->checklist()->update([
+                    'id_card' => $id_card
+                ]);
+            }else{
+                $chekclist_title = Title_Checklist::create([
                 'id' => (string) Str::uuid(),
                 'title' => $request->title,
                 'id_tim_perusahaan' => $id_tim
             ]);
+            }
+
+
             $id_board = BoardModel::where('id_team', $id_tim)->value('id');
 
             $this->broadcastBoardUpdate($id_board);
     
             return redirect()->back()->with('success', 'Berhasil menambahkan title checklist')->with('new_checklist', $chekclist_title->id);
-        } catch (\Exception $e) { // <-- PERUBAHAN UTAMA ADA DI SINI
-        // Sekarang semua jenis error dari database akan tertangkap
+        } catch (\Exception $e) {
+         
         dd($e->getMessage()); 
     }
     }
@@ -569,7 +592,8 @@ class ProyekController extends Controller
             'title_checklist_id' => 'required|string|exists:title_checklist,id',
             'item_text' => 'required|string|max:255',
         ]);
-
+        
+        
         try{
             Checklist::create([
                 'id' => (string) Str::uuid(),
@@ -579,6 +603,14 @@ class ProyekController extends Controller
                 'is_checked' => false,
                 'image' => null,
             ]);
+            
+            $card = Card_listModel::findOrFail($id_card);
+            $id_board = $card->listBoard->id_board;
+
+            $this->broadcastBoardUpdate($id_board);
+
+            return redirect()->back()->with('success', 'Berhasil Menambahkan Item Checklist');
+
         }catch (\Exception $e) {
             return redirect()->back()->with('gagal', 'Gagal Menambahkan Item Checklist: '. $e);
         }
@@ -616,5 +648,14 @@ class ProyekController extends Controller
         $this->broadcastBoardUpdate($id_board);
 
         return response()->json(['success' => 'Checklist updated successfully']);
+    }
+
+    public function update_title_checklist ($id, $id_checklist) {
+        $title_checklist = Title_Checklist::findOrFail($id_checklist);
+
+        $title_checklist->checklist()->update(['id_card' => null]);
+        $title_checklist->update(['id_card' => null]);
+
+        return redirect()->back()->with('success', 'Berhasil menghapus title checklist');
     }
 }

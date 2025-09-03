@@ -11,6 +11,7 @@ import {
     SquareCheck,
     Tag,
     Tags,
+    Trash2,
     UserRoundPlus,
     X,
 } from "lucide-react";
@@ -222,7 +223,7 @@ export default function Card_kanban() {
         const channel = window.Echo.private(`board.${id_board}`);
         channel.listen(".board.updated", (event) => {
             router.reload({
-                only: ["label_card", "label_tim", "anggota_card", "kalender"],
+                only: ["label_card", "label_tim", "anggota_card", "kalender", "checklist"],
                 preserveState: true,
                 preserveScroll: true,
             });
@@ -586,13 +587,20 @@ export default function Card_kanban() {
                                 <div className="p-2">
                                     {state.checklistItems.map((title) => (
                                         <div key={title.id} className="mt-4">
-                                            <div className="flex items-center gap-2">
-                                                <SquareCheck size={14} />
-                                                <span className="text-[14px] text-gray-700 font-semibold">
-                                                    {title.title}
-                                                </span>
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex items-center gap-2">
+                                                    <SquareCheck size={14} />
+                                                    <span className="text-lg text-gray-700 font-semibold">
+                                                        {title.title}
+                                                    </span>
+                                                </div>
+                                                <div 
+                                                onClick={() => router.put(route("update.title.checklist", {id: user.id, id_checklist: title.id}))}
+                                                className="text-red-500 cursor-pointer">
+                                                    <Trash2 size={16}/>
+                                                </div>
                                             </div>
-                                            <div className="mt-2 p-4">
+                                            <div className="flex flex-col gap-4 mt-2 p-4">
                                                 {title.checklist &&
                                                 title.checklist.length > 0 ? (
                                                     title.checklist.map(

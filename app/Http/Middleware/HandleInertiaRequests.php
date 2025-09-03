@@ -54,9 +54,14 @@ class HandleInertiaRequests extends Middleware
             ],
              'perusahaan' => function () use ($request) {
                 $user = $request->user();
-                return $user && $user->perusahaan 
-                    ? $user->perusahaan->nama_perusahaan
-                    : null;
+                if(!$user) {
+                    return collect();
+                }
+
+                $user->load('anggotaPerusahaan.perusahaan');
+
+                return $user->anggotaPerusahaan?->perusahaan?->nama_perusahaan ?? null;
+
                 },
                 'nama_board' => function () use ($request) {
                     $id_tim = $request->route('id_tim');

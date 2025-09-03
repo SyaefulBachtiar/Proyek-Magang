@@ -15,7 +15,8 @@ class Title_Checklist extends Model
     protected $fillable = [
         'id',
         'title',
-        'id_tim_perusahaan'
+        'id_tim_perusahaan',
+        'id_card'
     ];
 
     public function tim_perusahaan () {
