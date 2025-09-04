@@ -34,6 +34,8 @@ const initialState = {
     newItemText: "",
     checklistItems: [],
     loading: false,
+    uploadingPhoto: null,
+    photoError: null
 };
 
 function reducer(state, action) {
@@ -74,6 +76,12 @@ function reducer(state, action) {
             return { ...state, checklistItems: action.payload.checklists };
         case "SET_LOADING":
             return { ...state, loading: action.payload };
+        case "SET_UPLOADING_PHOTO":
+            return {...state, uploadingPhoto: action.payload.checklistId ? action.payload.checklistId : null}
+        case "SET_PHOTO_ERROR":
+            return {...state, photoError: action.payload.error, uploadingPhoto: null}
+        case "CLEAR_PHOTO_ERROR":
+            return {...state, photoError: null}
         default:
             return state;
     }
@@ -166,6 +174,95 @@ export default function Card_kanban() {
             year: "numeric",
         });
     }
+
+    const handlePhotoUpload = async (event, checklistId) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp",
+        ];
+        if (!allowedTypes.includes(file.type)) {
+            dispatch({
+                type: "SET_PHOTO_ERROR",
+                payload: {
+                    error: "Hanya file gambar yang diperbolehkan (JPEG, PNG, GIF, WebP)",
+                },
+            });
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            dispatch({
+                type: "SET_PHOTO_ERROR",
+                payload: { error: "Ukuran file tidak boleh lebih dari 5MB" },
+            });
+            return;
+        }
+
+        dispatch({ type: "SET_UPLOADING_PHOTO", payload: { checklistId } });
+        dispatch({ type: "CLEAR_PHOTO_ERROR" });
+
+        try {
+            const formData = new FormData();
+            formData.append("photo", file);
+            formData.append("checklist_id", checklistId);
+
+            const response = await fetch(
+                route("upload.checklist.photo", {
+                    id: user.id,
+                    checklist_id: checklistId,
+                }),
+                {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": document
+                            .querySelector('meta[name="csrf-token"]')
+                            .getAttribute("content"),
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    body: formData,
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Gagal mengupload foto");
+            }
+
+            const result = await response.json();
+
+            // Optionally reload the page data or update state locally
+            router.reload({
+                only: ["checklist"],
+                preserveState: true,
+                preserveScroll: true,
+            });
+
+            console.log("Foto berhasil diupload:", result);
+        } catch (error) {
+            console.error("Error uploading photo:", error);
+            dispatch({
+                type: "SET_PHOTO_ERROR",
+                payload: { error: error.message },
+            });
+        } finally {
+            dispatch({
+                type: "SET_UPLOADING_PHOTO",
+                payload: { checklistId: null },
+            });
+            // Clear the file input
+            event.target.value = "";
+        }
+    };
+
 
     const handleCheckboxChange = async (e, checklistId) => {
         const isChecked = e.target.checked;
@@ -647,28 +744,42 @@ export default function Card_kanban() {
                                                                     key={
                                                                         check.id
                                                                     }
-                                                                    className="space-x-2 flex items-center"
+                                                                    className="flex items-center justify-between"
                                                                 >
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        className="rounded"
-                                                                        checked={
-                                                                            !!check.is_checked
-                                                                        }
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleCheckboxChange(
-                                                                                e,
-                                                                                check.id
-                                                                            )
-                                                                        }
-                                                                    />
-                                                                    <span>
-                                                                        {
-                                                                            check.title
-                                                                        }
-                                                                    </span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="rounded"
+                                                                            checked={
+                                                                                !!check.is_checked
+                                                                            }
+                                                                            onChange={(
+                                                                                e
+                                                                            ) =>
+                                                                                handleCheckboxChange(
+                                                                                    e,
+                                                                                    check.id
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                          <span className={check.is_checked ? "line-through text-gray-500" : ""}>
+                                                                                {check.title}
+                                                                            </span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <label
+                                                                            htmlFor="file_upload"
+                                                                            className="p-2 text-xs bg-blue-400 rounded text-white cursor-pointer"
+                                                                        >
+                                                                            Tambahkan
+                                                                            Foto
+                                                                        </label>
+                                                                        <input
+                                                                            id="file_upload"
+                                                                            className="hidden"
+                                                                            type="file"
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             )
                                                         )

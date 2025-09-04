@@ -50,6 +50,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])->name('proyek.update-card-order');
     Route::post('/proyek/{id_tim}/board/{id_board}/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
     Route::post('/proyek/list/{id_board}', [ProyekController::class, 'storeList'])->name('proyek.list.store');
+    Route::put('/proyek/list/{id_list}/update-title', [ProyekController::class, 'updateListTitle'])->name('proyek.list.update.title'); // <-- RUTE BARU
     
     // Menghapus Anggota
     Route::delete('/proyek/{id_tim}/anggota/{id_user}', [ProyekController::class, 'hapusAnggota'])->name('proyek.anggota.destroy');
@@ -60,6 +61,8 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // Halaman lain
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
     Route::put('/aksestim/{user}/update-role', [AksesTimController::class, 'updateRole'])->name('aksestim.updateRole');
+    // RUTE BARU UNTUK HAPUS USER
+    Route::delete('/aksestim/{user}', [AksesTimController::class, 'destroy'])->name('aksestim.destroy');
     
     // Rute untuk halaman Pengaturan
     Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan');
@@ -103,6 +106,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::put('{checklist_id}/checklist', [ProyekController::class, 'update_checklist'])->name('update.checklist.check');
     Route::put('{checklist_id}', [ProyekController::class, 'update_notchecklist'])->name('update.checklist.notcheck');
     Route::delete('checklist/{id_checklist}', [ProyekController::class, 'delete_title_checklist'])->name('delete.title.checklist');
+    Route::post('{checklist_id}/checklist', [ProyekController::class, 'upload_checklist_photo'])->name('upload.checklist.photo')
 });
 
 Route::middleware('auth')->group(function () {

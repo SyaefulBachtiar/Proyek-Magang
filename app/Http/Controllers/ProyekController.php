@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Events\BoardUpdated;
-use App\Events\LabelCard;
-use App\Events\LabelTim;
 use App\Events\NotifikasiEvent;
 use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
@@ -588,9 +586,7 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
                         'title' => $item->title,
                         'id_card' => $id_card,
                         'is_checked' => false,
-                        'id_title_checklist_card' => $newTitleCard->id, // Tautkan ke ID baru
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'id_title_checklist_card' => $newTitleCard->id,
                     ];
                 }
                 // 4. Insert semua item baru secara massal
@@ -709,6 +705,32 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
 
         $title_checklist->delete();
 
+        $id_board = $title_checklist->card->listBoard->id_board;
+
+        $this->broadcastBoardUpdate($id_board);
+
         return redirect()->back()->with('success', 'Berhasil menghapus title checklist');
+    }
+
+    // update
+    public function updateListTitle(Request $request, $id, $id_list)
+    {
+        $request->validate([
+            'judul' => 'required|string|max:50',
+        ]);
+
+        try {
+            $list = List_boardModel::findOrFail($id_list);
+            $list->update([
+                'judul' => $request->judul,
+            ]);
+
+            // Panggil broadcast agar update realtime di semua client
+            $this->broadcastBoardUpdate($list->id_board);
+
+            return back()->with('success', 'Judul list berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return back()->with('gagal', 'Gagal memperbarui judul list: ' . $e->getMessage());
+        }
     }
 }
