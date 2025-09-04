@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import {
     CalendarDays,
+    Camera,
     Captions,
     CopyCheck,
     MessageSquareText,
@@ -16,13 +17,15 @@ import {
     X,
 } from "lucide-react";
 import { router, usePage } from "@inertiajs/react";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import Proyek from "../Proyek";
 import TambahAnggota from "@/modal/Proyek/TambahAnggota";
 import Kalender from "@/modal/Proyek/Kalender";
 import Label from "@/modal/Proyek/Label";
 import Checklist from "@/modal/Proyek/Checklist";
+import InputEditor from "@/Components/InputEditor";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 
 const initialState = {
     tambahAnggota: false,
@@ -35,7 +38,7 @@ const initialState = {
     checklistItems: [],
     loading: false,
     uploadingPhoto: null,
-    photoError: null
+    photoError: null,
 };
 
 function reducer(state, action) {
@@ -103,6 +106,7 @@ export default function Card_kanban() {
         title_checklist,
         checklist: checklistProps,
         flash,
+        deskripsi
     } = usePage().props;
 
     const refs = useRef({});
@@ -263,6 +267,24 @@ export default function Card_kanban() {
         }
     };
 
+    const handleSaveDeskripsi = () => {
+
+        dispatch({ type: "SET_LOADING", payload: true})
+
+        router.post(route('store.deskripsi', {id: user.id, id_card: card_id}),{
+            deskripsi: description,
+            id_deskripsi: deskripsi?.id
+        },{
+            preserveState: true,
+            onSuccess: () => {
+                setIsEditing(false);
+            },onFinish: () => {
+                dispatch({ type: "SET_LOADING", payload: false})
+            }
+        }
+    );
+    }
+
 
     const handleCheckboxChange = async (e, checklistId) => {
         const isChecked = e.target.checked;
@@ -401,9 +423,9 @@ export default function Card_kanban() {
     // State untuk toggle dan isi deskripsi
     const [isEditing, setIsEditing] = useState(false);
     const [description, setDescription] = useState(
-        dataCard?.description ||
-            "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sint hic veritatis sapiente!"
+        deskripsi?.deskripsi || "## Belum Ada Deskripsi"
     );
+
 
     // State baru untuk komentar
     const [isCommenting, setIsCommenting] = useState(false);
@@ -455,50 +477,46 @@ export default function Card_kanban() {
                         {/* Konten Kiri */}
                         <div className="flex flex-col gap-4 w-full py-4 lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element">
                             {/* Deskripsi */}
-                            <div className="px-2 border border-gray-200 py-3 rounded-lg">
-                                <div className="flex justify-between items-center mb-4">
-                                    <div className="flex gap-2 items-center">
-                                        <Captions />
-                                        <h1 className="font-bold text-xl">
-                                            Deskripsi
-                                        </h1>
-                                    </div>
-                                    {!isEditing ? (
-                                        <div
-                                            onClick={() => setIsEditing(true)}
-                                            className="flex gap-2 items-center p-2 bg-gray-200 rounded-lg hover:bg-gray-300 cursor-pointer"
-                                        >
-                                            <Pencil size={14} />
-                                            <p className="text-sm">Edit</p>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            onClick={() => setIsEditing(false)}
-                                            className="flex gap-2 items-center p-2 bg-green-200 rounded-lg hover:bg-green-300 cursor-pointer"
-                                        >
-                                            <Save size={14} />
-                                            <p className="text-sm">Simpan</p>
-                                        </div>
-                                    )}
+                            <div className="flex justify-between items-center">
+                                <div className="flex gap-2 items-center">
+                                    <Captions />
+                                    <h1 className="font-bold text-xl">
+                                        Deskripsi
+                                    </h1>
                                 </div>
-
+                                <div
+                                    onClick={() => setIsEditing(true)}
+                                    className="flex gap-2 items-center p-2 bg-gray-200 rounded-lg hover:bg-gray-300 cursor-pointer"
+                                >
+                                    <Pencil size={14} />
+                                    <p className="text-sm">Edit</p>
+                                </div>
+                            </div>
+                            <div className="px-2 border border-gray-200 py-3 rounded-lg">
                                 {/* Isi Deskripsi */}
-                                <div className="mt-2 px-1">
+                                <div className="px-1">
                                     {isEditing ? (
-                                        <CKEditor
-                                            editor={ClassicEditor}
-                                            data={description}
-                                            onChange={(event, editor) => {
-                                                const data = editor.getData();
-                                                setDescription(data);
-                                            }}
+                                        // <div></div>
+                                        <InputEditor
+                                            close={() => setIsEditing(false)}
+                                            onChange={setDescription}
+                                            value={description}
+                                            onSave={handleSaveDeskripsi}
+                                            loading={state.loading}
                                         />
+                                    ) : description &&
+                                      description.trim() !== "" ? (
+                                        <div className="prose max-w-none prose-ul:pl-6 prose-ol:pl-6 prose-li:marker:text-gray-700">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm]}
+                                            >
+                                                {description}
+                                            </ReactMarkdown>
+                                        </div>
                                     ) : (
-                                        <div
-                                            dangerouslySetInnerHTML={{
-                                                __html: description,
-                                            }}
-                                        />
+                                        <p className="text-gray-500">
+                                            Belum ada deskripsi.
+                                        </p>
                                     )}
                                 </div>
                             </div>
@@ -680,9 +698,18 @@ export default function Card_kanban() {
                             {state.checklistItems.length > 0 && (
                                 <div className="p-2">
                                     {state.checklistItems.map((title) => {
-                                        const totalItems = title.checklist_card.length;
-                                        const completedItems = title.checklist_card.filter((item) => item.is_checked).length;
-                                        const progresPercentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+                                        const totalItems =
+                                            title.checklist_card.length;
+                                        const completedItems =
+                                            title.checklist_card.filter(
+                                                (item) => item.is_checked
+                                            ).length;
+                                        const progresPercentage =
+                                            totalItems > 0
+                                                ? (completedItems /
+                                                      totalItems) *
+                                                  100
+                                                : 0;
 
                                         return (
                                             <div
@@ -746,38 +773,111 @@ export default function Card_kanban() {
                                                                     }
                                                                     className="flex items-center justify-between"
                                                                 >
-                                                                    <div className="flex items-center gap-2">
+                                                                    <div className="flex flex-col gap-2">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                className="rounded"
+                                                                                checked={
+                                                                                    !!check.is_checked
+                                                                                }
+                                                                                onChange={(
+                                                                                    e
+                                                                                ) =>
+                                                                                    handleCheckboxChange(
+                                                                                        e,
+                                                                                        check.id
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                            <span
+                                                                                className={
+                                                                                    check.is_checked
+                                                                                        ? "line-through text-gray-500"
+                                                                                        : ""
+                                                                                }
+                                                                            >
+                                                                                {
+                                                                                    check.title
+                                                                                }
+                                                                            </span>
+                                                                        </div>
+                                                                        {check.image && (
+                                                                            <div className="w-20 h-20 group relative cursor-pointer">
+                                                                                <img
+                                                                                    src={`/storage/${check.image}`}
+                                                                                    alt="Checklist photo"
+                                                                                    className="w-full h-full object-cover rounded"
+                                                                                />
+                                                                                <div
+                                                                                    onClick={() =>
+                                                                                        router.put(
+                                                                                            route(
+                                                                                                "delete.image.checklist",
+                                                                                                {
+                                                                                                    id: user.id,
+                                                                                                    checklist_id:
+                                                                                                        check.id,
+                                                                                                }
+                                                                                            )
+                                                                                        )
+                                                                                    }
+                                                                                    className="absolute -top-2 right-0 hidden group-hover:flex text-red-600"
+                                                                                >
+                                                                                    <Trash2
+                                                                                        size={
+                                                                                            16
+                                                                                        }
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    {/* Photo upload button */}
+                                                                    <div className="relative">
+                                                                        <label
+                                                                            htmlFor={`file_upload_${check.id}`}
+                                                                            className={`flex items-center gap-2 p-2 text-xs rounded text-white cursor-pointer transition-colors
+                                                                            ${
+                                                                                state.uploadingPhoto ===
+                                                                                check.id
+                                                                                    ? "bg-gray-400 cursor-not-allowed"
+                                                                                    : check.image
+                                                                                    ? "bg-green-500 hover:bg-green-600"
+                                                                                    : "bg-blue-400 hover:bg-blue-500"
+                                                                            }`}
+                                                                        >
+                                                                            <Camera
+                                                                                size={
+                                                                                    16
+                                                                                }
+                                                                            />
+                                                                            <span>
+                                                                                {state.uploadingPhoto ===
+                                                                                check.id
+                                                                                    ? "Mengupload..."
+                                                                                    : check.image
+                                                                                    ? "Ganti Foto"
+                                                                                    : "Tambahkan Foto"}
+                                                                            </span>
+                                                                        </label>
                                                                         <input
-                                                                            type="checkbox"
-                                                                            className="rounded"
-                                                                            checked={
-                                                                                !!check.is_checked
-                                                                            }
+                                                                            id={`file_upload_${check.id}`}
+                                                                            className="hidden"
+                                                                            type="file"
+                                                                            accept="image/jpeg,image/png,image/gif,image/webp"
                                                                             onChange={(
                                                                                 e
                                                                             ) =>
-                                                                                handleCheckboxChange(
+                                                                                handlePhotoUpload(
                                                                                     e,
                                                                                     check.id
                                                                                 )
                                                                             }
-                                                                        />
-                                                                          <span className={check.is_checked ? "line-through text-gray-500" : ""}>
-                                                                                {check.title}
-                                                                            </span>
-                                                                    </div>
-                                                                    <div>
-                                                                        <label
-                                                                            htmlFor="file_upload"
-                                                                            className="p-2 text-xs bg-blue-400 rounded text-white cursor-pointer"
-                                                                        >
-                                                                            Tambahkan
-                                                                            Foto
-                                                                        </label>
-                                                                        <input
-                                                                            id="file_upload"
-                                                                            className="hidden"
-                                                                            type="file"
+                                                                            disabled={
+                                                                                state.uploadingPhoto ===
+                                                                                check.id
+                                                                            }
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -905,32 +1005,7 @@ export default function Card_kanban() {
                                     <p>Tulis komentar...</p>
                                 </div>
                             ) : (
-                                <div>
-                                    <CKEditor
-                                        editor={ClassicEditor}
-                                        data={comment}
-                                        onChange={(event, editor) =>
-                                            setComment(editor.getData())
-                                        }
-                                    />
-                                    <div className="mt-3 flex gap-2">
-                                        <button
-                                            onClick={handleSaveComment}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                        >
-                                            Simpan
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setIsCommenting(false);
-                                                setComment("");
-                                            }}
-                                            className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-                                        >
-                                            Batal
-                                        </button>
-                                    </div>
-                                </div>
+                                <div></div>
                             )}
 
                             {/* Example Comment */}

@@ -10,6 +10,7 @@ use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\Checklist;
 use App\Models\TimPerusahaan\Checklist_card;
+use App\Models\TimPerusahaan\Deskripsi;
 use App\Models\timPerusahaan\Kalender;
 use App\Models\timPerusahaan\Label_card;
 use App\Models\timPerusahaan\Label_tim;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Storage;
 
 class ProyekController extends Controller
 {
@@ -151,11 +153,13 @@ class ProyekController extends Controller
         $id_board = BoardModel::where('id_team', $id_tim)->value('id');
         $dataCard = Card_listModel::where('id', $cardId)->firstOrFail();
         $title_checklist = Title_Checklist::where('id_tim_perusahaan', $id_tim)->get();
+        $deskripsi = Deskripsi::where('id_card', $cardId)->first();
         $checklist = Title_Checklist_card::with(['checklist_card' => function ($query) use ($cardId){
             $query->where('id_card', $cardId);
         }])->where('id_card', $cardId)->get();
 
         $user = Auth::user();
+
 
          $perusahaan_id = $user->anggotaPerusahaan->perusahaan_id;
 
@@ -184,6 +188,7 @@ class ProyekController extends Controller
             'dataCard' => $dataCard,
             'title_checklist' => $title_checklist,
             'checklist' => $checklist,
+            'deskripsi' => $deskripsi,
         ]);
     }
 
@@ -712,6 +717,49 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
         return redirect()->back()->with('success', 'Berhasil menghapus title checklist');
     }
 
+    public function delete_image_checklist ($id, $checklist_id) {
+        $checklist = Checklist_card::findOrFail($checklist_id);
+
+        if ($checklist->image) {
+            Storage::disk('public')->delete($checklist->image);
+        }
+
+        $checklist->update(['image' => null]);
+
+        $id_board = $checklist->card->listBoard->id_board;
+
+        $this->broadcastBoardUpdate($id_board);
+
+        return redirect()->back()->with('success', 'Berhasil menghapus Image checklist');
+    }
+
+    public function upload_checklist_photo (Request $request, $id, $checklist_id) {
+        $request->validate([
+        'photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB
+    ]);
+
+    $checklist = Checklist_card::findOrFail($checklist_id);
+    
+    if ($request->hasFile('photo')) {
+        // Delete old photo if exists
+        if ($checklist->image) {
+            Storage::disk('public')->delete($checklist->image);
+        }
+        
+        $photoPath = $request->file('photo')->store('checklist-photos', 'public');
+        $checklist->update(['image' => $photoPath]);
+    }
+
+    $id_board = $checklist->card->listBoard->id_board;
+
+    $this->broadcastBoardUpdate($id_board);
+
+    return response()->json([
+        'message' => 'Foto berhasil diupload',
+        'photo_url' => $checklist->photo_url
+    ]);
+    }
+
     // update
     public function updateListTitle(Request $request, $id, $id_list)
     {
@@ -731,6 +779,35 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
             return back()->with('success', 'Judul list berhasil diperbarui.');
         } catch (\Exception $e) {
             return back()->with('gagal', 'Gagal memperbarui judul list: ' . $e->getMessage());
+        }
+    }
+
+
+    // DESKRIPSI
+    public function store_deskripsi (Request $request, $id, $id_card) {
+
+        try{
+            $request->validate([
+            'deskripsi' => 'required|string',
+            'id_deskripsi' => 'nullable|string|exists:deskripsi,id',
+        ]);
+
+        $deskripsi = Deskripsi::find($request->id_deskripsi);
+        if(!$deskripsi){
+            Deskripsi::create([
+                'id' => (string) Str::uuid(),
+                'deskripsi' => $request->deskripsi,
+                'id_card' => $id_card
+            ]);
+        }else{
+
+        $deskripsi->update([
+            'deskripsi' => $request->deskripsi
+        ]);
+        }
+        return redirect()->back()->with('success', 'Berhasil menambahkan deskripsi');
+        }catch(\Exception $e){
+            return redirect()->back()->with('error', 'error: ' . $e);
         }
     }
 }

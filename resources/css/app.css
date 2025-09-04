@@ -15,6 +15,14 @@ html, body{
     width: 250px;
 }
 
+.prose ul, .prose ol {
+  padding-left: 1.5rem !important;
+  list-style-type: disc !important;
+}
+.prose ol {
+  list-style-type: decimal !important;
+}
+
 
 /* scrollbar */
 /* untuk Chrome, Edge, dan Safari */
