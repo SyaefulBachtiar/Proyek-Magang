@@ -11,6 +11,7 @@ use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\Checklist;
+use App\Models\TimPerusahaan\Checklist_card;
 use App\Models\timPerusahaan\Kalender;
 use App\Models\timPerusahaan\Label_card;
 use App\Models\timPerusahaan\Label_tim;
@@ -18,12 +19,14 @@ use App\Models\timPerusahaan\List_boardModel;
 use App\Models\timPerusahaan\Notifikasi;
 use App\Models\timPerusahaan\TimPerusahaan;
 use App\Models\timPerusahaan\Title_Checklist;
+use App\Models\timPerusahaan\Title_Checklist_card;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProyekController extends Controller
 {
@@ -36,9 +39,9 @@ class ProyekController extends Controller
         }
         $board_data = List_boardModel::with(['cards' => function($query) {
                     $query->orderBy('urutan', 'asc')
-                    ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card', 'kalender', 'title_checklist.checklist')
-                    ->withCount('checklist')
-                    ->withCount(['checklist as completed_checklist_count' => function ($query){
+                    ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card', 'kalender', 'title_checklist_card.checklist_card')
+                    ->withCount('checklist_card')
+                    ->withCount(['checklist_card as completed_checklist_count' => function ($query){
                         $query->where('is_checked', true);
                     }]);
                 }])
@@ -150,7 +153,7 @@ class ProyekController extends Controller
         $id_board = BoardModel::where('id_team', $id_tim)->value('id');
         $dataCard = Card_listModel::where('id', $cardId)->firstOrFail();
         $title_checklist = Title_Checklist::where('id_tim_perusahaan', $id_tim)->get();
-        $checklist = Title_Checklist::with(['checklist' => function ($query) use ($cardId){
+        $checklist = Title_Checklist_card::with(['checklist_card' => function ($query) use ($cardId){
             $query->where('id_card', $cardId);
         }])->where('id_card', $cardId)->get();
 
@@ -542,70 +545,117 @@ class ProyekController extends Controller
     }
 
     // CHECKLIST
-    public function store_checklist (Request $request, $id, $id_tim, $id_card) {
-        if($request->template_id){
-            $request->validate([
-                    'title' => 'nullable|string|max:255',
-                    'template_id' => 'nullable|string'
-                ]);
-        }else{
-            $request->validate([
-                    'title' => 'required|string|max:255',
-                    'template_id' => 'nullable|string'
-                ]);
+public function store_checklist(Request $request, $id, $id_tim, $id_card)
+{
+    // Validasi input disatukan dan diperbaiki
+    if($request->template_id){
+        $request->validate([
+        'template_id' => 'nullable|string|exists:title_checklist,id',
+        'title' => 'nullable|string|max:255',
+    ]);
+    }else{
+        $request->validate([
+        'template_id' => 'nullable|string|exists:title_checklist,id',
+        'title' => 'required_without:template_id|string|max:255',
+    ]);
+    }
+
+    try {
+        $newTitleCard = null;
+
+        // --- KASUS 1: Menggunakan template yang sudah ada ---
+        if ($request->template_id) {
+            // 1. Cari master checklist berdasarkan template_id
+            $masterTitle = Title_Checklist::with('checklist')->findOrFail($request->template_id);
+
+            // 2. Buat record baru untuk menempelkan master checklist ke kartu ini
+            $newTitleCard = Title_Checklist_card::create([
+                'id' => (string) Str::uuid(),
+                'title' => $masterTitle->title,
+                'id_card' => $id_card,
+                'id_tim' => $id_tim,
+                'id_title_checklist' => $masterTitle->id,
+            ]);
+
+            // 3. Siapkan semua item dari template untuk disalin
+            $templateItems = $masterTitle->checklist;
+            $itemsToInsert = [];
+
+            if ($templateItems->isNotEmpty()) {
+                foreach ($templateItems as $item) {
+                    $itemsToInsert[] = [
+                        'id' => (string) Str::uuid(),
+                        'title' => $item->title,
+                        'id_card' => $id_card,
+                        'is_checked' => false,
+                        'id_title_checklist_card' => $newTitleCard->id, // Tautkan ke ID baru
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                // 4. Insert semua item baru secara massal
+                Checklist_card::insert($itemsToInsert);
+            }
         }
-
-        try{    
-
-            if($request->template_id){
-                 $request->validate([
-                'title' => 'nullable|string|max:255',
-                'template_id' => 'nullable|string'
-                ]);
-
-                $chekclist_title = Title_Checklist::findOrFail($request->template_id);
-                $chekclist_title->update([
-                    'id_card' => $id_card
-                ]);
-                $chekclist_title->checklist()->update([
-                    'id_card' => $id_card
-                ]);
-            }else{
-                $chekclist_title = Title_Checklist::create([
+        // --- KASUS 2: Membuat checklist baru dari nol ---
+        else {
+            // 1. Buat master checklist baru
+            $masterTitle = Title_Checklist::create([
                 'id' => (string) Str::uuid(),
                 'title' => $request->title,
-                'id_tim_perusahaan' => $id_tim
+                'id_tim_perusahaan' => $id_tim,
             ]);
-            }
 
+            // 2. Tempelkan master checklist yang baru dibuat ke kartu
+            $newTitleCard = Title_Checklist_card::create([
+                'id' => (string) Str::uuid(),
+                'title' => $masterTitle->title,
+                'id_card' => $id_card,
+                'id_tim' => $id_tim,
+                'id_title_checklist' => $masterTitle->id,
+            ]);
+        }
 
-            $id_board = BoardModel::where('id_team', $id_tim)->value('id');
+        $id_board = BoardModel::where('id_team', $id_tim)->value('id');
+        $this->broadcastBoardUpdate($id_board);
 
-            $this->broadcastBoardUpdate($id_board);
-    
-            return redirect()->back()->with('success', 'Berhasil menambahkan title checklist')->with('new_checklist', $chekclist_title->id);
-        } catch (\Exception $e) {
-         
-        dd($e->getMessage()); 
+        // Kirim ID dari title_checklist_card yang baru dibuat, BUKAN ID master/template
+        return redirect()->back()
+            ->with('success', 'Berhasil menambahkan checklist')
+            ->with('new_checklist', $newTitleCard->id);
+
+    } catch (ModelNotFoundException $e) {
+        Log::error('Gagal menyimpan checklist: Template tidak ditemukan. ' . $e->getMessage());
+        return redirect()->back()->with('gagal', 'Template checklist yang dipilih tidak valid.');
+    } catch (\Exception $e) {
+        Log::error('Gagal menyimpan checklist: ' . $e->getMessage());
+        return redirect()->back()->with('gagal', 'Terjadi kesalahan saat menyimpan checklist.');
     }
-    }
+}
 
     public function store_item_checklist (Request $request, $id, $id_card){
 
         $request->validate([
-            'title_checklist_id' => 'required|string|exists:title_checklist,id',
+            'title_checklist_id' => 'required|string',
             'item_text' => 'required|string|max:255',
-        ]);
-        
+        ]); 
         
         try{
+            $checklist_title_card = Title_Checklist_card::findOrFail($request->title_checklist_id);
+            $checklist_card = Checklist_card::create([
+                'id' => (string) Str::uuid(),
+                'title' => $request->item_text,
+                'image' => null,
+                'id_card' => $id_card,
+                'is_checked' => false,
+                'id_title_checklist_card' => $checklist_title_card->id,
+            ]);
+
             Checklist::create([
                 'id' => (string) Str::uuid(),
-                'id_card' => $id_card,
-                'id_title_checklist' => $request->title_checklist_id,
-                'title' => $request->item_text,
-                'is_checked' => false,
-                'image' => null,
+                'title' => $checklist_card->title,
+                'image' => $checklist_card->image,
+                'id_title_checklist' => $checklist_title_card->id_title_checklist
             ]);
             
             $card = Card_listModel::findOrFail($id_card);
@@ -624,8 +674,8 @@ class ProyekController extends Controller
         $request->validate([
             'is_checked' => 'required|boolean',
         ]);
-
-        $checklist = Checklist::findOrFail($checklist_id);
+        Log::info('Updating not-checklist_id: ' . $checklist_id);
+        $checklist = Checklist_card::findOrFail($checklist_id);
         $checklist->update([
             'is_checked' => $request->is_checked,
         ]);
@@ -642,7 +692,7 @@ class ProyekController extends Controller
             'is_checked' => 'required|boolean',
         ]);
         
-        $checklist = Checklist::findOrFail($checklist_id);
+        $checklist = Checklist_card::findOrFail($checklist_id);
         $checklist->update([
             'is_checked' => $request->is_checked,
         ]);
@@ -654,11 +704,10 @@ class ProyekController extends Controller
         return response()->json(['success' => 'Checklist updated successfully']);
     }
 
-    public function update_title_checklist ($id, $id_checklist) {
-        $title_checklist = Title_Checklist::findOrFail($id_checklist);
+    public function delete_title_checklist ($id, $id_checklist) {
+        $title_checklist = Title_Checklist_card::findOrFail($id_checklist);
 
-        $title_checklist->checklist()->update(['id_card' => null]);
-        $title_checklist->update(['id_card' => null]);
+        $title_checklist->delete();
 
         return redirect()->back()->with('success', 'Berhasil menghapus title checklist');
     }

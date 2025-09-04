@@ -7,6 +7,7 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
     const {auth, errors} = usePage().props;
     const modalRef = useRef(null);
 
+
     const [data, setData] = useState({
         'title': "",
         'template_id': ""
@@ -80,6 +81,7 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
                     <input
                         type="text"
                         name="title"
+                        disabled={!!data.template_id}
                         className={`w-full rounded-md h-10 ${
                             errors.title ? "border-red-500" : ""
                         }`}

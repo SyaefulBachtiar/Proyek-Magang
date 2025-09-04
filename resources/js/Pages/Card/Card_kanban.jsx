@@ -63,7 +63,7 @@ function reducer(state, action) {
                 ...state,
                 checklistItems: state.checklistItems.map((title) => ({
                     ...title,
-                    checklist: title.checklist.map((check) =>
+                    checklist_card: title.checklist_card.map((check) =>
                         check.id === action.payload.checklistId
                             ? { ...check, is_checked: !check.is_checked }
                             : check
@@ -124,10 +124,7 @@ export default function Card_kanban() {
     }, [flash]);
 
     useEffect(() => {
-        if (
-            state.addChecklistId &&
-            newItemInputRef.current[state.addChecklistId]
-        ) {
+        if (state.addChecklistId && newItemInputRef.current[state.addChecklistId]) {
             setTimeout(() => {
                 newItemInputRef.current[state.addChecklistId].focus();
             }, 100);
@@ -135,7 +132,8 @@ export default function Card_kanban() {
     }, [state.addChecklistId]);
 
     const handleSaveNewItem = (title_checklist_id) => {
-        if (!state.newItemText) return;
+
+        if (!state.newItemText.trim()) return;
         dispatch({ type: "SET_LOADING", payload: true });
 
         router.post(
@@ -581,153 +579,202 @@ export default function Card_kanban() {
                                     />
                                 </div>
                             </div>
-
                             {/* CHECKLIST Section */}
                             {state.checklistItems.length > 0 && (
                                 <div className="p-2">
-                                    {state.checklistItems.map((title) => (
-                                        <div key={title.id} className="mt-4">
-                                            <div className="flex justify-between items-center">
-                                                <div className="flex items-center gap-2">
-                                                    <SquareCheck size={14} />
-                                                    <span className="text-lg text-gray-700 font-semibold">
-                                                        {title.title}
-                                                    </span>
-                                                </div>
-                                                <div 
-                                                onClick={() => router.put(route("update.title.checklist", {id: user.id, id_checklist: title.id}))}
-                                                className="text-red-500 cursor-pointer">
-                                                    <Trash2 size={16}/>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col gap-4 mt-2 p-4">
-                                                {title.checklist &&
-                                                title.checklist.length > 0 ? (
-                                                    title.checklist.map(
-                                                        (check) => (
-                                                            <div
-                                                                key={check.id}
-                                                                className="space-x-2 flex items-center"
-                                                            >
-                                                                <input
-                                                                    type="checkbox"
-                                                                    className="rounded"
-                                                                    checked={
-                                                                        !!check.is_checked
-                                                                    }
-                                                                    onChange={(
-                                                                        e
-                                                                    ) =>
-                                                                        handleCheckboxChange(
-                                                                            e,
-                                                                            check.id
-                                                                        )
-                                                                    }
-                                                                />
-                                                                <span>
+                                    {state.checklistItems.map((title) => {
+                                        const totalItems = title.checklist_card.length;
+                                        const completedItems = title.checklist_card.filter((item) => item.is_checked).length;
+                                        const progresPercentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+
+                                        return (
+                                            <div
+                                                key={title.id}
+                                                className="mt-4"
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center gap-2">
+                                                        <SquareCheck
+                                                            size={14}
+                                                        />
+                                                        <span className="text-lg text-gray-700 font-semibold">
+                                                            {title.title}
+                                                        </span>
+                                                    </div>
+                                                    <div
+                                                        onClick={() =>
+                                                            router.delete(
+                                                                route(
+                                                                    "delete.title.checklist",
                                                                     {
-                                                                        check.title
+                                                                        id: user.id,
+                                                                        id_checklist:
+                                                                            title.id,
                                                                     }
-                                                                </span>
-                                                            </div>
-                                                        )
-                                                    )
-                                                ) : (
-                                                    <div className="flex flex-col gap-3">
-                                                        <div className="flex items-center text-gray-400 gap-2">
-                                                            <CopyCheck
-                                                                size={20}
-                                                            />
-                                                            <p>
-                                                                Belum ada
-                                                                checklist
-                                                            </p>
+                                                                )
+                                                            )
+                                                        }
+                                                        className="text-red-500 cursor-pointer"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </div>
+                                                </div>
+                                                {totalItems > 0 && (
+                                                    <div className="flex items-center gap-2 mt-2 px-1">
+                                                        <span className="text-xs font-semibold w-8 text-right">
+                                                            {Math.round(
+                                                                progresPercentage
+                                                            )}
+                                                            %
+                                                        </span>
+                                                        <div className="w-full bg-gray-200 rounded-full h-1">
+                                                            <div
+                                                                className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                                                                style={{
+                                                                    width: `${progresPercentage}%`,
+                                                                }}
+                                                            ></div>
                                                         </div>
                                                     </div>
                                                 )}
-                                            </div>
-                                            <div className="mt-3">
-                                                {state.addChecklistId ===
-                                                title.id ? (
-                                                    <div className="flex flex-col gap-2">
-                                                        <input
-                                                            type="text"
-                                                            ref={(el) =>
-                                                                (newItemInputRef.current[
-                                                                    title.id
-                                                                ] = el)
-                                                            }
-                                                            value={
-                                                                state.newItemText
-                                                            }
-                                                            onChange={(e) =>
-                                                                dispatch({
-                                                                    type: "UPDATE_NEW_ITEM_TEXT",
-                                                                    payload: {
-                                                                        text: e
-                                                                            .target
-                                                                            .value,
-                                                                    },
-                                                                })
-                                                            }
-                                                            onKeyDown={(e) =>
-                                                                e.key ===
-                                                                    "Enter" &&
-                                                                handleSaveNewItem(
-                                                                    title.id
-                                                                )
-                                                            }
-                                                            placeholder="Tambahkan item..."
-                                                            className="w-full text-sm rounded-md h-9 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                                                        />
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() =>
+                                                <div className="flex flex-col gap-4 mt-2 p-4">
+                                                    {title.checklist_card &&
+                                                    title.checklist_card
+                                                        .length > 0 ? (
+                                                        title.checklist_card.map(
+                                                            (check) => (
+                                                                <div
+                                                                    key={
+                                                                        check.id
+                                                                    }
+                                                                    className="space-x-2 flex items-center"
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        className="rounded"
+                                                                        checked={
+                                                                            !!check.is_checked
+                                                                        }
+                                                                        onChange={(
+                                                                            e
+                                                                        ) =>
+                                                                            handleCheckboxChange(
+                                                                                e,
+                                                                                check.id
+                                                                            )
+                                                                        }
+                                                                    />
+                                                                    <span>
+                                                                        {
+                                                                            check.title
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                            )
+                                                        )
+                                                    ) : (
+                                                        <div className="flex flex-col gap-3">
+                                                            <div className="flex items-center text-gray-400 gap-2">
+                                                                <CopyCheck
+                                                                    size={20}
+                                                                />
+                                                                <p>
+                                                                    Belum ada
+                                                                    checklist
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="mt-3">
+                                                    {state.addChecklistId ===
+                                                    title.id ? (
+                                                        <div className="flex flex-col gap-2">
+                                                            <input
+                                                                type="text"
+                                                                ref={(el) =>
+                                                                    (newItemInputRef.current[
+                                                                        title.id
+                                                                    ] = el)
+                                                                }
+                                                                value={
+                                                                    state.newItemText
+                                                                }
+                                                                onChange={(e) =>
+                                                                    dispatch({
+                                                                        type: "UPDATE_NEW_ITEM_TEXT",
+                                                                        payload:
+                                                                            {
+                                                                                text: e
+                                                                                    .target
+                                                                                    .value,
+                                                                            },
+                                                                    })
+                                                                }
+                                                                onKeyDown={(
+                                                                    e
+                                                                ) =>
+                                                                    e.key ===
+                                                                        "Enter" &&
                                                                     handleSaveNewItem(
                                                                         title.id
                                                                     )
                                                                 }
-                                                                disabled={
-                                                                    state.loading
-                                                                }
-                                                                className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
-                                                            >
-                                                                {state.loading
-                                                                    ? "Menyimpan..."
-                                                                    : "Simpan"}
-                                                            </button>
+                                                                placeholder="Tambahkan item..."
+                                                                className="w-full text-sm rounded-md h-9 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                                            />
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() =>
+                                                                        handleSaveNewItem(
+                                                                            title.id
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        state.loading
+                                                                    }
+                                                                    className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
+                                                                >
+                                                                    {state.loading
+                                                                        ? "Menyimpan..."
+                                                                        : "Simpan"}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        dispatch(
+                                                                            {
+                                                                                type: "FINISH_ADDING",
+                                                                            }
+                                                                        )
+                                                                    }
+                                                                    className="px-3 py-1 bg-gray-200 rounded-md text-sm hover:bg-gray-300"
+                                                                >
+                                                                    Batal
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="px-4">
                                                             <button
                                                                 onClick={() =>
                                                                     dispatch({
-                                                                        type: "FINISH_ADDING",
+                                                                        type: "START_ADDING",
+                                                                        payload:
+                                                                            {
+                                                                                id: title.id,
+                                                                            },
                                                                     })
                                                                 }
-                                                                className="px-3 py-1 bg-gray-200 rounded-md text-sm hover:bg-gray-300"
+                                                                className="p-2 text-xs bg-gray-300 text-gray-900 rounded-md hover:bg-gray-400"
                                                             >
-                                                                Batal
+                                                                Tambah Checklist
                                                             </button>
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="px-4">
-                                                        <button
-                                                            onClick={() =>
-                                                                dispatch({
-                                                                    type: "START_ADDING",
-                                                                    payload: {
-                                                                        id: title.id,
-                                                                    },
-                                                                })
-                                                            }
-                                                            className="p-2 text-xs bg-gray-300 text-gray-900 rounded-md hover:bg-gray-400"
-                                                        >
-                                                            Tambah Checklist
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
