@@ -4,12 +4,16 @@ import {
     Camera,
     Captions,
     CopyCheck,
+    Download,
+    EllipsisIcon,
+    MessageCircleMore,
     MessageSquareText,
     Paperclip,
     Pencil,
     Plus,
     Save,
     SquareCheck,
+    SquarePen,
     Tag,
     Tags,
     Trash2,
@@ -25,6 +29,7 @@ import Checklist from "@/modal/Proyek/Checklist";
 import InputEditor from "@/Components/InputEditor";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Lampiran from "@/modal/Proyek/Lampiran";
 
 
 const initialState = {
@@ -442,13 +447,13 @@ export default function Card_kanban() {
 
     return (
         <Proyek>
-            <div className="w-screen h-screen fixed top-0 left-0 bg-black/20 flex justify-center items-center z-50">
+            <div className="w-screen h-screen fixed top-0 left-0 bg-black/20 flex justify-center items-center z-50 ">
                 <div
                     ref={lihatCardRef}
-                    className="rounded-xl bg-white w-full max-w-[90%] h-auto max-h-[95vh] lg:w-[80%] lg:h-[90%] flex flex-col overflow-hidden"
+                    className="rounded-xl bg-white w-full max-w-[90%] h-auto max-h-[95vh] lg:w-[80%] lg:h-[90%] flex flex-col overflow-hidden relative"
                 >
                     {/* Close Button */}
-                    <div className="flex justify-end p-1 m-2">
+                    <div className="flex justify-end absolute top-2 right-2">
                         <div
                             className="p-1 hover:bg-black/20 rounded-md cursor-pointer"
                             onClick={() =>
@@ -466,7 +471,7 @@ export default function Card_kanban() {
                     </div>
 
                     {/* Judul */}
-                    <div className="pb-2 border-b-2 px-4 border-b-gray-200">
+                    <div className="p-4 border px-4 border-b-gray-200">
                         <h1 className="font-bold text-xl">
                             {dataCard?.nama_card}
                         </h1>
@@ -589,6 +594,19 @@ export default function Card_kanban() {
                                         title_check={title_checklist}
                                     />
                                 )}
+
+                                {state.lampiran && (
+                                    <Lampiran
+                                        close={() =>
+                                            dispatch({
+                                                type: "TOGGLE_LAMPIRAN",
+                                            })
+                                        }
+                                        card_id={card_id}
+                                        id_tim={id_tim}
+                                        refTrigger={refs.current["Lampiran"]}
+                                    />
+                                )}
                             </div>
 
                             {/* Label Section */}
@@ -681,17 +699,55 @@ export default function Card_kanban() {
                             )}
 
                             {/* Lampiran Section */}
-                            <div className="border border-gray-200 py-3 px-2 rounded-md mt-4">
-                                <div className="flex items-center gap-2">
+                            <div>
+                                <div className="flex items-center gap-2 py-4">
                                     <Paperclip size={14} />
                                     <h1>Lampiran</h1>
                                 </div>
-                                <div className="w-[200px] h-[200px] flex justify-center items-center px-4">
-                                    <img
-                                        src="/img/img_proyek.png"
-                                        alt="lampiran"
-                                        className="w-full object-cover"
-                                    />
+                                <div className="border border-gray-200 rounded p-4 mb-4">
+                                    <div className="pb-1 flex justify-between items-start">
+                                        <div>
+                                            <div>
+                                                <h1 className="font-semibold text-gray-800 text-lg">
+                                                    Judul
+                                                </h1>
+                                                <p className="text-gray-800 text-sm">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Autem, ratione porro libero asperiores ut tempora quasi sequi assumenda optio numquam!</p>
+                                            </div>
+                                            <p className="my-1 text-gray-500 text-xs">
+                                                2 jam yang lalu
+                                            </p>
+                                        </div>
+                                        <div className="text-gray-600 hover:text-gray-800 cursor-pointer">
+                                            <EllipsisIcon size={16} />
+                                        </div>
+                                    </div>
+                                    <div className="w-[200px] rounded overflow-hidden flex justify-center items-center">
+                                        <img
+                                            src="/img/img_proyek.png"
+                                            alt="lampiran"
+                                            className="w-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="mt-6 font-semibold text-gray-600 flex gap-6">
+                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
+                                            <MessageCircleMore size={16} />
+                                            <span className="text-xs">
+                                                Comment
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
+                                            <SquarePen size={16} />
+                                            <span className="text-xs">
+                                                Edit
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
+                                            <Download size={16} />
+                                            <span className="text-xs">
+                                                Download
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             {/* CHECKLIST Section */}

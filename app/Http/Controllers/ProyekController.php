@@ -805,6 +805,13 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
             'deskripsi' => $request->deskripsi
         ]);
         }
+
+        $card = Card_listModel::findOrFail($id_card);
+
+        $id_board = $card->listBoard->id_board;
+
+        $this->broadcastBoardUpdate($id_board);
+
         return redirect()->back()->with('success', 'Berhasil menambahkan deskripsi');
         }catch(\Exception $e){
             return redirect()->back()->with('error', 'error: ' . $e);
