@@ -99,7 +99,19 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // NOTIFIKASI
     Route::post('notifikasi/{notif_id}/read', [NotifikasiController::class, 'mark_read'])->name('mark.read.notif');
     Route::delete('notifikasi/{notif_id}/delete', [NotifikasiController::class, 'delete_notif'])->name('delete.notif');
-    
+
+    // CHECKLIST
+    Route::post('{id_tim}/{id_card}/title-checklist', [ProyekController::class, 'store_checklist'])->name('store.title.checklist');
+    Route::post('checklist/{id_card}', [ProyekController::class, 'store_item_checklist'])->name('store.item.checklist');
+    Route::put('{checklist_id}/checklist', [ProyekController::class, 'update_checklist'])->name('update.checklist.check');
+    Route::put('{checklist_id}', [ProyekController::class, 'update_notchecklist'])->name('update.checklist.notcheck');
+    Route::put('checklist/{checklist_id}/delete', [ProyekController::class, 'delete_image_checklist'])->name('delete.image.checklist');
+    Route::post('{checklist_id}/checklist', [ProyekController::class, 'upload_checklist_photo'])->name('upload.checklist.photo');
+    Route::delete('checklist/{id_checklist}', [ProyekController::class, 'delete_title_checklist'])->name('delete.title.checklist');
+
+
+    // DESKRIPSI
+    Route::post('deskripsi/{id_card}', [ProyekController::class, 'store_deskripsi'])->name('store.deskripsi');
 });
 
 Route::middleware('auth')->group(function() {

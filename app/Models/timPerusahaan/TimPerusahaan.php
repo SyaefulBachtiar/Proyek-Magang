@@ -4,6 +4,8 @@ namespace App\Models\timPerusahaan;
 
 use App\Models\Message;
 use App\Models\Perusahaan;
+use App\Models\timPerusahaan\Title_Checklist;
+use App\Models\timPerusahaan\Title_Checklist_card;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -98,4 +100,11 @@ class TimPerusahaan extends Model
         return $this->hasOne(BoardModel::class, 'id_team', 'id');
     }
 
+    public function title_checklist () {
+        return $this->hasMany(Title_Checklist::class, 'id_tim_perusahaan', 'id');
+    }
+
+    public function title_checklist_card () {
+        return $this->hasMany(Title_Checklist_card::class, 'id_tim', 'id');
+    }
 }
