@@ -16,8 +16,6 @@ return new class extends Migration
             $table->string('title');
             $table->string('id_tim_perusahaan', 36)->nullable();
             $table->foreign('id_tim_perusahaan')->references('id')->on('tim_perusahaan')->onDelete('cascade');
-            $table->string('id_card', 36)->nullable();
-            $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
             $table->timestamps();
         });
 
@@ -25,11 +23,31 @@ return new class extends Migration
             $table->string('id', 36)->primary();
             $table->string('title')->nullable();
             $table->string('image')->nullable();
-            $table->boolean('is_checked')->default(false)->nullable();
             $table->string('id_title_checklist', 36)->nullable();
             $table->foreign('id_title_checklist')->references('id')->on('title_checklist')->onDelete('cascade');
-            $table->string('id_card', 36)->nullable();
+            $table->timestamps();
+        });
+        Schema::create('title_checklist_card', function (Blueprint $table){
+            $table->string('id', 36)->primary();
+            $table->string('title')->nullable();
+            $table->string('id_card')->nullable();
             $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
+            $table->string('id_tim', 36)->nullable();
+            $table->foreign('id_tim')->references('id')->on('tim_perusahaan')->onDelete('cascade');
+            $table->string('id_title_checklist', 36)->nullable();
+            $table->foreign('id_title_checklist')->references('id')->on('title_checklist')->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        Schema::create('checklist_card', function (Blueprint $table){
+            $table->string('id', 36)->primary();
+            $table->string('title')->nullable();
+            $table->string('image')->nullable();
+            $table->string('id_card')->nullable();
+            $table->boolean('is_checked')->default(false)->nullable();
+            $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
+            $table->string('id_title_checklist_card', 36)->nullable();
+            $table->foreign('id_title_checklist_card')->references('id')->on('title_checklist_card')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -39,6 +57,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('title_checklist_card');
+        Schema::dropIfExists('checklist_card');
         Schema::dropIfExists('title_checklist');
         Schema::dropIfExists('checklist');
     }

@@ -1,14 +1,19 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import {
     CalendarDays,
+    Camera,
     Captions,
     CopyCheck,
+    Download,
+    EllipsisIcon,
+    MessageCircleMore,
     MessageSquareText,
     Paperclip,
     Pencil,
     Plus,
     Save,
     SquareCheck,
+    SquarePen,
     Tag,
     Tags,
     Trash2,
@@ -16,13 +21,16 @@ import {
     X,
 } from "lucide-react";
 import { router, usePage } from "@inertiajs/react";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import Proyek from "../Proyek";
 import TambahAnggota from "@/modal/Proyek/TambahAnggota";
 import Kalender from "@/modal/Proyek/Kalender";
 import Label from "@/modal/Proyek/Label";
 import Checklist from "@/modal/Proyek/Checklist";
+import InputEditor from "@/Components/InputEditor";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import Lampiran from "@/modal/Proyek/Lampiran";
+
 
 const initialState = {
     tambahAnggota: false,
@@ -34,6 +42,8 @@ const initialState = {
     newItemText: "",
     checklistItems: [],
     loading: false,
+    uploadingPhoto: null,
+    photoError: null,
 };
 
 function reducer(state, action) {
@@ -63,7 +73,7 @@ function reducer(state, action) {
                 ...state,
                 checklistItems: state.checklistItems.map((title) => ({
                     ...title,
-                    checklist: title.checklist.map((check) =>
+                    checklist_card: title.checklist_card.map((check) =>
                         check.id === action.payload.checklistId
                             ? { ...check, is_checked: !check.is_checked }
                             : check
@@ -74,6 +84,12 @@ function reducer(state, action) {
             return { ...state, checklistItems: action.payload.checklists };
         case "SET_LOADING":
             return { ...state, loading: action.payload };
+        case "SET_UPLOADING_PHOTO":
+            return {...state, uploadingPhoto: action.payload.checklistId ? action.payload.checklistId : null}
+        case "SET_PHOTO_ERROR":
+            return {...state, photoError: action.payload.error, uploadingPhoto: null}
+        case "CLEAR_PHOTO_ERROR":
+            return {...state, photoError: null}
         default:
             return state;
     }
@@ -95,6 +111,7 @@ export default function Card_kanban() {
         title_checklist,
         checklist: checklistProps,
         flash,
+        deskripsi
     } = usePage().props;
 
     const refs = useRef({});
@@ -124,10 +141,7 @@ export default function Card_kanban() {
     }, [flash]);
 
     useEffect(() => {
-        if (
-            state.addChecklistId &&
-            newItemInputRef.current[state.addChecklistId]
-        ) {
+        if (state.addChecklistId && newItemInputRef.current[state.addChecklistId]) {
             setTimeout(() => {
                 newItemInputRef.current[state.addChecklistId].focus();
             }, 100);
@@ -135,7 +149,8 @@ export default function Card_kanban() {
     }, [state.addChecklistId]);
 
     const handleSaveNewItem = (title_checklist_id) => {
-        if (!state.newItemText) return;
+
+        if (!state.newItemText.trim()) return;
         dispatch({ type: "SET_LOADING", payload: true });
 
         router.post(
@@ -168,6 +183,113 @@ export default function Card_kanban() {
             year: "numeric",
         });
     }
+
+    const handlePhotoUpload = async (event, checklistId) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp",
+        ];
+        if (!allowedTypes.includes(file.type)) {
+            dispatch({
+                type: "SET_PHOTO_ERROR",
+                payload: {
+                    error: "Hanya file gambar yang diperbolehkan (JPEG, PNG, GIF, WebP)",
+                },
+            });
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            dispatch({
+                type: "SET_PHOTO_ERROR",
+                payload: { error: "Ukuran file tidak boleh lebih dari 5MB" },
+            });
+            return;
+        }
+
+        dispatch({ type: "SET_UPLOADING_PHOTO", payload: { checklistId } });
+        dispatch({ type: "CLEAR_PHOTO_ERROR" });
+
+        try {
+            const formData = new FormData();
+            formData.append("photo", file);
+            formData.append("checklist_id", checklistId);
+
+            const response = await fetch(
+                route("upload.checklist.photo", {
+                    id: user.id,
+                    checklist_id: checklistId,
+                }),
+                {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": document
+                            .querySelector('meta[name="csrf-token"]')
+                            .getAttribute("content"),
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    body: formData,
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Gagal mengupload foto");
+            }
+
+            const result = await response.json();
+
+            // Optionally reload the page data or update state locally
+            router.reload({
+                only: ["checklist"],
+                preserveState: true,
+                preserveScroll: true,
+            });
+
+            console.log("Foto berhasil diupload:", result);
+        } catch (error) {
+            console.error("Error uploading photo:", error);
+            dispatch({
+                type: "SET_PHOTO_ERROR",
+                payload: { error: error.message },
+            });
+        } finally {
+            dispatch({
+                type: "SET_UPLOADING_PHOTO",
+                payload: { checklistId: null },
+            });
+            // Clear the file input
+            event.target.value = "";
+        }
+    };
+
+    const handleSaveDeskripsi = () => {
+
+        dispatch({ type: "SET_LOADING", payload: true})
+
+        router.post(route('store.deskripsi', {id: user.id, id_card: card_id}),{
+            deskripsi: description,
+            id_deskripsi: deskripsi?.id
+        },{
+            preserveState: true,
+            onSuccess: () => {
+                setIsEditing(false);
+            },onFinish: () => {
+                dispatch({ type: "SET_LOADING", payload: false})
+            }
+        }
+    );
+    }
+
 
     const handleCheckboxChange = async (e, checklistId) => {
         const isChecked = e.target.checked;
@@ -306,9 +428,9 @@ export default function Card_kanban() {
     // State untuk toggle dan isi deskripsi
     const [isEditing, setIsEditing] = useState(false);
     const [description, setDescription] = useState(
-        dataCard?.description ||
-            "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sint hic veritatis sapiente!"
+        deskripsi?.deskripsi || "## Belum Ada Deskripsi"
     );
+
 
     // State baru untuk komentar
     const [isCommenting, setIsCommenting] = useState(false);
@@ -325,13 +447,13 @@ export default function Card_kanban() {
 
     return (
         <Proyek>
-            <div className="w-screen h-screen fixed top-0 left-0 bg-black/20 flex justify-center items-center z-50">
+            <div className="w-screen h-screen fixed top-0 left-0 bg-black/20 flex justify-center items-center z-50 ">
                 <div
                     ref={lihatCardRef}
-                    className="rounded-xl bg-white w-full max-w-[90%] h-auto max-h-[95vh] lg:w-[80%] lg:h-[90%] flex flex-col overflow-hidden"
+                    className="rounded-xl bg-white w-full max-w-[90%] h-auto max-h-[95vh] lg:w-[80%] lg:h-[90%] flex flex-col overflow-hidden relative"
                 >
                     {/* Close Button */}
-                    <div className="flex justify-end p-1 m-2">
+                    <div className="flex justify-end absolute top-2 right-2">
                         <div
                             className="p-1 hover:bg-black/20 rounded-md cursor-pointer"
                             onClick={() =>
@@ -349,7 +471,7 @@ export default function Card_kanban() {
                     </div>
 
                     {/* Judul */}
-                    <div className="pb-2 border-b-2 px-4 border-b-gray-200">
+                    <div className="p-4 border px-4 border-b-gray-200">
                         <h1 className="font-bold text-xl">
                             {dataCard?.nama_card}
                         </h1>
@@ -360,50 +482,46 @@ export default function Card_kanban() {
                         {/* Konten Kiri */}
                         <div className="flex flex-col gap-4 w-full py-4 lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element">
                             {/* Deskripsi */}
-                            <div className="px-2 border border-gray-200 py-3 rounded-lg">
-                                <div className="flex justify-between items-center mb-4">
-                                    <div className="flex gap-2 items-center">
-                                        <Captions />
-                                        <h1 className="font-bold text-xl">
-                                            Deskripsi
-                                        </h1>
-                                    </div>
-                                    {!isEditing ? (
-                                        <div
-                                            onClick={() => setIsEditing(true)}
-                                            className="flex gap-2 items-center p-2 bg-gray-200 rounded-lg hover:bg-gray-300 cursor-pointer"
-                                        >
-                                            <Pencil size={14} />
-                                            <p className="text-sm">Edit</p>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            onClick={() => setIsEditing(false)}
-                                            className="flex gap-2 items-center p-2 bg-green-200 rounded-lg hover:bg-green-300 cursor-pointer"
-                                        >
-                                            <Save size={14} />
-                                            <p className="text-sm">Simpan</p>
-                                        </div>
-                                    )}
+                            <div className="flex justify-between items-center">
+                                <div className="flex gap-2 items-center">
+                                    <Captions />
+                                    <h1 className="font-bold text-xl">
+                                        Deskripsi
+                                    </h1>
                                 </div>
-
+                                <div
+                                    onClick={() => setIsEditing(true)}
+                                    className="flex gap-2 items-center p-2 bg-gray-200 rounded-lg hover:bg-gray-300 cursor-pointer"
+                                >
+                                    <Pencil size={14} />
+                                    <p className="text-sm">Edit</p>
+                                </div>
+                            </div>
+                            <div className="px-2 border border-gray-200 py-3 rounded-lg">
                                 {/* Isi Deskripsi */}
-                                <div className="mt-2 px-1">
+                                <div className="px-1">
                                     {isEditing ? (
-                                        <CKEditor
-                                            editor={ClassicEditor}
-                                            data={description}
-                                            onChange={(event, editor) => {
-                                                const data = editor.getData();
-                                                setDescription(data);
-                                            }}
+                                        // <div></div>
+                                        <InputEditor
+                                            close={() => setIsEditing(false)}
+                                            onChange={setDescription}
+                                            value={description}
+                                            onSave={handleSaveDeskripsi}
+                                            loading={state.loading}
                                         />
+                                    ) : description &&
+                                      description.trim() !== "" ? (
+                                        <div className="prose max-w-none prose-ul:pl-6 prose-ol:pl-6 prose-li:marker:text-gray-700">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm]}
+                                            >
+                                                {description}
+                                            </ReactMarkdown>
+                                        </div>
                                     ) : (
-                                        <div
-                                            dangerouslySetInnerHTML={{
-                                                __html: description,
-                                            }}
-                                        />
+                                        <p className="text-gray-500">
+                                            Belum ada deskripsi.
+                                        </p>
                                     )}
                                 </div>
                             </div>
@@ -474,6 +592,19 @@ export default function Card_kanban() {
                                         id_tim={id_tim}
                                         refTrigger={refs.current["Checklist"]}
                                         title_check={title_checklist}
+                                    />
+                                )}
+
+                                {state.lampiran && (
+                                    <Lampiran
+                                        close={() =>
+                                            dispatch({
+                                                type: "TOGGLE_LAMPIRAN",
+                                            })
+                                        }
+                                        card_id={card_id}
+                                        id_tim={id_tim}
+                                        refTrigger={refs.current["Lampiran"]}
                                     />
                                 )}
                             </div>
@@ -568,166 +699,349 @@ export default function Card_kanban() {
                             )}
 
                             {/* Lampiran Section */}
-                            <div className="border border-gray-200 py-3 px-2 rounded-md mt-4">
-                                <div className="flex items-center gap-2">
+                            <div>
+                                <div className="flex items-center gap-2 py-4">
                                     <Paperclip size={14} />
                                     <h1>Lampiran</h1>
                                 </div>
-                                <div className="w-[200px] h-[200px] flex justify-center items-center px-4">
-                                    <img
-                                        src="/img/img_proyek.png"
-                                        alt="lampiran"
-                                        className="w-full object-cover"
-                                    />
+                                <div className="border border-gray-200 rounded p-4 mb-4">
+                                    <div className="pb-1 flex justify-between items-start">
+                                        <div>
+                                            <div>
+                                                <h1 className="font-semibold text-gray-800 text-lg">
+                                                    Judul
+                                                </h1>
+                                                <p className="text-gray-800 text-sm">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Autem, ratione porro libero asperiores ut tempora quasi sequi assumenda optio numquam!</p>
+                                            </div>
+                                            <p className="my-1 text-gray-500 text-xs">
+                                                2 jam yang lalu
+                                            </p>
+                                        </div>
+                                        <div className="text-gray-600 hover:text-gray-800 cursor-pointer">
+                                            <EllipsisIcon size={16} />
+                                        </div>
+                                    </div>
+                                    <div className="w-[200px] rounded overflow-hidden flex justify-center items-center">
+                                        <img
+                                            src="/img/img_proyek.png"
+                                            alt="lampiran"
+                                            className="w-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="mt-6 font-semibold text-gray-600 flex gap-6">
+                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
+                                            <MessageCircleMore size={16} />
+                                            <span className="text-xs">
+                                                Comment
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
+                                            <SquarePen size={16} />
+                                            <span className="text-xs">
+                                                Edit
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
+                                            <Download size={16} />
+                                            <span className="text-xs">
+                                                Download
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
                             {/* CHECKLIST Section */}
                             {state.checklistItems.length > 0 && (
                                 <div className="p-2">
-                                    {state.checklistItems.map((title) => (
-                                        <div key={title.id} className="mt-4">
-                                            <div className="flex justify-between items-center">
-                                                <div className="flex items-center gap-2">
-                                                    <SquareCheck size={14} />
-                                                    <span className="text-lg text-gray-700 font-semibold">
-                                                        {title.title}
-                                                    </span>
-                                                </div>
-                                                <div 
-                                                onClick={() => router.put(route("update.title.checklist", {id: user.id, id_checklist: title.id}))}
-                                                className="text-red-500 cursor-pointer">
-                                                    <Trash2 size={16}/>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col gap-4 mt-2 p-4">
-                                                {title.checklist &&
-                                                title.checklist.length > 0 ? (
-                                                    title.checklist.map(
-                                                        (check) => (
-                                                            <div
-                                                                key={check.id}
-                                                                className="space-x-2 flex items-center"
-                                                            >
-                                                                <input
-                                                                    type="checkbox"
-                                                                    className="rounded"
-                                                                    checked={
-                                                                        !!check.is_checked
-                                                                    }
-                                                                    onChange={(
-                                                                        e
-                                                                    ) =>
-                                                                        handleCheckboxChange(
-                                                                            e,
-                                                                            check.id
-                                                                        )
-                                                                    }
-                                                                />
-                                                                <span>
+                                    {state.checklistItems.map((title) => {
+                                        const totalItems =
+                                            title.checklist_card.length;
+                                        const completedItems =
+                                            title.checklist_card.filter(
+                                                (item) => item.is_checked
+                                            ).length;
+                                        const progresPercentage =
+                                            totalItems > 0
+                                                ? (completedItems /
+                                                      totalItems) *
+                                                  100
+                                                : 0;
+
+                                        return (
+                                            <div
+                                                key={title.id}
+                                                className="mt-4"
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center gap-2">
+                                                        <SquareCheck
+                                                            size={14}
+                                                        />
+                                                        <span className="text-lg text-gray-700 font-semibold">
+                                                            {title.title}
+                                                        </span>
+                                                    </div>
+                                                    <div
+                                                        onClick={() =>
+                                                            router.delete(
+                                                                route(
+                                                                    "delete.title.checklist",
                                                                     {
-                                                                        check.title
+                                                                        id: user.id,
+                                                                        id_checklist:
+                                                                            title.id,
                                                                     }
-                                                                </span>
-                                                            </div>
-                                                        )
-                                                    )
-                                                ) : (
-                                                    <div className="flex flex-col gap-3">
-                                                        <div className="flex items-center text-gray-400 gap-2">
-                                                            <CopyCheck
-                                                                size={20}
-                                                            />
-                                                            <p>
-                                                                Belum ada
-                                                                checklist
-                                                            </p>
+                                                                )
+                                                            )
+                                                        }
+                                                        className="text-red-500 cursor-pointer"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </div>
+                                                </div>
+                                                {totalItems > 0 && (
+                                                    <div className="flex items-center gap-2 mt-2 px-1">
+                                                        <span className="text-xs font-semibold w-8 text-right">
+                                                            {Math.round(
+                                                                progresPercentage
+                                                            )}
+                                                            %
+                                                        </span>
+                                                        <div className="w-full bg-gray-200 rounded-full h-1">
+                                                            <div
+                                                                className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                                                                style={{
+                                                                    width: `${progresPercentage}%`,
+                                                                }}
+                                                            ></div>
                                                         </div>
                                                     </div>
                                                 )}
-                                            </div>
-                                            <div className="mt-3">
-                                                {state.addChecklistId ===
-                                                title.id ? (
-                                                    <div className="flex flex-col gap-2">
-                                                        <input
-                                                            type="text"
-                                                            ref={(el) =>
-                                                                (newItemInputRef.current[
-                                                                    title.id
-                                                                ] = el)
-                                                            }
-                                                            value={
-                                                                state.newItemText
-                                                            }
-                                                            onChange={(e) =>
-                                                                dispatch({
-                                                                    type: "UPDATE_NEW_ITEM_TEXT",
-                                                                    payload: {
-                                                                        text: e
-                                                                            .target
-                                                                            .value,
-                                                                    },
-                                                                })
-                                                            }
-                                                            onKeyDown={(e) =>
-                                                                e.key ===
-                                                                    "Enter" &&
-                                                                handleSaveNewItem(
-                                                                    title.id
-                                                                )
-                                                            }
-                                                            placeholder="Tambahkan item..."
-                                                            className="w-full text-sm rounded-md h-9 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                                                        />
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() =>
+                                                <div className="flex flex-col gap-4 mt-2 p-4">
+                                                    {title.checklist_card &&
+                                                    title.checklist_card
+                                                        .length > 0 ? (
+                                                        title.checklist_card.map(
+                                                            (check) => (
+                                                                <div
+                                                                    key={
+                                                                        check.id
+                                                                    }
+                                                                    className="flex items-center justify-between"
+                                                                >
+                                                                    <div className="flex flex-col gap-2">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                className="rounded"
+                                                                                checked={
+                                                                                    !!check.is_checked
+                                                                                }
+                                                                                onChange={(
+                                                                                    e
+                                                                                ) =>
+                                                                                    handleCheckboxChange(
+                                                                                        e,
+                                                                                        check.id
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                            <span
+                                                                                className={
+                                                                                    check.is_checked
+                                                                                        ? "line-through text-gray-500"
+                                                                                        : ""
+                                                                                }
+                                                                            >
+                                                                                {
+                                                                                    check.title
+                                                                                }
+                                                                            </span>
+                                                                        </div>
+                                                                        {check.image && (
+                                                                            <div className="w-20 h-20 group relative cursor-pointer">
+                                                                                <img
+                                                                                    src={`/storage/${check.image}`}
+                                                                                    alt="Checklist photo"
+                                                                                    className="w-full h-full object-cover rounded"
+                                                                                />
+                                                                                <div
+                                                                                    onClick={() =>
+                                                                                        router.put(
+                                                                                            route(
+                                                                                                "delete.image.checklist",
+                                                                                                {
+                                                                                                    id: user.id,
+                                                                                                    checklist_id:
+                                                                                                        check.id,
+                                                                                                }
+                                                                                            )
+                                                                                        )
+                                                                                    }
+                                                                                    className="absolute -top-2 right-0 hidden group-hover:flex text-red-600"
+                                                                                >
+                                                                                    <Trash2
+                                                                                        size={
+                                                                                            16
+                                                                                        }
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    {/* Photo upload button */}
+                                                                    <div className="relative">
+                                                                        <label
+                                                                            htmlFor={`file_upload_${check.id}`}
+                                                                            className={`flex items-center gap-2 p-2 text-xs rounded text-white cursor-pointer transition-colors
+                                                                            ${
+                                                                                state.uploadingPhoto ===
+                                                                                check.id
+                                                                                    ? "bg-gray-400 cursor-not-allowed"
+                                                                                    : check.image
+                                                                                    ? "bg-green-500 hover:bg-green-600"
+                                                                                    : "bg-blue-400 hover:bg-blue-500"
+                                                                            }`}
+                                                                        >
+                                                                            <Camera
+                                                                                size={
+                                                                                    16
+                                                                                }
+                                                                            />
+                                                                            <span>
+                                                                                {state.uploadingPhoto ===
+                                                                                check.id
+                                                                                    ? "Mengupload..."
+                                                                                    : check.image
+                                                                                    ? "Ganti Foto"
+                                                                                    : "Tambahkan Foto"}
+                                                                            </span>
+                                                                        </label>
+                                                                        <input
+                                                                            id={`file_upload_${check.id}`}
+                                                                            className="hidden"
+                                                                            type="file"
+                                                                            accept="image/jpeg,image/png,image/gif,image/webp"
+                                                                            onChange={(
+                                                                                e
+                                                                            ) =>
+                                                                                handlePhotoUpload(
+                                                                                    e,
+                                                                                    check.id
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                state.uploadingPhoto ===
+                                                                                check.id
+                                                                            }
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        )
+                                                    ) : (
+                                                        <div className="flex flex-col gap-3">
+                                                            <div className="flex items-center text-gray-400 gap-2">
+                                                                <CopyCheck
+                                                                    size={20}
+                                                                />
+                                                                <p>
+                                                                    Belum ada
+                                                                    checklist
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="mt-3">
+                                                    {state.addChecklistId ===
+                                                    title.id ? (
+                                                        <div className="flex flex-col gap-2">
+                                                            <input
+                                                                type="text"
+                                                                ref={(el) =>
+                                                                    (newItemInputRef.current[
+                                                                        title.id
+                                                                    ] = el)
+                                                                }
+                                                                value={
+                                                                    state.newItemText
+                                                                }
+                                                                onChange={(e) =>
+                                                                    dispatch({
+                                                                        type: "UPDATE_NEW_ITEM_TEXT",
+                                                                        payload:
+                                                                            {
+                                                                                text: e
+                                                                                    .target
+                                                                                    .value,
+                                                                            },
+                                                                    })
+                                                                }
+                                                                onKeyDown={(
+                                                                    e
+                                                                ) =>
+                                                                    e.key ===
+                                                                        "Enter" &&
                                                                     handleSaveNewItem(
                                                                         title.id
                                                                     )
                                                                 }
-                                                                disabled={
-                                                                    state.loading
-                                                                }
-                                                                className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
-                                                            >
-                                                                {state.loading
-                                                                    ? "Menyimpan..."
-                                                                    : "Simpan"}
-                                                            </button>
+                                                                placeholder="Tambahkan item..."
+                                                                className="w-full text-sm rounded-md h-9 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                                            />
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() =>
+                                                                        handleSaveNewItem(
+                                                                            title.id
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        state.loading
+                                                                    }
+                                                                    className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
+                                                                >
+                                                                    {state.loading
+                                                                        ? "Menyimpan..."
+                                                                        : "Simpan"}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        dispatch(
+                                                                            {
+                                                                                type: "FINISH_ADDING",
+                                                                            }
+                                                                        )
+                                                                    }
+                                                                    className="px-3 py-1 bg-gray-200 rounded-md text-sm hover:bg-gray-300"
+                                                                >
+                                                                    Batal
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="px-4">
                                                             <button
                                                                 onClick={() =>
                                                                     dispatch({
-                                                                        type: "FINISH_ADDING",
+                                                                        type: "START_ADDING",
+                                                                        payload:
+                                                                            {
+                                                                                id: title.id,
+                                                                            },
                                                                     })
                                                                 }
-                                                                className="px-3 py-1 bg-gray-200 rounded-md text-sm hover:bg-gray-300"
+                                                                className="p-2 text-xs bg-gray-300 text-gray-900 rounded-md hover:bg-gray-400"
                                                             >
-                                                                Batal
+                                                                Tambah Checklist
                                                             </button>
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="px-4">
-                                                        <button
-                                                            onClick={() =>
-                                                                dispatch({
-                                                                    type: "START_ADDING",
-                                                                    payload: {
-                                                                        id: title.id,
-                                                                    },
-                                                                })
-                                                            }
-                                                            className="p-2 text-xs bg-gray-300 text-gray-900 rounded-md hover:bg-gray-400"
-                                                        >
-                                                            Tambah Checklist
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
@@ -747,32 +1061,7 @@ export default function Card_kanban() {
                                     <p>Tulis komentar...</p>
                                 </div>
                             ) : (
-                                <div>
-                                    <CKEditor
-                                        editor={ClassicEditor}
-                                        data={comment}
-                                        onChange={(event, editor) =>
-                                            setComment(editor.getData())
-                                        }
-                                    />
-                                    <div className="mt-3 flex gap-2">
-                                        <button
-                                            onClick={handleSaveComment}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                        >
-                                            Simpan
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setIsCommenting(false);
-                                                setComment("");
-                                            }}
-                                            className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-                                        >
-                                            Batal
-                                        </button>
-                                    </div>
-                                </div>
+                                <div></div>
                             )}
 
                             {/* Example Comment */}

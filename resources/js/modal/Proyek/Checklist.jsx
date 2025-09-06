@@ -7,9 +7,11 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
     const {auth, errors} = usePage().props;
     const modalRef = useRef(null);
 
+
     const [data, setData] = useState({
         'title': "",
-        'template_id': ""
+        'template_id': "",
+        'foto': ""
     })
 
     useState(() => {
@@ -28,7 +30,7 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
     const handleSelectChange = (selectId) => {
         setData((prevData) => ({
             ...prevData,
-            template_id: selectId
+            template_id: selectId,
         }));
     }
 
@@ -80,7 +82,8 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
                     <input
                         type="text"
                         name="title"
-                        className={`w-full rounded-md h-10 ${
+                        disabled={!!data.template_id}
+                        className={`w-full rounded h-10 ${
                             errors.title ? "border-red-500" : ""
                         }`}
                         placeholder="Checklist"

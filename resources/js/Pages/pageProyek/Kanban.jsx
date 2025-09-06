@@ -26,7 +26,7 @@ const mapBoardData = (boardData) => {
             id: card.id.toString(),
             title: card.nama_card,
             image: card.image,
-            jumlah_checklist: card.checklist_count || 0,
+            jumlah_checklist: card.checklist_card_count || 0,
             checklist_selesai: card.completed_checklist_count || 0,
             anggota:
                 card.anggota_card_list?.map((ang) => ({
@@ -62,7 +62,7 @@ const mapBoardData = (boardData) => {
 
 
 export default function Kanban({ children, dashboardId, activePage, tim, dataBoard, id_tim }) {
-    console.log(dataBoard)
+
     const user = usePage().props.auth.user;
     const {id_board} = usePage().props;
 
