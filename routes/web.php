@@ -112,6 +112,11 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // DESKRIPSI
     Route::post('deskripsi/{id_card}', [ProyekController::class, 'store_deskripsi'])->name('store.deskripsi');
+
+    // Lampiran
+    Route::post('lampiran/{card_id}', [ProyekController::class, 'store_lampiran'])->name('lampiran.store');
+    Route::put('lampiran/{lampiran_id}/update', [ProyekController::class, 'update_lampiran'])->name('lampiran.update');
+    Route::delete('lampiran/{lampiran_id}', [ProyekController::class, 'destroy_lampiran'])->name('lampiran.destroy');
 });
 
 Route::middleware('auth')->group(function () {

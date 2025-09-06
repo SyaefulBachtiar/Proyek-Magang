@@ -3,9 +3,12 @@ import {
     CalendarDays,
     Camera,
     Captions,
+    Check,
     CopyCheck,
     Download,
     EllipsisIcon,
+    File as FileIcon,
+    FileText,
     MessageCircleMore,
     MessageSquareText,
     Paperclip,
@@ -15,8 +18,7 @@ import {
     SquareCheck,
     SquarePen,
     Tag,
-    Tags,
-    Trash2,
+    Trash2, // Pastikan Trash2 di-import
     UserRoundPlus,
     X,
 } from "lucide-react";
@@ -99,6 +101,7 @@ export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
     const {
+        id,
         role,
         id_tim,
         card_id,
@@ -111,7 +114,8 @@ export default function Card_kanban() {
         title_checklist,
         checklist: checklistProps,
         flash,
-        deskripsi
+        deskripsi,
+        lampiran_card,
     } = usePage().props;
 
     const refs = useRef({});
@@ -345,7 +349,7 @@ export default function Card_kanban() {
         const channel = window.Echo.private(`board.${id_board}`);
         channel.listen(".board.updated", (event) => {
             router.reload({
-                only: ["label_card", "label_tim", "anggota_card", "kalender", "checklist"],
+                only: ["label_card", "label_tim", "anggota_card", "kalender", "checklist", "lampiran_card"],
                 preserveState: true,
                 preserveScroll: true,
             });
@@ -436,6 +440,11 @@ export default function Card_kanban() {
     const [isCommenting, setIsCommenting] = useState(false);
     const [comment, setComment] = useState("");
 
+    // State untuk edit lampiran
+    const [editingLampiranId, setEditingLampiranId] = useState(null);
+    const [editValues, setEditValues] = useState({ judul: "", deskripsi: "", image: null });
+
+
     // Fungsi untuk menyimpan komentar
     const handleSaveComment = () => {
         if (!comment.trim()) return;
@@ -444,6 +453,78 @@ export default function Card_kanban() {
         setComment("");
         setIsCommenting(false);
     };
+
+    // Fungsi-fungsi untuk handle edit lampiran
+    const handleEditClick = (lampiran) => {
+        setEditingLampiranId(lampiran.id);
+        setEditValues({
+            judul: lampiran.judul,
+            deskripsi: lampiran.deskripsi || "",
+            image: null,
+        });
+    };
+
+    const handleEditChange = (e) => {
+        setEditValues({ ...editValues, [e.target.name]: e.target.value });
+    };
+
+    const handleEditFileChange = (e) => {
+        setEditValues({ ...editValues, image: e.target.files[0] });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingLampiranId(null);
+    };
+
+    const handleUpdateSubmit = (e, lampiranId) => {
+        e.preventDefault();
+        router.post(
+            route("lampiran.update", { id: id, lampiran_id: lampiranId }),
+            {
+                ...editValues,
+                _method: "PUT",
+            },
+            {
+                onSuccess: () => setEditingLampiranId(null),
+                preserveScroll: true,
+            }
+        );
+    };
+
+    // Fungsi untuk handle hapus lampiran
+    const handleDeleteLampiran = (lampiranId) => {
+        if (confirm("Anda yakin ingin menghapus lampiran ini?")) {
+            router.delete(route("lampiran.destroy", { id: id, lampiran_id: lampiranId }), {
+                preserveScroll: true,
+            });
+        }
+    };
+
+
+    // Fungsi helper untuk format waktu
+    const formatRelativeTime = (isoDate) => {
+        const date = new Date(isoDate);
+        const now = new Date();
+        const seconds = Math.round((now - date) / 1000);
+        const minutes = Math.round(seconds / 60);
+        const hours = Math.round(minutes / 60);
+        const days = Math.round(hours / 24);
+
+        if (seconds < 60) return `${seconds} detik yang lalu`;
+        if (minutes < 60) return `${minutes} menit yang lalu`;
+        if (hours < 24) return `${hours} jam yang lalu`;
+        return `${days} hari yang lalu`;
+    };
+
+    // Fungsi helper untuk pratinjau file
+    const renderAttachmentPreview = (lampiran) => {
+        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(lampiran.image);
+        if (isImage) {
+            return <img src={`/storage/${lampiran.image}`} alt={lampiran.judul} className="w-full h-full object-cover" />;
+        }
+        return <div className="w-full h-full bg-gray-100 flex items-center justify-center"><FileIcon className="text-gray-400" size={48}/></div>;
+    };
+
 
     return (
         <Proyek>
@@ -699,57 +780,102 @@ export default function Card_kanban() {
                             )}
 
                             {/* Lampiran Section */}
-                            <div>
-                                <div className="flex items-center gap-2 py-4">
-                                    <Paperclip size={14} />
-                                    <h1>Lampiran</h1>
+                            {lampiran_card && lampiran_card.length > 0 && (
+                                <div>
+                                    <div className="flex items-center gap-2 py-4">
+                                        <Paperclip size={14} />
+                                        <h1>Lampiran</h1>
+                                    </div>
+                                    {lampiran_card.map((lampiran) => (
+                                        <div key={lampiran.id} className="border border-gray-200 rounded p-4 mb-4">
+                                            {editingLampiranId === lampiran.id ? (
+                                                <form onSubmit={(e) => handleUpdateSubmit(e, lampiran.id)} className="flex flex-col gap-3">
+                                                    <div>
+                                                        <input
+                                                            type="text"
+                                                            name="judul"
+                                                            value={editValues.judul}
+                                                            onChange={handleEditChange}
+                                                            className="font-semibold text-gray-800 text-lg w-full rounded border-gray-300 focus:ring-blue-500 focus:border-blue-500 px-2 py-1"
+                                                            autoFocus
+                                                        />
+                                                        <textarea
+                                                            name="deskripsi"
+                                                            value={editValues.deskripsi}
+                                                            onChange={handleEditChange}
+                                                            className="text-gray-800 text-sm w-full mt-2 h-20 resize-none border rounded p-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <label htmlFor={`edit-file-${lampiran.id}`} className="flex items-center gap-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md px-3 py-1.5 cursor-pointer transition-colors">
+                                                                <Paperclip size={14} />
+                                                                <span>Ganti File</span>
+                                                            </label>
+                                                            <input id={`edit-file-${lampiran.id}`} type="file" onChange={handleEditFileChange} className="hidden" />
+                                                            {editValues.image && <span className="text-xs text-gray-500 truncate max-w-xs">{editValues.image.name}</span>}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <button type="button" onClick={handleCancelEdit} className="px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md text-sm font-semibold hover:bg-gray-300 transition-colors">
+                                                                Batal
+                                                            </button>
+                                                            <button type="submit" className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-1.5">
+                                                                <Check size={16}/>
+                                                                Simpan
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            ) : (
+                                                <>
+                                                    <div className="pb-1 flex justify-between items-start">
+                                                        <div>
+                                                            <div>
+                                                                <h1 className="font-semibold text-gray-800 text-lg">
+                                                                    {lampiran.judul}
+                                                                </h1>
+                                                                <p className="text-gray-800 text-sm">
+                                                                    {lampiran.deskripsi}
+                                                                </p>
+                                                            </div>
+                                                            <p className="my-1 text-gray-500 text-xs">
+                                                                {formatRelativeTime(lampiran.created_at)}
+                                                            </p>
+                                                        </div>
+                                                        <div onClick={() => handleDeleteLampiran(lampiran.id)} className="text-red-500 hover:text-red-700 cursor-pointer p-1 transition-colors">
+                                                            <Trash2 size={16} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-[200px] h-[120px] rounded overflow-hidden flex justify-center items-center">
+                                                        {renderAttachmentPreview(lampiran)}
+                                                    </div>
+                                                    <div className="mt-6 font-semibold text-gray-600 flex gap-6">
+                                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
+                                                            <MessageCircleMore size={16} />
+                                                            <span className="text-xs">
+                                                                Comment
+                                                            </span>
+                                                        </div>
+                                                        <div onClick={() => handleEditClick(lampiran)} className="flex flex-col items-center w-fit cursor-pointer gap-1">
+                                                            <SquarePen size={16} />
+                                                            <span className="text-xs">
+                                                                Edit
+                                                            </span>
+                                                        </div>
+                                                        <a href={`/storage/${lampiran.image}`} download className="flex flex-col items-center w-fit cursor-pointer gap-1 text-gray-600 no-underline">
+                                                            <Download size={16} />
+                                                            <span className="text-xs">
+                                                                Download
+                                                            </span>
+                                                        </a>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="border border-gray-200 rounded p-4 mb-4">
-                                    <div className="pb-1 flex justify-between items-start">
-                                        <div>
-                                            <div>
-                                                <h1 className="font-semibold text-gray-800 text-lg">
-                                                    Judul
-                                                </h1>
-                                                <p className="text-gray-800 text-sm">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Autem, ratione porro libero asperiores ut tempora quasi sequi assumenda optio numquam!</p>
-                                            </div>
-                                            <p className="my-1 text-gray-500 text-xs">
-                                                2 jam yang lalu
-                                            </p>
-                                        </div>
-                                        <div className="text-gray-600 hover:text-gray-800 cursor-pointer">
-                                            <EllipsisIcon size={16} />
-                                        </div>
-                                    </div>
-                                    <div className="w-[200px] rounded overflow-hidden flex justify-center items-center">
-                                        <img
-                                            src="/img/img_proyek.png"
-                                            alt="lampiran"
-                                            className="w-full object-cover"
-                                        />
-                                    </div>
-                                    <div className="mt-6 font-semibold text-gray-600 flex gap-6">
-                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
-                                            <MessageCircleMore size={16} />
-                                            <span className="text-xs">
-                                                Comment
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
-                                            <SquarePen size={16} />
-                                            <span className="text-xs">
-                                                Edit
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
-                                            <Download size={16} />
-                                            <span className="text-xs">
-                                                Download
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            )}
+                            
                             {/* CHECKLIST Section */}
                             {state.checklistItems.length > 0 && (
                                 <div className="p-2">
