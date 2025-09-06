@@ -6,6 +6,7 @@ import {
     Ellipsis,
     Pencil,
     Plus,
+    SquareCheckBig,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -25,6 +26,8 @@ const mapBoardData = (boardData) => {
             id: card.id.toString(),
             title: card.nama_card,
             image: card.image,
+            jumlah_checklist: card.checklist_count || 0,
+            checklist_selesai: card.completed_checklist_count || 0,
             anggota:
                 card.anggota_card_list?.map((ang) => ({
                     id: ang.id,
@@ -59,7 +62,7 @@ const mapBoardData = (boardData) => {
 
 
 export default function Kanban({ children, dashboardId, activePage, tim, dataBoard, id_tim }) {
-    
+    console.log(dataBoard)
     const user = usePage().props.auth.user;
     const {id_board} = usePage().props;
 
@@ -532,6 +535,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                                                 )
                                                                                                             )}
                                                                                                         </div>
+                                                                                                        <div className="flex items-center gap-4 ">
                                                                                                         <div>
                                                                                                             {card.kalender.map((kal) => {
                                                                                                                 const dueDate = new Date(kal.due_date);
@@ -545,13 +549,20 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                                                 return (
                                                                                                                 <div
                                                                                                                 key={kal.id}
-                                                                                                                className="text-xs flex items-center gap-1 p-1"
+                                                                                                                className="text-xs flex items-center gap-1 pt-1 text-gray-600"
                                                                                                                 >
                                                                                                                     <Clock size={16}/>
                                                                                                                     <p>{bulan}{" "}{tgl}</p>
                                                                                                                 </div>
                                                                                                                 );
                                                                                                             })}
+                                                                                                        </div>
+                                                                                                        {card.jumlah_checklist > 0 && (
+                                                                                                            <div className="flex items-center gap-2 text-gray-600 text-xs">
+                                                                                                            <SquareCheckBig size={15}/>
+                                                                                                            <div>{card.jumlah_checklist}/{card.checklist_selesai}</div>
+                                                                                                            </div>
+                                                                                                        )}
                                                                                                         </div>
                                                                                                     </div>
                                                                                                     <div className="flex relative">
