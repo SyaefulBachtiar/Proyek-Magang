@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Anggota_perusahaan;
 use App\Models\Perusahaan;
 use App\Models\Undangan\Undangan;
 use App\Models\User;
@@ -65,6 +66,7 @@ class RegisteredUserController extends Controller
                 
                 if ($undangan) {
                     $namaPerusahaan = $undangan->nama_perusahaan;
+                    $id_perusahan = $undangan->id_perusahaan;
                     // PERBAIKAN: Simpan role dari undangan untuk ditetapkan ke user baru.
                     // Ini memperbaiki bug di mana role dari undangan tidak digunakan.
                     // Asumsi: Tabel 'users' memiliki kolom 'role' untuk menyimpan peran pengguna.
@@ -85,18 +87,35 @@ class RegisteredUserController extends Controller
                 $perusahaan = Perusahaan::create([
                     'id' => strtoupper(Str::random(20)),
                     'nama_perusahaan' => null,
+                    'deskripsi' => null,
+                    'image' => null,
                     'user_id' => $user->id,
-                    'role' => 'Super User', // Gunakan role dari undangan jika ada, atau default ke Super User
-                    'jabatan' => null,
+                ]);
+
+                Anggota_perusahaan::create([
+                    'id' => strtoupper(Str::random(20)),
+                    'role' => 'Super User',
+                    'jabatan' => 'Owner',
+                    'perusahaan_id' => $perusahaan->id,
+                    'user_id' => $user->id,
                 ]);
 
             }else{
-                Perusahaan::create([
+                // $perusahaan = Perusahaan::create([
+                //     'id' => strtoupper(Str::random(20)),
+                //     'nama_perusahaan' => $namaPerusahaan,
+                //     'deskripsi' => null,
+                //     'image' => null,
+                //     'user_id' => $user->id,
+                // ]);
+
+
+                Anggota_perusahaan::create([
                     'id' => strtoupper(Str::random(20)),
-                    'nama_perusahaan' => $namaPerusahaan,
-                    'user_id' => $user->id,
-                    'role' => $userRole, // Gunakan role dari undangan jika ada, atau default ke Super User
+                    'role' => $userRole ?? 'Member', // Gunakan role dari undangan atau default ke 'Member'
                     'jabatan' => null,
+                    'perusahaan_id' => $id_perusahan,
+                    'user_id' => $user->id,
                 ]);
             }
             

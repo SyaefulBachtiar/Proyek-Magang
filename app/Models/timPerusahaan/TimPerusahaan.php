@@ -41,13 +41,13 @@ class TimPerusahaan extends Model
     // relasi ke table perusahaan many to one
     public function perusahaan()
     {
-        return $this->belongsTo(Perusahaan::class);
+        return $this->belongsTo(Perusahaan::class, 'perusahaan_id', 'id');
     }
 
     // relasi ke table anggota tim one to many
     public function anggota_tim_perusahaan()
     {
-        return $this->hasMany(Anggota_tim::class, 'id_tim_perusahaan',);
+        return $this->hasMany(Anggota_tim::class, 'id_tim_perusahaan', 'id');
     }
 
     // relasi ke table user one to one

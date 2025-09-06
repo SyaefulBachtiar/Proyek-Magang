@@ -7,6 +7,7 @@ import Proyek from "../Proyek";
 import TambahAnggota from "@/modal/Proyek/TambahAnggota";
 import Kalender from "@/modal/Proyek/Kalender";
 import Label from "@/modal/Proyek/Label";
+import Checklist from "@/modal/Proyek/Checklist";
 
 const initialState = {
     tambahAnggota: false,
@@ -91,7 +92,7 @@ export default function Card_kanban() {
         {
             name: "Checklist",
             icon: <SquareCheck size={14} />,
-            onclick: () => console.log("Cehcklist klik"),
+            onclick: () => dispatch({ type: "TOGGLE_CHECKLIST"}),
             show: true,
             active: "",
         },
@@ -307,6 +308,13 @@ export default function Card_kanban() {
                                         label_card_prop={label_card}
                                     />
                                 )}
+                                {state.checklist && (
+                                    <Checklist 
+                                    close={() => dispatch({ type: "TOGGLE_CHECKLIST" })}
+                                    card_id={card_id}
+                                    refTrigger={refs.current["Checklist"]}
+                                    />
+                                )}
                             </div>
                             <div
                                 className={`${
@@ -409,6 +417,9 @@ export default function Card_kanban() {
                                     />
                                 </div>
                             </div>
+                            
+
+
                         </div>
 
                         {/* Konten Kanan */}

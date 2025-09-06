@@ -42,16 +42,7 @@ class ProyekController extends Controller
         
         $user = Auth::user();
         
-        $nama_perusahaan = $user->perusahaan->nama_perusahaan;
-        
-        $tim_anggota = User::query()->join('perusahaan', 'users.id', '=', 'perusahaan.user_id')
-        ->where('perusahaan.nama_perusahaan', $nama_perusahaan)
-        ->select(
-            'users.id',
-            'users.name',
-            'users.email',
-            'perusahaan.role'
-        )->get();
+        $nama_perusahaan = $user->anggotaPerusahaan?->perusahaan?->nama_perusahaan;
 
         return Inertia::render('pageProyek/Kanban', [
             'dashboardId' => $id,
@@ -60,7 +51,6 @@ class ProyekController extends Controller
             'activePage' => 'tugasPage',
             'tim' => $tim,
             'dataBoard' => $board_data,
-            'anggota_tim' => $tim_anggota
         ]);
     }
 
@@ -156,19 +146,21 @@ class ProyekController extends Controller
 
         $user = Auth::user();
 
-         $nama_perusahaan = $user->perusahaan->nama_perusahaan;
+         $perusahaan_id = $user->anggotaPerusahaan->perusahaan_id;
 
-                    $tim = User::query()->join('anggota_tim', 'users.id', '=', 'anggota_tim.id_users')
-                    ->join('perusahaan', 'users.id', '=', 'perusahaan.user_id')
-                    ->where('perusahaan.nama_perusahaan', $nama_perusahaan)
-                    ->select(
-                        'users.id',
-                        'users.name',
-                        'users.email',
-                        'perusahaan.role'
-                    )
-                    ->distinct()
-                    ->get();
+        $tim = User::with('anggotaPerusahaan')
+        ->whereHas('anggotaPerusahaan', function ($query) use ($perusahaan_id){
+            $query->where('perusahaan_id', $perusahaan_id);
+        })->get();
+
+        $formatedTim = $tim->map(function ($anggota) {
+            return [
+                'id' => $anggota->id,
+                'name' => $anggota->name,
+                'email' => $anggota->email,
+                'role_anggota' => $anggota->anggotaPerusahaan->role_anggota ?? null,
+            ];
+        });
 
         return inertia('Card/Card_kanban', [
             'id_tim' => $id_tim,
@@ -177,7 +169,7 @@ class ProyekController extends Controller
             'label_tim' => $label_tim,
             'label_card' => $label_card,
             'id_board' => $id_board,
-            'anggota_tim' => $tim,
+            'anggota_tim' => $formatedTim,
             'dataCard' => $dataCard
         ]);
     }

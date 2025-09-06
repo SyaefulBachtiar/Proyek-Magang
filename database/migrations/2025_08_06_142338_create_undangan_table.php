@@ -16,6 +16,7 @@ return new class extends Migration
         $table->string('email');
         $table->string('role');
         $table->string('nama_perusahaan', 100)->nullable(); // tambahkan kolom ini
+        $table->string('id_perusahaan', 36)->nullable();
         $table->timestamps();
     });
     }

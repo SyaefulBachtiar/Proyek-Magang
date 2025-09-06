@@ -10,13 +10,16 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\DB;
+use Exception;
 
 class PengaturanController extends Controller
 {
     /**
      * Tampilkan halaman pengaturan
+     * Menampilkan halaman pengaturan perusahaan.
+     * Data diambil langsung dari tabel 'perusahaan'.
      */
     public function index()
     {
@@ -400,65 +403,61 @@ class PengaturanController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Cek otorisasi user
+        if (Auth::id() != $id) {
+            abort(403, 'Unauthorized.');
+        }
+
+        // Validasi input
+        $request->validate([
+            'nama' => 'required|string|max:100',
+            'deskripsi' => 'nullable|string|max:1000',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        DB::beginTransaction();
+
         try {
-            // Cek otorisasi user
-            if (Auth::id() != $id) {
-                abort(403, 'Unauthorized.');
-            }
-
-            // Validasi input
-            $request->validate([
-                'nama' => 'required|string|max:100',
-                'deskripsi' => 'nullable|string|max:1000',
-                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            ]);
-
             $user = Auth::user();
             $perusahaan = Perusahaan::where('user_id', $user->id)->firstOrFail();
             $profilePerusahaan = $perusahaan->profilePerusahaan()->firstOrFail();
 
-            DB::beginTransaction();
-            
-            try {
-                // Update nama perusahaan
-                $perusahaan->nama_perusahaan = $request->input('nama');
-                $perusahaan->save();
+            // Update nama perusahaan
+            $perusahaan->nama_perusahaan = $request->input('nama');
+            $perusahaan->save();
 
-                // Update deskripsi profile
-                $profilePerusahaan->deskripsi = $request->input('deskripsi');
+            // Update deskripsi profile
+            $profilePerusahaan->deskripsi = $request->input('deskripsi');
 
-                // Handle logo upload jika ada
-                if ($request->hasFile('logo')) {
-                    $oldLogoPath = $profilePerusahaan->foto_profile_perusahaan;
-                    
-                    // Store new logo
-                    $newLogoPath = $request->file('logo')->store('company-logos', 'public');
-                    $profilePerusahaan->foto_profile_perusahaan = $newLogoPath;
-                    
-                    // Delete old logo if exists
-                    if ($oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
-                        Storage::disk('public')->delete($oldLogoPath);
-                    }
-                }
+            // Handle logo upload jika ada
+            if ($request->hasFile('logo')) {
+                $oldLogoPath = $profilePerusahaan->foto_profile_perusahaan;
                 
-                $profilePerusahaan->save();
-
-                DB::commit();
-
-                Log::info('Company settings updated successfully', [
-                    'user_id' => Auth::id(),
-                    'company_id' => $perusahaan->id,
-                    'updated_name' => $perusahaan->nama_perusahaan
-                ]);
-
-                return Redirect::back()->with('success', 'Pengaturan perusahaan berhasil diperbarui.');
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                throw $e;
+                // Store new logo
+                $newLogoPath = $request->file('logo')->store('company-logos', 'public');
+                $profilePerusahaan->foto_profile_perusahaan = $newLogoPath;
+                
+                // Delete old logo if exists
+                if ($oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
+                    Storage::disk('public')->delete($oldLogoPath);
+                }
             }
+            
+            $profilePerusahaan->save();
+
+            DB::commit();
+
+            Log::info('Company settings updated successfully', [
+                'user_id' => Auth::id(),
+                'company_id' => $perusahaan->id,
+                'updated_name' => $perusahaan->nama_perusahaan
+            ]);
+
+            return redirect()->back()->with('success', 'Pengaturan perusahaan berhasil diperbarui.');
 
         } catch (\Exception $e) {
+            DB::rollBack();
+            
             Log::error('Error in update method', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -466,7 +465,7 @@ class PengaturanController extends Controller
                 'company_id' => $id
             ]);
             
-            return Redirect::back()->with('error', 'Gagal memperbarui pengaturan perusahaan: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal memperbarui pengaturan perusahaan: ' . $e->getMessage());
         }
     }
 }

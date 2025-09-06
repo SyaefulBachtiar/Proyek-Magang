@@ -4,49 +4,70 @@ namespace App\Models;
 
 use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Perusahaan extends Model
 {
-    protected $table = 'perusahaan'; 
+    protected $table = 'perusahaan';
     public $incrementing = false;
-    protected $keyType = 'string'; 
-    
+    protected $keyType = 'string';
+
     protected $fillable = [
-        'role',
-        'jabatan',
-        'user_id',
+        'id',
         'nama_perusahaan',
+        'deskripsi',
+        'image', // Kolom untuk menyimpan path logo
+        'user_id',
     ];
 
-    // generate id secara otomatis saat membuat model
-     protected static function boot()
+    /**
+     * Boot method untuk generate UUID secara otomatis.
+     */
+    protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
-            // Jika belum ada ID, generate ID random
             if (empty($model->id)) {
-                $model->id = strtoupper(Str::uuid()); // contoh: A1B2C3D4E5
-                // bisa juga pakai UUID: $model->id = (string) Str::uuid();
+                $model->id = (string) Str::uuid();
             }
         });
     }
     
-    // relasi ke table user many to one
-    public function user () {
-        return $this->belongsTo(User::class);
+    /**
+     * Accessor untuk mendapatkan URL logo perusahaan.
+     * Ini akan secara otomatis membuat URL lengkap ke file logo.
+     * Jika tidak ada logo, akan mengembalikan gambar default.
+     *
+     * @return string
+     */
+    public function getLogoUrlAttribute()
+    {
+        if ($this->image && Storage::disk('public')->exists($this->image)) {
+            // Jika ada file logo, kembalikan URL-nya dari storage
+            return Storage::url($this->image);
+        }
+
+        // Jika tidak ada, kembalikan path ke logo default
+        return asset('images/default-company-logo.png');
     }
 
-    // relasi ke table profile perusahaan one to one
-    public function profilePerusahaan() {
-        return $this->hasOne(ProfilePerusahaan::class, 'perusahaan_id');
+
+    // --- RELASI ---
+
+    public function anggotaPerusahaan()
+    {
+        return $this->hasOne(Anggota_perusahaan::class, 'perusahaan_id', 'id');
     }
 
-    // relasi ke table tim perusahaan one to many
-    public function timPerusahaan() {
+    public function timPerusahaan()
+    {
         return $this->hasMany(TimPerusahaan::class);
     }
 
-
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 }

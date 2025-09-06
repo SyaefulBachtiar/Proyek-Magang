@@ -79,6 +79,10 @@ class User extends Authenticatable
         return $this->hasOne(Perusahaan::class, 'user_id', 'id');
     }
 
+    public function anggotaPerusahaan () {
+        return $this->hasOne(Anggota_perusahaan::class, 'user_id', 'id');
+    }
+
     // relasi ke table anggota tim
     public function anggota_tim()
     {
@@ -104,4 +108,6 @@ class User extends Authenticatable
     public function notifikasi () {
         return $this->hasMany(Notifikasi::class, 'user_id', 'id');
     }
+
+
 }

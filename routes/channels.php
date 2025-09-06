@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Anggota_perusahaan;
 use App\Models\Perusahaan;
 use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\BoardModel;
@@ -19,7 +20,7 @@ Broadcast::channel('board.{id_board}', function ($user, $id_board) {
         return false;
     }
 
-    $isOwner = $board->tim_perusahaan->perusahaan->user_id = $user->id;
+    $isOwner = $board->tim_perusahaan->perusahaan->exists();
 
     $isMember = $board->tim_perusahaan->anggota_tim_perusahaan()->where('id_users', $user->id)->exists();
 
@@ -32,7 +33,7 @@ Broadcast::channel('user.{id_user}', function ($user, $id_user) {
     }
 
     // Syarat kedua: Pastikan pengguna ini terdaftar di sebuah perusahaan.
-    return Perusahaan::where('user_id', $id_user)->exists();
+    return Anggota_perusahaan::where('user_id', $id_user)->exists();
     // return $user->id ===  $id_user;
 });
 

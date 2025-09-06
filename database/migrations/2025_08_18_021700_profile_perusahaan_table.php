@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('profile_perusahaan', function (Blueprint $table) {
+        Schema::table('profile_perusahaan', function (Blueprint $table) {
             // Primary Key
             $table->uuid('id')->primary();
             
