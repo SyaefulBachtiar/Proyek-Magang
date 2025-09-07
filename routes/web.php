@@ -106,6 +106,8 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::put('{checklist_id}/checklist', [ProyekController::class, 'update_checklist'])->name('update.checklist.check');
     Route::put('{checklist_id}', [ProyekController::class, 'update_notchecklist'])->name('update.checklist.notcheck');
     Route::put('checklist/{checklist_id}/delete', [ProyekController::class, 'delete_image_checklist'])->name('delete.image.checklist');
+    Route::put('checklist/{id_check}/update', [ProyekController::class, 'update_title_checklist'])->name('update.title.checklist');
+    ROute::put('checklist/{id_checklist}', [ProyekController::class, 'update_delete_checklist'])->name('update.delete.checklist');
     Route::post('{checklist_id}/checklist', [ProyekController::class, 'upload_checklist_photo'])->name('upload.checklist.photo');
     Route::delete('checklist/{id_checklist}', [ProyekController::class, 'delete_title_checklist'])->name('delete.title.checklist');
 

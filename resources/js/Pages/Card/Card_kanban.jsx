@@ -30,6 +30,8 @@ import InputEditor from "@/Components/InputEditor";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Lampiran from "@/modal/Proyek/Lampiran";
+import InputChecklist from "@/Components/InputChecklist";
+import ElipsisModal from "@/Components/ElipsisModal";
 
 
 const initialState = {
@@ -44,6 +46,8 @@ const initialState = {
     loading: false,
     uploadingPhoto: null,
     photoError: null,
+    inputCheck: null,
+    modalElipsis: null,
 };
 
 function reducer(state, action) {
@@ -58,6 +62,10 @@ function reducer(state, action) {
             return { ...state, waktu: !state.waktu };
         case "TOGGLE_LAMPIRAN":
             return { ...state, lampiran: !state.lampiran };
+        case "ELIPSIS_MODAL":
+            return {...state, modalElipsis: action.payload}
+        case "TOGGLE_INPUT_CHECKLIST":
+            return {...state, inputCheck: action.payload}
         case "START_ADDING":
             return {
                 ...state,
@@ -117,6 +125,7 @@ export default function Card_kanban() {
     const refs = useRef({});
     const [state, dispatch] = useReducer(reducer, initialState);
     const newItemInputRef = useRef({});
+    const triggerRefs = useRef({});
 
     let date = "";
     let fullDate = "";
@@ -770,7 +779,7 @@ export default function Card_kanban() {
                                         return (
                                             <div
                                                 key={title.id}
-                                                className="mt-4"
+                                                className="mt-4 mb-5"
                                             >
                                                 <div className="flex justify-between items-center">
                                                     <div className="flex items-center gap-2">
@@ -846,17 +855,48 @@ export default function Card_kanban() {
                                                                                     )
                                                                                 }
                                                                             />
-                                                                            <span
-                                                                                className={
-                                                                                    check.is_checked
-                                                                                        ? "line-through text-gray-500"
-                                                                                        : ""
-                                                                                }
-                                                                            >
-                                                                                {
-                                                                                    check.title
-                                                                                }
-                                                                            </span>
+                                                                            {state.inputCheck ===
+                                                                            check.id ? (
+                                                                                <InputChecklist
+                                                                                    close={() =>
+                                                                                        dispatch(
+                                                                                            {
+                                                                                                type: "TOGGLE_INPUT_CHECKLIST",
+                                                                                                payload:
+                                                                                                    null,
+                                                                                            }
+                                                                                        )
+                                                                                    }
+                                                                                    value={
+                                                                                        check.title
+                                                                                    }
+                                                                                    id_check={
+                                                                                        check.id
+                                                                                    }
+
+                                                                                />
+                                                                            ) : (
+                                                                                <span
+                                                                                    onClick={() =>
+                                                                                        dispatch(
+                                                                                            {
+                                                                                                type: "TOGGLE_INPUT_CHECKLIST",
+                                                                                                payload:
+                                                                                                    check.id,
+                                                                                            }
+                                                                                        )
+                                                                                    }
+                                                                                    className={
+                                                                                        check.is_checked
+                                                                                            ? "line-through text-gray-500"
+                                                                                            : ""
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        check.title
+                                                                                    }
+                                                                                </span>
+                                                                            )}
                                                                         </div>
                                                                         {check.image && (
                                                                             <div className="w-20 h-20 group relative cursor-pointer">
@@ -890,10 +930,11 @@ export default function Card_kanban() {
                                                                         )}
                                                                     </div>
                                                                     {/* Photo upload button */}
-                                                                    <div className="relative">
-                                                                        <label
-                                                                            htmlFor={`file_upload_${check.id}`}
-                                                                            className={`flex items-center gap-2 p-2 text-xs rounded text-white cursor-pointer transition-colors
+                                                                    <div className="flex items-center gap-5">
+                                                                        <div>
+                                                                            <label
+                                                                                htmlFor={`file_upload_${check.id}`}
+                                                                                className={`flex items-center gap-2 p-2 text-xs rounded text-white cursor-pointer transition-colors
                                                                             ${
                                                                                 state.uploadingPhoto ===
                                                                                 check.id
@@ -902,39 +943,69 @@ export default function Card_kanban() {
                                                                                     ? "bg-green-500 hover:bg-green-600"
                                                                                     : "bg-blue-400 hover:bg-blue-500"
                                                                             }`}
-                                                                        >
-                                                                            <Camera
-                                                                                size={
-                                                                                    16
+                                                                            >
+                                                                                <Camera
+                                                                                    size={
+                                                                                        16
+                                                                                    }
+                                                                                />
+                                                                                <span>
+                                                                                    {state.uploadingPhoto ===
+                                                                                    check.id
+                                                                                        ? "Mengupload..."
+                                                                                        : check.image
+                                                                                        ? "Ganti Foto"
+                                                                                        : "Tambahkan Foto"}
+                                                                                </span>
+                                                                            </label>
+                                                                            <input
+                                                                                id={`file_upload_${check.id}`}
+                                                                                className="hidden"
+                                                                                type="file"
+                                                                                accept="image/jpeg,image/png,image/gif,image/webp"
+                                                                                onChange={(
+                                                                                    e
+                                                                                ) =>
+                                                                                    handlePhotoUpload(
+                                                                                        e,
+                                                                                        check.id
+                                                                                    )
+                                                                                }
+                                                                                disabled={
+                                                                                    state.uploadingPhoto ===
+                                                                                    check.id
                                                                                 }
                                                                             />
-                                                                            <span>
-                                                                                {state.uploadingPhoto ===
-                                                                                check.id
-                                                                                    ? "Mengupload..."
-                                                                                    : check.image
-                                                                                    ? "Ganti Foto"
-                                                                                    : "Tambahkan Foto"}
-                                                                            </span>
-                                                                        </label>
-                                                                        <input
-                                                                            id={`file_upload_${check.id}`}
-                                                                            className="hidden"
-                                                                            type="file"
-                                                                            accept="image/jpeg,image/png,image/gif,image/webp"
-                                                                            onChange={(
-                                                                                e
-                                                                            ) =>
-                                                                                handlePhotoUpload(
-                                                                                    e,
-                                                                                    check.id
-                                                                                )
-                                                                            }
-                                                                            disabled={
-                                                                                state.uploadingPhoto ===
-                                                                                check.id
-                                                                            }
-                                                                        />
+                                                                        </div>
+                                                                    <div ref={(el) => (triggerRefs.current[check.id] = el)} className="relative">
+
+                                                                        <div 
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            dispatch({ type: "ELIPSIS_MODAL", payload: state.modalElipsis === check.id ? null : check.id });
+                                                                        }}
+                                                                        className="cursor-pointer"
+                                                                        >
+                                                                        <EllipsisIcon
+                                                                        size={20} />
+                                                                        </div>
+
+                                                                        {state.modalElipsis === check.id ? (
+                                                                        <ElipsisModal 
+                                                                            triggerRef={{ current: triggerRefs.current[check.id] }}
+                                                                            close={() => dispatch({ type: "ELIPSIS_MODAL", payload: null })}
+                                                                            className="-left-20 top-8">
+                                                                            <ul>
+                                                                                <li 
+                                                                                onClick={() => router.put(route('update.delete.checklist', {id: user.id, id_checklist: check.id}))}
+                                                                                className="flex text-sm items-center gap-2 hover:bg-gray-200 p-2 cursor-pointer rounded">
+                                                                                    <span >delete</span>
+                                                                                    <Trash2 size={16} className="text-red-600"/>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </ElipsisModal>
+                                                                        ): null}
+                                                                    </div>
                                                                     </div>
                                                                 </div>
                                                             )

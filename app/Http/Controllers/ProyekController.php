@@ -656,7 +656,7 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
                 'id' => (string) Str::uuid(),
                 'title' => $checklist_card->title,
                 'image' => $checklist_card->image,
-                'id_title_checklist' => $checklist_title_card->id_title_checklist
+                'id_title_checklist' => $checklist_title_card->id_title_checklist,
             ]);
             
             $card = Card_listModel::findOrFail($id_card);
@@ -685,7 +685,7 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
 
         $this->broadcastBoardUpdate($id_board);
 
-        return response()->json(['success' => 'Checklist updated successfully']);
+        return response()->json(['success' => 'Checklist updated success']);
     }
 
     public function update_notchecklist (Request $request, $id, $checklist_id) {
@@ -705,16 +705,70 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
         return response()->json(['success' => 'Checklist updated successfully']);
     }
 
+    
     public function delete_title_checklist ($id, $id_checklist) {
         $title_checklist = Title_Checklist_card::findOrFail($id_checklist);
-
+        
         $title_checklist->delete();
-
+        
         $id_board = $title_checklist->card->listBoard->id_board;
-
+        
         $this->broadcastBoardUpdate($id_board);
-
+        
         return redirect()->back()->with('success', 'Berhasil menghapus title checklist');
+    }
+    
+    public function update_title_checklist (Request $request, $id, $id_checklist) {
+        try{
+
+            $request->validate([
+            'id_checklist_card' => 'required|string|exists:checklist_card,id',
+            'title_checklist' => 'required|string'
+            ]);
+
+        $checklist_card = Checklist_card::findOrFail($request->id_checklist_card);
+        
+        // $title_checklist_card = Title_Checklist_card::where('id', $checklist_card->id_title_checklist_card)->first();
+        
+        $title_checklist_card = $checklist_card->title_checklist_card;
+        
+        $checklist = Title_Checklist::with(['checklist' => function ($query) use ($checklist_card){
+            $query->where('title', $checklist_card->title);
+        }])->find($title_checklist_card->id_title_checklist);
+        // dd($checklist->checklist);
+        // ambil relasi checklist lewat model
+        // $checklist = $checklist_card->checklist;
+
+        // update checklist_card
+        $checklist_card->update([
+            'title' => $request->title_checklist
+        ]);
+
+        // update checklist kalau ada
+        if ($checklist) {
+            $checklist->checklist->first()->update([
+                'title' => $request->title_checklist
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Berhasil Update');
+    } catch (\Exception $e) {
+        Log::info($e->getMessage());
+        return redirect()->back()->with('error', 'Gagal edit title checklist');
+    }
+    }
+    
+    public function update_delete_checklist ($id, $id_checklist ) {
+        $checklist_card = Checklist_card::findOrFail($id_checklist);
+
+        if($checklist_card){
+            $checklist_card->title_checklist_card->title_checklist->checklist()->delete();
+        }
+
+            $checklist_card->delete();
+
+        return redirect()->back()->with('success', 'berhasil hapus');
+
     }
 
     public function delete_image_checklist ($id, $checklist_id) {
