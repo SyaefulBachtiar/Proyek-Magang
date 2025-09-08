@@ -8,6 +8,7 @@ use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProyekController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\Komentar\KomenController;
 use App\Http\Controllers\Notif\NotifikasiController;
 use App\Http\Controllers\ProfilePerusahaanController;
 use App\Http\Controllers\Tim\Tim_perusahaanController;
@@ -114,6 +115,18 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // DESKRIPSI
     Route::post('deskripsi/{id_card}', [ProyekController::class, 'store_deskripsi'])->name('store.deskripsi');
+
+    // Lampiran
+    Route::post('lampiran/{card_id}', [ProyekController::class, 'store_lampiran'])->name('lampiran.store');
+    Route::put('lampiran/{lampiran_id}/update', [ProyekController::class, 'update_lampiran'])->name('lampiran.update');
+    Route::delete('lampiran/{lampiran_id}', [ProyekController::class, 'destroy_lampiran'])->name('lampiran.destroy');
+
+
+    // KOMEN
+    Route::post('komentar/{id_card}', [KomenController::class, 'komentar'])->name('komentar');
+    Route::delete('komentar/{id_komentar}/delete', [KomenController::class, 'delete_komentar'])->name('delete.komentar');
+    Route::put('komentar/edit/{id_card}', [KomenController::class, 'edit_komentar'])->name('edit.komentar');
+
 });
 
 Route::middleware('auth')->group(function () {

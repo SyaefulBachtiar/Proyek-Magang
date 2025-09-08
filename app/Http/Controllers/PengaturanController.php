@@ -33,8 +33,9 @@ class PengaturanController extends Controller
                 'id' => null,
                 'nama_perusahaan' => 'Nama Perusahaan Anda',
                 'deskripsi' => 'Deskripsi singkat perusahaan Anda.',
-                // Gunakan accessor untuk mendapatkan URL logo default
-                'logo_url' => (new Perusahaan)->logo_url,
+                // Sediakan URL logo default/placeholder jika belum ada data perusahaan.
+                // Avatar ini akan menampilkan huruf 'P' sebagai placeholder.
+                'logo_url' => 'https://ui-avatars.com/api/?name=P&color=7F9CF5&background=EBF4FF',
             ];
         } else {
             // Jika data perusahaan ada, kirimkan ke frontend
@@ -78,23 +79,28 @@ class PengaturanController extends Controller
             $perusahaan->nama_perusahaan = $request->input('nama');
             $perusahaan->deskripsi = $request->input('deskripsi');
 
-            // Cek apakah ada file logo yang di-upload
+            // Cek apakah ada file logo baru yang di-upload
             if ($request->hasFile('logo')) {
-                // Simpan path logo lama untuk dihapus nanti
+                // **LANGKAH 1: Simpan path logo lama sebelum diperbarui.**
+                // Path ini akan digunakan untuk menemukan dan menghapus file lama dari storage.
+                // Pastikan kolom 'image' di model Perusahaan Anda berisi path file.
                 $oldLogoPath = $perusahaan->image;
 
-                // Simpan logo baru di 'storage/app/public/company-logos'
-                // Path yang disimpan di database adalah 'company-logos/namafile.jpg'
+                // **LANGKAH 2: Simpan logo baru.**
+                // Simpan file logo baru di 'storage/app/public/company-logos'.
+                // Path yang disimpan di database adalah 'company-logos/namafile.jpg'.
                 $newLogoPath = $request->file('logo')->store('company-logos', 'public');
                 $perusahaan->image = $newLogoPath;
 
-                // Hapus logo lama jika ada
+                // **LANGKAH 3: Hapus logo lama jika ada.**
+                // Cek apakah path logo lama ada (bukan null) DAN file tersebut benar-benar ada di dalam storage.
                 if ($oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
+                    // Jika kedua kondisi terpenuhi, hapus file lama dari direktori.
                     Storage::disk('public')->delete($oldLogoPath);
                 }
             }
 
-            // Simpan semua perubahan ke database
+            // Simpan semua perubahan (nama, deskripsi, dan path logo baru) ke database
             $perusahaan->save();
 
             return Redirect::back()->with('success', 'Pengaturan perusahaan berhasil diperbarui.');
