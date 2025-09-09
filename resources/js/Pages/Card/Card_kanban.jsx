@@ -3,9 +3,12 @@ import {
     CalendarDays,
     Camera,
     Captions,
+    Check,
     CopyCheck,
     Download,
     EllipsisIcon,
+    File as FileIcon,
+    FileText,
     MessageCircleMore,
     MessageSquareText,
     Paperclip,
@@ -15,8 +18,7 @@ import {
     SquareCheck,
     SquarePen,
     Tag,
-    Tags,
-    Trash2,
+    Trash2, // Pastikan Trash2 di-import
     UserRoundPlus,
     X,
 } from "lucide-react";
@@ -30,6 +32,9 @@ import InputEditor from "@/Components/InputEditor";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Lampiran from "@/modal/Proyek/Lampiran";
+import InputChecklist from "@/Components/InputChecklist";
+import ElipsisModal from "@/Components/ElipsisModal";
+import KomponenKomentar from "@/Components/KomponenKomentar";
 
 
 const initialState = {
@@ -44,6 +49,13 @@ const initialState = {
     loading: false,
     uploadingPhoto: null,
     photoError: null,
+    inputCheck: null,
+    modalElipsis: null,
+    isCommenting: false,
+    editKomentar: null,
+    mention: null,
+    mention_id: null, 
+    komentarValue: ""
 };
 
 function reducer(state, action) {
@@ -58,6 +70,10 @@ function reducer(state, action) {
             return { ...state, waktu: !state.waktu };
         case "TOGGLE_LAMPIRAN":
             return { ...state, lampiran: !state.lampiran };
+        case "ELIPSIS_MODAL":
+            return {...state, modalElipsis: action.payload}
+        case "TOGGLE_INPUT_CHECKLIST":
+            return {...state, inputCheck: action.payload}
         case "START_ADDING":
             return {
                 ...state,
@@ -90,6 +106,16 @@ function reducer(state, action) {
             return {...state, photoError: action.payload.error, uploadingPhoto: null}
         case "CLEAR_PHOTO_ERROR":
             return {...state, photoError: null}
+        case "START_KOMENTAR":
+            return {...state, isCommenting: action.payload}
+        case "KOMENTAR_MENTION":
+            return { ...state, isCommenting: action.payload.isCommenting, mention: action.payload.mention, komentarValue: action.payload.komentarValue, mention_id: action.payload.mention_id };
+        case "SET_KOMENTAR_VALUE":
+            return {...state, komentarValue: action.payload}
+        case "BATAL_KOMENTAR":
+            return {...state, isCommenting: false, komentarValue: "", mention: null }
+        case "EDIT":
+            return { ...state, editKomentar: action.payload };
         default:
             return state;
     }
@@ -99,6 +125,7 @@ export default function Card_kanban() {
     // user
     const user = usePage().props.auth.user;
     const {
+        id,
         role,
         id_tim,
         card_id,
@@ -111,12 +138,15 @@ export default function Card_kanban() {
         title_checklist,
         checklist: checklistProps,
         flash,
-        deskripsi
+        deskripsi,
+        lampiran_card,
+        komentar
     } = usePage().props;
 
     const refs = useRef({});
     const [state, dispatch] = useReducer(reducer, initialState);
     const newItemInputRef = useRef({});
+    const triggerRefs = useRef({});
 
     let date = "";
     let fullDate = "";
@@ -345,7 +375,15 @@ export default function Card_kanban() {
         const channel = window.Echo.private(`board.${id_board}`);
         channel.listen(".board.updated", (event) => {
             router.reload({
-                only: ["label_card", "label_tim", "anggota_card", "kalender", "checklist"],
+                only: [
+                    "label_card",
+                    "label_tim",
+                    "anggota_card",
+                    "kalender",
+                    "checklist",
+                    "lampiran_card",
+                    "komentar",
+                ],
                 preserveState: true,
                 preserveScroll: true,
             });
@@ -431,19 +469,186 @@ export default function Card_kanban() {
         deskripsi?.deskripsi || "## Belum Ada Deskripsi"
     );
 
+    // State untuk edit lampiran
+    const [editingLampiranId, setEditingLampiranId] = useState(null);
+    const [editValues, setEditValues] = useState({ judul: "", deskripsi: "", image: null });
 
-    // State baru untuk komentar
-    const [isCommenting, setIsCommenting] = useState(false);
-    const [comment, setComment] = useState("");
+    // komentar Lampiran
+    const lampiranComment = (lampiran_judul, mention_id) => {
+        dispatch({ type: "KOMENTAR_MENTION", payload: {isCommenting: true, mention: lampiran_judul, komentarValue: state.komentarValue, mention_id: mention_id}})
+    }
+
+    const balasKomentar = (komentar) => {
+        dispatch({ type: "KOMENTAR_MENTION", payload: {isCommenting: true, mention: komentar.user_name, komentarValue: state.komentarValue, mention_id: komentar.id} })
+    }
+
+    const editKomentar = (komentar) => {
+        dispatch({ type: "KOMENTAR_MENTION", payload: {isCommenting: true, mention: komentar.mention || null, komentarValue: komentar.komentar, mention_id:komentar.parent_id || komentar.lampiran_id} })
+        dispatch({ type: "EDIT", payload: komentar.id });
+    }
 
     // Fungsi untuk menyimpan komentar
-    const handleSaveComment = () => {
-        if (!comment.trim()) return;
-        console.log("Komentar disimpan:", comment);
-        // TODO: Send comment to backend
-        setComment("");
-        setIsCommenting(false);
+    const handleKomentar = () => {
+        let finalKomentar = state.komentarValue || "";
+        if(state.mention && finalKomentar.startsWith(state.mention)){
+            finalKomentar = finalKomentar.substring(state.mention.length).trim();
+        }
+
+        const payload = {
+            komentar: finalKomentar,
+            mention: state.mention,
+            ...(state.mention_id && { mention_id: state.mention_id }),
+            ...(state.editKomentar && {edit_komentar: state.editKomentar}),
+        };
+
+        dispatch({ type: "SET_LOADING", payload: true });
+
+        if(!state.editKomentar){
+             router.post(
+                 route("komentar", { id: user.id, id_card: card_id }),
+                 payload,
+                 {
+                     preserveState: true,
+                     onSuccess: () => {
+                         dispatch({ type: "BATAL_KOMENTAR" });
+                     },
+                     onFinish: () => {
+                         dispatch({ type: "SET_LOADING", payload: false });
+                     },
+                 }
+             );
+        }else{
+            router.put(
+                route("edit.komentar", { id: user.id, id_card: card_id }),
+                payload,
+                {
+                    preserveState: true,
+                    onSuccess: () => {
+                        dispatch({ type: "BATAL_KOMENTAR" });
+                    },
+                    onFinish: () => {
+                        dispatch({ type: "SET_LOADING", payload: false });
+                    },
+                }
+            );
+        }
     };
+
+    // Fungsi-fungsi untuk handle edit lampiran
+    const handleEditClick = (lampiran) => {
+        setEditingLampiranId(lampiran.id);
+        setEditValues({
+            judul: lampiran.judul,
+            deskripsi: lampiran.deskripsi || "",
+            image: null,
+        });
+    };
+
+    const handleEditChange = (e) => {
+        setEditValues({ ...editValues, [e.target.name]: e.target.value });
+    };
+
+    const handleEditFileChange = (e) => {
+        setEditValues({ ...editValues, image: e.target.files[0] });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingLampiranId(null);
+    };
+
+    const handleUpdateSubmit = (e, lampiranId) => {
+        e.preventDefault();
+        router.post(
+            route("lampiran.update", { id: id, lampiran_id: lampiranId }),
+            {
+                ...editValues,
+                _method: "PUT",
+            },
+            {
+                onSuccess: () => setEditingLampiranId(null),
+                preserveScroll: true,
+            }
+        );
+    };
+
+    // Fungsi untuk handle hapus lampiran
+    const handleDeleteLampiran = (lampiranId) => {
+        if (confirm("Anda yakin ingin menghapus lampiran ini?")) {
+            router.delete(route("lampiran.destroy", { id: id, lampiran_id: lampiranId }), {
+                preserveScroll: true,
+            });
+        }
+    };
+
+
+    // Fungsi helper untuk format waktu
+    const formatRelativeTime = (isoDate) => {
+        const date = new Date(isoDate);
+        const now = new Date();
+        const seconds = Math.round((now - date) / 1000);
+        const minutes = Math.round(seconds / 60);
+        const hours = Math.round(minutes / 60);
+        const days = Math.round(hours / 24);
+
+        if (seconds < 60) return `${seconds} detik yang lalu`;
+        if (minutes < 60) return `${minutes} menit yang lalu`;
+        if (hours < 24) return `${hours} jam yang lalu`;
+        return `${days} hari yang lalu`;
+    };
+
+    // Fungsi helper untuk pratinjau file
+    const renderAttachmentPreview = (lampiran) => {
+        const fileExt = lampiran.image.split(".").pop().toLowerCase();
+        const fileUrl = `/storage/${lampiran.image}`;
+
+        if (["jpg", "jpeg", "png", "gif", "webp"].includes(fileExt)) {
+            // preview image
+            return (
+                <a
+                    href={fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                >
+                    <img
+                        src={`/storage/${lampiran.image}`}
+                        alt={lampiran.judul}
+                        className="w-full h-full object-cover"
+                    />
+                </a>
+            );
+        }
+
+        if (fileExt === "pdf") {
+            // preview pdf
+            return (
+                <div>
+                    <iframe
+                        src={`/storage/${lampiran.image}`}
+                        className="w-full border rounded"
+                        title={lampiran.judul}
+                    />
+                    <a
+                            href={fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                    <div className="w-full text-center p-1 text-xs bg-gray-300 rounded mt-4">
+                            Lihat
+                    </div>
+                    </a>
+                </div>
+            );
+        }
+
+        // default preview (file lain)
+        return (
+            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                <FileIcon className="text-gray-400" size={48} />
+            </div>
+        );
+    };
+
 
     return (
         <Proyek>
@@ -503,11 +708,13 @@ export default function Card_kanban() {
                                     {isEditing ? (
                                         // <div></div>
                                         <InputEditor
+                                            anggota_card={anggota_card}
                                             close={() => setIsEditing(false)}
                                             onChange={setDescription}
                                             value={description}
                                             onSave={handleSaveDeskripsi}
                                             loading={state.loading}
+                                            placeholder={"Deskriosi"}
                                         />
                                     ) : description &&
                                       description.trim() !== "" ? (
@@ -699,57 +906,199 @@ export default function Card_kanban() {
                             )}
 
                             {/* Lampiran Section */}
-                            <div>
-                                <div className="flex items-center gap-2 py-4">
-                                    <Paperclip size={14} />
-                                    <h1>Lampiran</h1>
+                            {lampiran_card && lampiran_card.length > 0 && (
+                                <div>
+                                    <div className="flex items-center gap-2 py-4">
+                                        <Paperclip size={14} />
+                                        <h1>Lampiran</h1>
+                                    </div>
+                                    {lampiran_card.map((lampiran) => (
+                                        <div
+                                            key={lampiran.id}
+                                            className="border border-gray-200 rounded p-4 mb-4"
+                                        >
+                                            {editingLampiranId ===
+                                            lampiran.id ? (
+                                                <form
+                                                    onSubmit={(e) =>
+                                                        handleUpdateSubmit(
+                                                            e,
+                                                            lampiran.id
+                                                        )
+                                                    }
+                                                    className="flex flex-col gap-3"
+                                                >
+                                                    <div>
+                                                        <input
+                                                            type="text"
+                                                            name="judul"
+                                                            value={
+                                                                editValues.judul
+                                                            }
+                                                            placeholder="judul..."
+                                                            onChange={
+                                                                handleEditChange
+                                                            }
+                                                            className="font-semibold text-gray-800 text-lg w-full rounded border-gray-300 focus:ring-blue-500 focus:border-blue-500 px-2 py-1"
+                                                            autoFocus
+                                                        />
+                                                        <textarea
+                                                            name="deskripsi"
+                                                            value={
+                                                                editValues.deskripsi
+                                                            }
+                                                            onChange={
+                                                                handleEditChange
+                                                            }
+                                                            placeholder="deskripsi..."
+                                                            className="text-gray-800 text-sm w-full mt-2 h-20 resize-none border rounded p-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <label
+                                                                htmlFor={`edit-file-${lampiran.id}`}
+                                                                className="flex items-center gap-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md px-3 py-1.5 cursor-pointer transition-colors"
+                                                            >
+                                                                <Paperclip
+                                                                    size={14}
+                                                                />
+                                                                <span>
+                                                                    Ganti File
+                                                                </span>
+                                                            </label>
+                                                            <input
+                                                                id={`edit-file-${lampiran.id}`}
+                                                                type="file"
+                                                                onChange={
+                                                                    handleEditFileChange
+                                                                }
+                                                                className="hidden"
+                                                            />
+                                                            {editValues.image && (
+                                                                <span className="text-xs text-gray-500 truncate max-w-xs">
+                                                                    {
+                                                                        editValues
+                                                                            .image
+                                                                            .name
+                                                                    }
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={
+                                                                    handleCancelEdit
+                                                                }
+                                                                className="px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md text-sm font-semibold hover:bg-gray-300 transition-colors"
+                                                            >
+                                                                Batal
+                                                            </button>
+                                                            <button
+                                                                type="submit"
+                                                                className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-1.5"
+                                                            >
+                                                                <Check
+                                                                    size={16}
+                                                                />
+                                                                Simpan
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            ) : (
+                                                <>
+                                                    <div className="pb-1 flex justify-between items-start">
+                                                        <div>
+                                                            <div>
+                                                                <h1 className="font-semibold text-gray-800 text-lg">
+                                                                    {
+                                                                        lampiran.judul
+                                                                    }
+                                                                </h1>
+                                                                <p className="text-gray-800 text-sm">
+                                                                    {
+                                                                        lampiran.deskripsi
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                            <p className="my-1 text-gray-500 text-xs">
+                                                                {formatRelativeTime(
+                                                                    lampiran.created_at
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                        <div
+                                                            onClick={() =>
+                                                                handleDeleteLampiran(
+                                                                    lampiran.id
+                                                                )
+                                                            }
+                                                            className="text-red-500 hover:text-red-700 cursor-pointer p-1 transition-colors"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-center">
+                                                        <div className="w-[200px] max-h-[200px] rounded overflow-hidden flex justify-center items-center">
+                                                            {renderAttachmentPreview(
+                                                                lampiran
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-6 font-semibold text-gray-600 flex gap-6">
+                                                        <div
+                                                            onClick={() =>
+                                                                lampiranComment(
+                                                                    lampiran.judul,
+                                                                    lampiran.id
+                                                                )
+                                                            }
+                                                            className="flex flex-col items-center w-fit cursor-pointer gap-1"
+                                                        >
+                                                            <MessageCircleMore
+                                                                size={16}
+                                                            />
+                                                            <span className="text-xs">
+                                                                Comment
+                                                            </span>
+                                                        </div>
+                                                        <div
+                                                            onClick={() =>
+                                                                handleEditClick(
+                                                                    lampiran
+                                                                )
+                                                            }
+                                                            className="flex flex-col items-center w-fit cursor-pointer gap-1"
+                                                        >
+                                                            <SquarePen
+                                                                size={16}
+                                                            />
+                                                            <span className="text-xs">
+                                                                Edit
+                                                            </span>
+                                                        </div>
+                                                        <a
+                                                            href={`/storage/${lampiran.image}`}
+                                                            download
+                                                            className="flex flex-col items-center w-fit cursor-pointer gap-1 text-gray-600 no-underline"
+                                                        >
+                                                            <Download
+                                                                size={16}
+                                                            />
+                                                            <span className="text-xs">
+                                                                Download
+                                                            </span>
+                                                        </a>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="border border-gray-200 rounded p-4 mb-4">
-                                    <div className="pb-1 flex justify-between items-start">
-                                        <div>
-                                            <div>
-                                                <h1 className="font-semibold text-gray-800 text-lg">
-                                                    Judul
-                                                </h1>
-                                                <p className="text-gray-800 text-sm">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Autem, ratione porro libero asperiores ut tempora quasi sequi assumenda optio numquam!</p>
-                                            </div>
-                                            <p className="my-1 text-gray-500 text-xs">
-                                                2 jam yang lalu
-                                            </p>
-                                        </div>
-                                        <div className="text-gray-600 hover:text-gray-800 cursor-pointer">
-                                            <EllipsisIcon size={16} />
-                                        </div>
-                                    </div>
-                                    <div className="w-[200px] rounded overflow-hidden flex justify-center items-center">
-                                        <img
-                                            src="/img/img_proyek.png"
-                                            alt="lampiran"
-                                            className="w-full object-cover"
-                                        />
-                                    </div>
-                                    <div className="mt-6 font-semibold text-gray-600 flex gap-6">
-                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
-                                            <MessageCircleMore size={16} />
-                                            <span className="text-xs">
-                                                Comment
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
-                                            <SquarePen size={16} />
-                                            <span className="text-xs">
-                                                Edit
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-col items-center w-fit cursor-pointer gap-1">
-                                            <Download size={16} />
-                                            <span className="text-xs">
-                                                Download
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            )}
+
                             {/* CHECKLIST Section */}
                             {state.checklistItems.length > 0 && (
                                 <div className="p-2">
@@ -770,7 +1119,7 @@ export default function Card_kanban() {
                                         return (
                                             <div
                                                 key={title.id}
-                                                className="mt-4"
+                                                className="mt-4 mb-5"
                                             >
                                                 <div className="flex justify-between items-center">
                                                     <div className="flex items-center gap-2">
@@ -846,17 +1195,47 @@ export default function Card_kanban() {
                                                                                     )
                                                                                 }
                                                                             />
-                                                                            <span
-                                                                                className={
-                                                                                    check.is_checked
-                                                                                        ? "line-through text-gray-500"
-                                                                                        : ""
-                                                                                }
-                                                                            >
-                                                                                {
-                                                                                    check.title
-                                                                                }
-                                                                            </span>
+                                                                            {state.inputCheck ===
+                                                                            check.id ? (
+                                                                                <InputChecklist
+                                                                                    close={() =>
+                                                                                        dispatch(
+                                                                                            {
+                                                                                                type: "TOGGLE_INPUT_CHECKLIST",
+                                                                                                payload:
+                                                                                                    null,
+                                                                                            }
+                                                                                        )
+                                                                                    }
+                                                                                    value={
+                                                                                        check.title
+                                                                                    }
+                                                                                    id_check={
+                                                                                        check.id
+                                                                                    }
+                                                                                />
+                                                                            ) : (
+                                                                                <span
+                                                                                    onClick={() =>
+                                                                                        dispatch(
+                                                                                            {
+                                                                                                type: "TOGGLE_INPUT_CHECKLIST",
+                                                                                                payload:
+                                                                                                    check.id,
+                                                                                            }
+                                                                                        )
+                                                                                    }
+                                                                                    className={
+                                                                                        check.is_checked
+                                                                                            ? "line-through text-gray-500"
+                                                                                            : ""
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        check.title
+                                                                                    }
+                                                                                </span>
+                                                                            )}
                                                                         </div>
                                                                         {check.image && (
                                                                             <div className="w-20 h-20 group relative cursor-pointer">
@@ -890,10 +1269,11 @@ export default function Card_kanban() {
                                                                         )}
                                                                     </div>
                                                                     {/* Photo upload button */}
-                                                                    <div className="relative">
-                                                                        <label
-                                                                            htmlFor={`file_upload_${check.id}`}
-                                                                            className={`flex items-center gap-2 p-2 text-xs rounded text-white cursor-pointer transition-colors
+                                                                    <div className="flex items-center gap-5">
+                                                                        <div>
+                                                                            <label
+                                                                                htmlFor={`file_upload_${check.id}`}
+                                                                                className={`flex items-center gap-2 p-2 text-xs rounded text-white cursor-pointer transition-colors
                                                                             ${
                                                                                 state.uploadingPhoto ===
                                                                                 check.id
@@ -902,39 +1282,128 @@ export default function Card_kanban() {
                                                                                     ? "bg-green-500 hover:bg-green-600"
                                                                                     : "bg-blue-400 hover:bg-blue-500"
                                                                             }`}
-                                                                        >
-                                                                            <Camera
-                                                                                size={
-                                                                                    16
+                                                                            >
+                                                                                <Camera
+                                                                                    size={
+                                                                                        16
+                                                                                    }
+                                                                                />
+                                                                                <span>
+                                                                                    {state.uploadingPhoto ===
+                                                                                    check.id
+                                                                                        ? "Mengupload..."
+                                                                                        : check.image
+                                                                                        ? "Ganti Foto"
+                                                                                        : "Tambahkan Foto"}
+                                                                                </span>
+                                                                            </label>
+                                                                            <input
+                                                                                id={`file_upload_${check.id}`}
+                                                                                className="hidden"
+                                                                                type="file"
+                                                                                accept="image/jpeg,image/png,image/gif,image/webp"
+                                                                                onChange={(
+                                                                                    e
+                                                                                ) =>
+                                                                                    handlePhotoUpload(
+                                                                                        e,
+                                                                                        check.id
+                                                                                    )
+                                                                                }
+                                                                                disabled={
+                                                                                    state.uploadingPhoto ===
+                                                                                    check.id
                                                                                 }
                                                                             />
-                                                                            <span>
-                                                                                {state.uploadingPhoto ===
-                                                                                check.id
-                                                                                    ? "Mengupload..."
-                                                                                    : check.image
-                                                                                    ? "Ganti Foto"
-                                                                                    : "Tambahkan Foto"}
-                                                                            </span>
-                                                                        </label>
-                                                                        <input
-                                                                            id={`file_upload_${check.id}`}
-                                                                            className="hidden"
-                                                                            type="file"
-                                                                            accept="image/jpeg,image/png,image/gif,image/webp"
-                                                                            onChange={(
-                                                                                e
+                                                                        </div>
+                                                                        <div
+                                                                            ref={(
+                                                                                el
                                                                             ) =>
-                                                                                handlePhotoUpload(
-                                                                                    e,
+                                                                                (triggerRefs.current[
                                                                                     check.id
-                                                                                )
+                                                                                ] =
+                                                                                    el)
                                                                             }
-                                                                            disabled={
-                                                                                state.uploadingPhoto ===
-                                                                                check.id
-                                                                            }
-                                                                        />
+                                                                            className="relative"
+                                                                        >
+                                                                            <div
+                                                                                onClick={(
+                                                                                    e
+                                                                                ) => {
+                                                                                    e.stopPropagation();
+                                                                                    dispatch(
+                                                                                        {
+                                                                                            type: "ELIPSIS_MODAL",
+                                                                                            payload:
+                                                                                                state.modalElipsis ===
+                                                                                                check.id
+                                                                                                    ? null
+                                                                                                    : check.id,
+                                                                                        }
+                                                                                    );
+                                                                                }}
+                                                                                className="cursor-pointer"
+                                                                            >
+                                                                                <EllipsisIcon
+                                                                                    size={
+                                                                                        20
+                                                                                    }
+                                                                                />
+                                                                            </div>
+
+                                                                            {state.modalElipsis ===
+                                                                            check.id ? (
+                                                                                <ElipsisModal
+                                                                                    triggerRef={{
+                                                                                        current:
+                                                                                            triggerRefs
+                                                                                                .current[
+                                                                                                check
+                                                                                                    .id
+                                                                                            ],
+                                                                                    }}
+                                                                                    close={() =>
+                                                                                        dispatch(
+                                                                                            {
+                                                                                                type: "ELIPSIS_MODAL",
+                                                                                                payload:
+                                                                                                    null,
+                                                                                            }
+                                                                                        )
+                                                                                    }
+                                                                                    className="-left-20 top-8"
+                                                                                >
+                                                                                    <ul>
+                                                                                        <li
+                                                                                            onClick={() =>
+                                                                                                router.put(
+                                                                                                    route(
+                                                                                                        "update.delete.checklist",
+                                                                                                        {
+                                                                                                            id: user.id,
+                                                                                                            id_checklist:
+                                                                                                                check.id,
+                                                                                                        }
+                                                                                                    )
+                                                                                                )
+                                                                                            }
+                                                                                            className="flex text-sm items-center gap-2 hover:bg-gray-200 p-2 cursor-pointer rounded"
+                                                                                        >
+                                                                                            <span>
+                                                                                                delete
+                                                                                            </span>
+                                                                                            <Trash2
+                                                                                                size={
+                                                                                                    16
+                                                                                                }
+                                                                                                className="text-red-600"
+                                                                                            />
+                                                                                        </li>
+                                                                                    </ul>
+                                                                                </ElipsisModal>
+                                                                            ) : null}
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             )
@@ -1047,40 +1516,61 @@ export default function Card_kanban() {
                         </div>
 
                         {/* Konten Kanan - Comments Section */}
-                        <div className="w-full lg:w-1/2 px-0 lg:px-4 my-4">
+                        <div className="w-full lg:w-1/2 px-0 lg:px-4 my-4 overflow-y-auto">
                             <div className="flex gap-2 items-center mb-4">
                                 <MessageSquareText />
                                 <p className="font-bold text-lg">Komentar</p>
                             </div>
 
-                            {!isCommenting ? (
+                            {!state.isCommenting ? (
                                 <div
-                                    onClick={() => setIsCommenting(true)}
+                                    onClick={() =>
+                                        dispatch({
+                                            type: "START_KOMENTAR",
+                                            payload: true,
+                                        })
+                                    }
                                     className="mt-2 p-3 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 cursor-pointer text-gray-500"
                                 >
                                     <p>Tulis komentar...</p>
                                 </div>
                             ) : (
-                                <div></div>
+                                <InputEditor
+                                    anggota_card={anggota_card}
+                                    close={() =>
+                                        dispatch({ type: "BATAL_KOMENTAR" })
+                                    }
+                                    value={state.komentarValue}
+                                    loading={state.loading}
+                                    isCommenting={state.isCommenting}
+                                    onChange={(val) =>
+                                        dispatch({
+                                            type: "SET_KOMENTAR_VALUE",
+                                            payload: val,
+                                        })
+                                    }
+                                    setComment={(val) =>
+                                        dispatch({
+                                            type: "SET_KOMENTAR_VALUE",
+                                            payload: val,
+                                        })
+                                    }
+                                    onSave={handleKomentar}
+                                    placeholder={
+                                        state.mention
+                                            ? `Komentari ${state.mention}`
+                                            : "Komentar"
+                                    }
+                                />
                             )}
 
                             {/* Example Comment */}
-                            <div className="mt-6">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 mt-1 rounded-full bg-red-500 flex items-center justify-center text-white font-bold text-sm">
-                                        A
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-semibold">Angga</p>
-                                        <div className="prose prose-sm max-w-none bg-gray-100 p-2 rounded-md">
-                                            <p>
-                                                Ini adalah contoh komentar yang
-                                                sudah ada.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <KomponenKomentar
+                                komentar={komentar}
+                                id_board={id_board}
+                                balasKomentar={(val) => balasKomentar(val)}
+                                editKomentar={(val) => editKomentar(val)}
+                            />
                         </div>
                     </div>
                 </div>

@@ -51,6 +51,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
                 'new_checklist' => fn () => $request->session()->get('new_checklist'),
+                'mention' => fn () => $request->session()->get('mention'),
             ],
              'perusahaan' => function () use ($request) {
                 $user = $request->user();

@@ -19,14 +19,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('checklist', function (Blueprint $table){
-            $table->string('id', 36)->primary();
-            $table->string('title')->nullable();
-            $table->string('image')->nullable();
-            $table->string('id_title_checklist', 36)->nullable();
-            $table->foreign('id_title_checklist')->references('id')->on('title_checklist')->onDelete('cascade');
-            $table->timestamps();
-        });
+        
         Schema::create('title_checklist_card', function (Blueprint $table){
             $table->string('id', 36)->primary();
             $table->string('title')->nullable();
@@ -50,6 +43,18 @@ return new class extends Migration
             $table->foreign('id_title_checklist_card')->references('id')->on('title_checklist_card')->onDelete('cascade');
             $table->timestamps();
         });
+        
+        Schema::create('checklist', function (Blueprint $table){
+            $table->string('id', 36)->primary();
+            $table->string('title')->nullable();
+            $table->string('image')->nullable();
+            $table->string('id_title_checklist', 36)->nullable();
+            $table->foreign('id_title_checklist')->references('id')->on('title_checklist')->onDelete('cascade');
+            // $table->string('id_checklist_card', 36)->nullable();
+            // $table->foreign('id_checklist_card')->references('id')->on('checklist_card')->onDelete('cascade');
+            $table->timestamps();
+        });
+
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Models\TimPerusahaan;
 
 use App\Models\timPerusahaan\Card_listModel;
+use App\Models\timPerusahaan\Checklist;
 use Illuminate\Database\Eloquent\Model;
 
 class Checklist_card extends Model
@@ -28,5 +29,9 @@ class Checklist_card extends Model
 
     public function title_checklist_card () {
         return $this->belongsTo(Title_Checklist_card::class, 'id_title_checklist_card', 'id');
+    }
+
+    public function checklist () {
+        return $this->hasOne(Checklist::class, 'id_checklist_card', 'id');
     }
 }

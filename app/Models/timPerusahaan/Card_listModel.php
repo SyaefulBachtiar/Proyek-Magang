@@ -5,6 +5,7 @@ namespace App\Models\timPerusahaan;
 use App\Models\TimPerusahaan\Checklist;
 use App\Models\TimPerusahaan\Checklist_card;
 use App\Models\TimPerusahaan\Deskripsi;
+use App\Models\TimPerusahaan\Komentar;
 use App\Models\timPerusahaan\Title_Checklist_card;
 use Illuminate\Database\Eloquent\Model;
 
@@ -58,5 +59,9 @@ class Card_listModel extends Model
 
     public function deskripsi () {
         return $this->hasMany(Deskripsi::class, 'id_card', 'id');
+    }
+
+    public function komentar () {
+        return $this->hasMany(Komentar::class, 'id_card', 'id');
     }
 }

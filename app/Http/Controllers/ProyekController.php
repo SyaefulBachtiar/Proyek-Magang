@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\timPerusahaan\Lampiran;
 use App\Events\BoardUpdated;
 use App\Events\NotifikasiEvent;
 use App\Models\timPerusahaan\Anggota_card;
@@ -12,6 +13,7 @@ use App\Models\timPerusahaan\Checklist;
 use App\Models\TimPerusahaan\Checklist_card;
 use App\Models\TimPerusahaan\Deskripsi;
 use App\Models\timPerusahaan\Kalender;
+use App\Models\TimPerusahaan\Komentar;
 use App\Models\timPerusahaan\Label_card;
 use App\Models\timPerusahaan\Label_tim;
 use App\Models\timPerusahaan\List_boardModel;
@@ -154,9 +156,28 @@ class ProyekController extends Controller
         $dataCard = Card_listModel::where('id', $cardId)->firstOrFail();
         $title_checklist = Title_Checklist::where('id_tim_perusahaan', $id_tim)->get();
         $deskripsi = Deskripsi::where('id_card', $cardId)->first();
+        $komentar = Card_listModel::with(['komentar' => function ($query) use ($cardId){
+            $query->where('id_card', $cardId)->orderBy('created_at', 'desc')->with('user', 'lampiran');
+        }])->find($cardId);
+
+        $data_komentar = $komentar->komentar->map(function($data) {
+            return [
+                'id' => $data->id,
+                'mention' => $data->mention,
+                'parent_id' => $data->parent_id,
+                'komentar' => $data->komentar,
+                'user_id' => $data->user->id,
+                'user_name' => $data->user->name,
+                'judul_lampiran' => $data?->lampiran?->judul,
+                'created_at' => $data->created_at,
+                'updated_at' => $data->updated_at,
+            ];
+        });
         $checklist = Title_Checklist_card::with(['checklist_card' => function ($query) use ($cardId){
             $query->where('id_card', $cardId);
-        }])->where('id_card', $cardId)->get();
+        }])->where('id', $cardId)->get();
+
+        $lampiran_card = Lampiran::where('id_card', $cardId)->orderBy('created_at', 'desc')->get();
 
         $user = Auth::user();
 
@@ -178,6 +199,7 @@ class ProyekController extends Controller
         });
 
         return inertia('Card/Card_kanban', [
+            'id' => $id,
             'id_tim' => $id_tim,
             'card_id' => $cardId,
             'kalender' => $kalender,
@@ -189,6 +211,8 @@ class ProyekController extends Controller
             'title_checklist' => $title_checklist,
             'checklist' => $checklist,
             'deskripsi' => $deskripsi,
+            'lampiran_card' => $lampiran_card,
+            'komentar' => $data_komentar,
         ]);
     }
 
@@ -656,7 +680,7 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
                 'id' => (string) Str::uuid(),
                 'title' => $checklist_card->title,
                 'image' => $checklist_card->image,
-                'id_title_checklist' => $checklist_title_card->id_title_checklist
+                'id_title_checklist' => $checklist_title_card->id_title_checklist,
             ]);
             
             $card = Card_listModel::findOrFail($id_card);
@@ -685,7 +709,7 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
 
         $this->broadcastBoardUpdate($id_board);
 
-        return response()->json(['success' => 'Checklist updated successfully']);
+        return response()->json(['success' => 'Checklist updated success']);
     }
 
     public function update_notchecklist (Request $request, $id, $checklist_id) {
@@ -705,16 +729,70 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
         return response()->json(['success' => 'Checklist updated successfully']);
     }
 
+    
     public function delete_title_checklist ($id, $id_checklist) {
         $title_checklist = Title_Checklist_card::findOrFail($id_checklist);
-
+        
         $title_checklist->delete();
-
+        
         $id_board = $title_checklist->card->listBoard->id_board;
-
+        
         $this->broadcastBoardUpdate($id_board);
-
+        
         return redirect()->back()->with('success', 'Berhasil menghapus title checklist');
+    }
+    
+    public function update_title_checklist (Request $request, $id, $id_checklist) {
+        try{
+
+            $request->validate([
+            'id_checklist_card' => 'required|string|exists:checklist_card,id',
+            'title_checklist' => 'required|string'
+            ]);
+
+        $checklist_card = Checklist_card::findOrFail($request->id_checklist_card);
+        
+        // $title_checklist_card = Title_Checklist_card::where('id', $checklist_card->id_title_checklist_card)->first();
+        
+        $title_checklist_card = $checklist_card->title_checklist_card;
+        
+        $checklist = Title_Checklist::with(['checklist' => function ($query) use ($checklist_card){
+            $query->where('title', $checklist_card->title);
+        }])->find($title_checklist_card->id_title_checklist);
+        // dd($checklist->checklist);
+        // ambil relasi checklist lewat model
+        // $checklist = $checklist_card->checklist;
+
+        // update checklist_card
+        $checklist_card->update([
+            'title' => $request->title_checklist
+        ]);
+
+        // update checklist kalau ada
+        if ($checklist) {
+            $checklist->checklist->first()->update([
+                'title' => $request->title_checklist
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Berhasil Update');
+    } catch (\Exception $e) {
+        Log::info($e->getMessage());
+        return redirect()->back()->with('error', 'Gagal edit title checklist');
+    }
+    }
+    
+    public function update_delete_checklist ($id, $id_checklist ) {
+        $checklist_card = Checklist_card::findOrFail($id_checklist);
+
+        if($checklist_card){
+            $checklist_card->title_checklist_card->title_checklist->checklist()->delete();
+        }
+
+            $checklist_card->delete();
+
+        return redirect()->back()->with('success', 'berhasil hapus');
+
     }
 
     public function delete_image_checklist ($id, $checklist_id) {
@@ -817,4 +895,102 @@ public function store_checklist(Request $request, $id, $id_tim, $id_card)
             return redirect()->back()->with('error', 'error: ' . $e);
         }
     }
+
+    public function store_lampiran(Request $request, $id, $card_id)
+    {
+        $request->validate([
+            'judul' => 'required|string|max:100',
+            'deskripsi' => 'nullable|string',
+            'gambar' => 'required|file|mimes:jpeg,png,jpg,gif,webp,pdf,doc,docx,xls,xlsx,txt|max:5120', // Maks 5MB, bisa berbagai jenis file
+        ]);
+
+        try {
+            $card = Card_listModel::findOrFail($card_id);
+            $path = $request->file('gambar')->store('lampiran', 'public');
+
+            // Simpan data ke database menggunakan Model Lampiran
+            Lampiran::create([
+                'id' => (string) Str::uuid(),
+                'judul' => $request->judul,
+                'deskripsi' => $request->deskripsi,
+                'image' => $path, // Simpan path filenya
+                'id_card' => $card_id,
+            ]);
+
+            $id_board = $card->listBoard->id_board;
+            $this->broadcastBoardUpdate($id_board);
+
+            return back()->with('success', 'Lampiran berhasil ditambahkan.');
+
+        } catch (\Exception $e) {
+            // Tambahkan log untuk debugging jika perlu
+            Log::error('Gagal upload lampiran: '.$e->getMessage());
+            return back()->with('gagal', 'Gagal menambahkan lampiran.');
+        }
+    }
+
+    public function update_lampiran(Request $request, $id, $lampiran_id)
+{
+    $request->validate([
+        'judul' => 'required|string|max:100',
+        'deskripsi' => 'nullable|string',
+        'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,pdf,doc,docx,xls,xlsx,txt|max:5120',
+        '_method' => 'required|string|in:PUT', // Memastikan ini adalah request update
+    ]);
+
+    try {
+        $lampiran = Lampiran::findOrFail($lampiran_id);
+
+        // Update judul dan deskripsi
+        $lampiran->judul = $request->judul;
+        $lampiran->deskripsi = $request->deskripsi;
+
+        // Cek jika ada file baru yang di-upload
+        if ($request->hasFile('image')) {
+            // 1. Hapus file lama dari storage
+            Storage::disk('public')->delete($lampiran->image);
+
+            // 2. Simpan file baru
+            $path = $request->file('image')->store('lampiran', 'public');
+
+            // 3. Update path file di database
+            $lampiran->image = $path;
+        }
+
+        $lampiran->save();
+
+        // Broadcast update ke semua user
+        $id_board = $lampiran->card->listBoard->id_board;
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'Lampiran berhasil diperbarui.');
+
+    } catch (\Exception $e) {
+        return back()->with('gagal', 'Gagal memperbarui lampiran.');
+    }
+}
+
+public function destroy_lampiran($id, $lampiran_id)
+{
+    try {
+        $lampiran = Lampiran::findOrFail($lampiran_id);
+
+        // Simpan id_board sebelum lampiran dihapus
+        $id_board = $lampiran->card->listBoard->id_board;
+
+        // 1. Hapus file dari storage
+        Storage::disk('public')->delete($lampiran->image);
+
+        // 2. Hapus data dari database
+        $lampiran->delete();
+
+        // 3. Broadcast update ke semua user
+        $this->broadcastBoardUpdate($id_board);
+
+        return back()->with('success', 'Lampiran berhasil dihapus.');
+
+    } catch (\Exception $e) {
+        return back()->with('gagal', 'Gagal menghapus lampiran.');
+    }
+}
 }

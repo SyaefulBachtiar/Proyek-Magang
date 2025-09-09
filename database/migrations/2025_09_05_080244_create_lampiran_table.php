@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('lampiran', function (Blueprint $table) {
             $table->string('id', 36)->primary();
             $table->string('judul');
-            $table->text('deskripsi');
+            $table->text('deskripsi')->nullable();
             $table->string('image');
             $table->string('id_card', 36);
             $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
