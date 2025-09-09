@@ -69,12 +69,6 @@ class TimPerusahaan extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Messages chat grup
-    public function messages()
-    {
-        return $this->hasMany(Message::class, 'tim_id');
-    }
-
     // Ambil messages terbaru
     public function latestMessages($limit = 50)
     {

@@ -109,7 +109,13 @@
                 }
                 console.log("error: ", error);
             }finally{
-                setLoading(null)
+                setLoading(null);
+
+                router.reload({
+                    only: ["label_card"],
+                    preserveState: true,
+                    preserveScroll: true
+                });
             }
         }
 
