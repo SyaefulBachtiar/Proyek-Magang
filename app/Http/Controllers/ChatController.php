@@ -5,7 +5,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Message;
-use App\Models\TimPerusahaan;
+use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;

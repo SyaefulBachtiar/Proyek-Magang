@@ -28,6 +28,14 @@ export default function TambahList ({id, id_board, close}) {
         }
     }
 
+    const resetForm = () => {
+        setFormData({
+            nama_list: "",
+            id_board: id_board,
+        });
+        setErrors({});
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
@@ -52,13 +60,16 @@ export default function TambahList ({id, id_board, close}) {
         submitData,
         {
             forceFormData: true,
-            onSuccess: () => {
-                console.log("berhasil membuat lsit");
-                close()
+            onSuccess: (response) => {
+                console.log("berhasil membuat list", response);
+                resetForm(); // Reset form after success
+                // Refresh the current page to get updated data
+                router.reload({ only: ['lists'] }); // atau router.visit(window.location.href)
+                close();
             },
             onError: (errors) => {
-                setErrors(errors);
                 console.log("Error: ", errors);
+                setErrors(errors);
             },
             onFinish: () => {
                 setLoading(false);
@@ -87,9 +98,15 @@ export default function TambahList ({id, id_board, close}) {
                         onChange={handleInputChange}
                         onBlur={() => {}}
                         placeholder="Masukkan nama list..."
-                        className={errors.nama_tugas ? "border-red-500" : ""}
+                        className={errors.nama_list ? "border-red-500" : ""} // Fixed: nama_tugas -> nama_list
                     />
-                    <div className="flex justify-end gap-3">
+                    
+                    {/* Display error message */}
+                    {errors.nama_list && (
+                        <p className="text-red-500 text-sm mt-1">{errors.nama_list}</p>
+                    )}
+
+                    <div className="flex justify-end gap-3 mt-6">
                         <button
                             type="button"
                             onClick={close}
