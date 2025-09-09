@@ -175,7 +175,7 @@ class ProyekController extends Controller
         });
         $checklist = Title_Checklist_card::with(['checklist_card' => function ($query) use ($cardId){
             $query->where('id_card', $cardId);
-        }])->where('id', $cardId)->get();
+        }])->where('id_card', $cardId)->get();
 
         $lampiran_card = Lampiran::where('id_card', $cardId)->orderBy('created_at', 'desc')->get();
 
@@ -539,7 +539,7 @@ class ProyekController extends Controller
         $label_tim = Label_tim::findOrFail($request->label_id);
 
         
-        $label_card = Label_card::create([
+        Label_card::create([
             'id' => (string) Str::uuid(),
             'title' => $label_tim->title,
             'warna' => $label_tim->warna,
