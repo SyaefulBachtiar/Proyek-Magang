@@ -18,7 +18,7 @@ import {
     SquareCheck,
     SquarePen,
     Tag,
-    Trash2, // Pastikan Trash2 di-import
+    Trash2,
     UserRoundPlus,
     X,
 } from "lucide-react";
@@ -35,7 +35,6 @@ import Lampiran from "@/modal/Proyek/Lampiran";
 import InputChecklist from "@/Components/InputChecklist";
 import ElipsisModal from "@/Components/ElipsisModal";
 import KomponenKomentar from "@/Components/KomponenKomentar";
-
 
 const initialState = {
     tambahAnggota: false,
@@ -54,8 +53,8 @@ const initialState = {
     isCommenting: false,
     editKomentar: null,
     mention: null,
-    mention_id: null, 
-    komentarValue: ""
+    mention_id: null,
+    komentarValue: "",
 };
 
 function reducer(state, action) {
@@ -71,9 +70,9 @@ function reducer(state, action) {
         case "TOGGLE_LAMPIRAN":
             return { ...state, lampiran: !state.lampiran };
         case "ELIPSIS_MODAL":
-            return {...state, modalElipsis: action.payload}
+            return { ...state, modalElipsis: action.payload };
         case "TOGGLE_INPUT_CHECKLIST":
-            return {...state, inputCheck: action.payload}
+            return { ...state, inputCheck: action.payload };
         case "START_ADDING":
             return {
                 ...state,
@@ -101,19 +100,39 @@ function reducer(state, action) {
         case "SET_LOADING":
             return { ...state, loading: action.payload };
         case "SET_UPLOADING_PHOTO":
-            return {...state, uploadingPhoto: action.payload.checklistId ? action.payload.checklistId : null}
+            return {
+                ...state,
+                uploadingPhoto: action.payload.checklistId
+                    ? action.payload.checklistId
+                    : null,
+            };
         case "SET_PHOTO_ERROR":
-            return {...state, photoError: action.payload.error, uploadingPhoto: null}
+            return {
+                ...state,
+                photoError: action.payload.error,
+                uploadingPhoto: null,
+            };
         case "CLEAR_PHOTO_ERROR":
-            return {...state, photoError: null}
+            return { ...state, photoError: null };
         case "START_KOMENTAR":
-            return {...state, isCommenting: action.payload}
+            return { ...state, isCommenting: action.payload };
         case "KOMENTAR_MENTION":
-            return { ...state, isCommenting: action.payload.isCommenting, mention: action.payload.mention, komentarValue: action.payload.komentarValue, mention_id: action.payload.mention_id };
+            return {
+                ...state,
+                isCommenting: action.payload.isCommenting,
+                mention: action.payload.mention,
+                komentarValue: action.payload.komentarValue,
+                mention_id: action.payload.mention_id,
+            };
         case "SET_KOMENTAR_VALUE":
-            return {...state, komentarValue: action.payload}
+            return { ...state, komentarValue: action.payload };
         case "BATAL_KOMENTAR":
-            return {...state, isCommenting: false, komentarValue: "", mention: null }
+            return {
+                ...state,
+                isCommenting: false,
+                komentarValue: "",
+                mention: null,
+            };
         case "EDIT":
             return { ...state, editKomentar: action.payload };
         default:
@@ -140,7 +159,7 @@ export default function Card_kanban() {
         flash,
         deskripsi,
         lampiran_card,
-        komentar
+        komentar,
     } = usePage().props;
 
     const refs = useRef({});
@@ -171,7 +190,10 @@ export default function Card_kanban() {
     }, [flash]);
 
     useEffect(() => {
-        if (state.addChecklistId && newItemInputRef.current[state.addChecklistId]) {
+        if (
+            state.addChecklistId &&
+            newItemInputRef.current[state.addChecklistId]
+        ) {
             setTimeout(() => {
                 newItemInputRef.current[state.addChecklistId].focus();
             }, 100);
@@ -179,7 +201,6 @@ export default function Card_kanban() {
     }, [state.addChecklistId]);
 
     const handleSaveNewItem = (title_checklist_id) => {
-
         if (!state.newItemText.trim()) return;
         dispatch({ type: "SET_LOADING", payload: true });
 
@@ -264,7 +285,7 @@ export default function Card_kanban() {
                         "X-CSRF-TOKEN": document
                             .querySelector('meta[name="csrf-token"]')
                             .getAttribute("content"),
-                        "Accept": "application/json",
+                        Accept: "application/json",
                         "X-Requested-With": "XMLHttpRequest",
                     },
                     body: formData,
@@ -273,7 +294,9 @@ export default function Card_kanban() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || "Gagal mengupload foto");
+                throw new Error(
+                    errorData.message || "Gagal mengupload foto"
+                );
             }
 
             const result = await response.json();
@@ -303,23 +326,25 @@ export default function Card_kanban() {
     };
 
     const handleSaveDeskripsi = () => {
+        dispatch({ type: "SET_LOADING", payload: true });
 
-        dispatch({ type: "SET_LOADING", payload: true})
-
-        router.post(route('store.deskripsi', {id: user.id, id_card: card_id}),{
-            deskripsi: description,
-            id_deskripsi: deskripsi?.id
-        },{
-            preserveState: true,
-            onSuccess: () => {
-                setIsEditing(false);
-            },onFinish: () => {
-                dispatch({ type: "SET_LOADING", payload: false})
+        router.post(
+            route("store.deskripsi", { id: user.id, id_card: card_id }),
+            {
+                deskripsi: description,
+                id_deskripsi: deskripsi?.id,
+            },
+            {
+                preserveState: true,
+                onSuccess: () => {
+                    setIsEditing(false);
+                },
+                onFinish: () => {
+                    dispatch({ type: "SET_LOADING", payload: false });
+                },
             }
-        }
-    );
-    }
-
+        );
+    };
 
     const handleCheckboxChange = async (e, checklistId) => {
         const isChecked = e.target.checked;
@@ -345,7 +370,7 @@ export default function Card_kanban() {
                     "X-CSRF-TOKEN": document
                         .querySelector('meta[name="csrf-token"]')
                         .getAttribute("content"),
-                    "Accept": "application/json",
+                    Accept: "application/json",
                     "X-Requested-With": "XMLHttpRequest",
                 },
                 body: JSON.stringify({
@@ -471,26 +496,54 @@ export default function Card_kanban() {
 
     // State untuk edit lampiran
     const [editingLampiranId, setEditingLampiranId] = useState(null);
-    const [editValues, setEditValues] = useState({ judul: "", deskripsi: "", image: null });
+    const [editValues, setEditValues] = useState({
+        judul: "",
+        deskripsi: "",
+        image: null,
+    });
 
     // komentar Lampiran
     const lampiranComment = (lampiran_judul, mention_id) => {
-        dispatch({ type: "KOMENTAR_MENTION", payload: {isCommenting: true, mention: lampiran_judul, komentarValue: state.komentarValue, mention_id: mention_id}})
-    }
+        dispatch({
+            type: "KOMENTAR_MENTION",
+            payload: {
+                isCommenting: true,
+                mention: lampiran_judul,
+                komentarValue: state.komentarValue,
+                mention_id: mention_id,
+            },
+        });
+    };
 
     const balasKomentar = (komentar) => {
-        dispatch({ type: "KOMENTAR_MENTION", payload: {isCommenting: true, mention: komentar.user_name, komentarValue: state.komentarValue, mention_id: komentar.id} })
-    }
+        dispatch({
+            type: "KOMENTAR_MENTION",
+            payload: {
+                isCommenting: true,
+                mention: komentar.user_name,
+                komentarValue: state.komentarValue,
+                mention_id: komentar.id,
+            },
+        });
+    };
 
     const editKomentar = (komentar) => {
-        dispatch({ type: "KOMENTAR_MENTION", payload: {isCommenting: true, mention: komentar.mention || null, komentarValue: komentar.komentar, mention_id:komentar.parent_id || komentar.lampiran_id} })
+        dispatch({
+            type: "KOMENTAR_MENTION",
+            payload: {
+                isCommenting: true,
+                mention: komentar.mention || null,
+                komentarValue: komentar.komentar,
+                mention_id: komentar.parent_id || komentar.lampiran_id,
+            },
+        });
         dispatch({ type: "EDIT", payload: komentar.id });
-    }
+    };
 
     // Fungsi untuk menyimpan komentar
     const handleKomentar = () => {
         let finalKomentar = state.komentarValue || "";
-        if(state.mention && finalKomentar.startsWith(state.mention)){
+        if (state.mention && finalKomentar.startsWith(state.mention)) {
             finalKomentar = finalKomentar.substring(state.mention.length).trim();
         }
 
@@ -498,26 +551,26 @@ export default function Card_kanban() {
             komentar: finalKomentar,
             mention: state.mention,
             ...(state.mention_id && { mention_id: state.mention_id }),
-            ...(state.editKomentar && {edit_komentar: state.editKomentar}),
+            ...(state.editKomentar && { edit_komentar: state.editKomentar }),
         };
 
         dispatch({ type: "SET_LOADING", payload: true });
 
-        if(!state.editKomentar){
-             router.post(
-                 route("komentar", { id: user.id, id_card: card_id }),
-                 payload,
-                 {
-                     preserveState: true,
-                     onSuccess: () => {
-                         dispatch({ type: "BATAL_KOMENTAR" });
-                     },
-                     onFinish: () => {
-                         dispatch({ type: "SET_LOADING", payload: false });
-                     },
-                 }
-             );
-        }else{
+        if (!state.editKomentar) {
+            router.post(
+                route("komentar", { id: user.id, id_card: card_id }),
+                payload,
+                {
+                    preserveState: true,
+                    onSuccess: () => {
+                        dispatch({ type: "BATAL_KOMENTAR" });
+                    },
+                    onFinish: () => {
+                        dispatch({ type: "SET_LOADING", payload: false });
+                    },
+                }
+            );
+        } else {
             router.put(
                 route("edit.komentar", { id: user.id, id_card: card_id }),
                 payload,
@@ -574,12 +627,14 @@ export default function Card_kanban() {
     // Fungsi untuk handle hapus lampiran
     const handleDeleteLampiran = (lampiranId) => {
         if (confirm("Anda yakin ingin menghapus lampiran ini?")) {
-            router.delete(route("lampiran.destroy", { id: id, lampiran_id: lampiranId }), {
-                preserveScroll: true,
-            });
+            router.delete(
+                route("lampiran.destroy", { id: id, lampiran_id: lampiranId }),
+                {
+                    preserveScroll: true,
+                }
+            );
         }
     };
-
 
     // Fungsi helper untuk format waktu
     const formatRelativeTime = (isoDate) => {
@@ -629,13 +684,13 @@ export default function Card_kanban() {
                         title={lampiran.judul}
                     />
                     <a
-                            href={fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                    <div className="w-full text-center p-1 text-xs bg-gray-300 rounded mt-4">
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <div className="w-full text-center p-1 text-xs bg-gray-300 rounded mt-4">
                             Lihat
-                    </div>
+                        </div>
                     </a>
                 </div>
             );
@@ -648,7 +703,6 @@ export default function Card_kanban() {
             </div>
         );
     };
-
 
     return (
         <Proyek>
@@ -706,7 +760,6 @@ export default function Card_kanban() {
                                 {/* Isi Deskripsi */}
                                 <div className="px-1">
                                     {isEditing ? (
-                                        // <div></div>
                                         <InputEditor
                                             anggota_card={anggota_card}
                                             close={() => setIsEditing(false)}
@@ -1273,15 +1326,15 @@ export default function Card_kanban() {
                                                                         <div>
                                                                             <label
                                                                                 htmlFor={`file_upload_${check.id}`}
-                                                                                className={`flex items-center gap-2 p-2 text-xs rounded text-white cursor-pointer transition-colors
-                                                                            ${
-                                                                                state.uploadingPhoto ===
-                                                                                check.id
-                                                                                    ? "bg-gray-400 cursor-not-allowed"
-                                                                                    : check.image
-                                                                                    ? "bg-green-500 hover:bg-green-600"
-                                                                                    : "bg-blue-400 hover:bg-blue-500"
-                                                                            }`}
+                                                                                className={`flex items-center gap-2 p-2 text-xs rounded text-white cursor-pointer transition-colors 
+                                                                                ${
+                                                                                    state.uploadingPhoto ===
+                                                                                    check.id
+                                                                                        ? "bg-gray-400 cursor-not-allowed"
+                                                                                        : check.image
+                                                                                        ? "bg-green-500 hover:bg-green-600"
+                                                                                        : "bg-blue-400 hover:bg-blue-500"
+                                                                                }`}
                                                                             >
                                                                                 <Camera
                                                                                     size={
@@ -1503,7 +1556,8 @@ export default function Card_kanban() {
                                                                 }
                                                                 className="p-2 text-xs bg-gray-300 text-gray-900 rounded-md hover:bg-gray-400"
                                                             >
-                                                                Tambah Checklist
+                                                                Tambah
+                                                                Checklist
                                                             </button>
                                                         </div>
                                                     )}

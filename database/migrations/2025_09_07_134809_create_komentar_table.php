@@ -15,8 +15,6 @@ return new class extends Migration
             $table->string('id', 36)->primary();
             $table->string('mention')->nullable();
             $table->text('komentar');
-            $table->string('parent_id', 36)->nullable();
-            $table->foreign('parent_id')->references('id')->on('komentar')->onDelete('cascade');
             $table->string('lampiran_id')->nullable();
             $table->foreign('lampiran_id')->references('id')->on('lampiran')->onDelete('cascade');
             $table->string('id_user', 36);
