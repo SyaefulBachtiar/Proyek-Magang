@@ -8,29 +8,39 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::dropIfExists('messages');
-
         Schema::create('messages', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('user_id');      // harus sama tipe dengan users.id
-            $table->uuid('tim_id');       // harus sama tipe dengan tim_perusahaan.id
-            $table->text('pesan');
-            $table->boolean('is_read')->default(false);
+            $table->string('id', 36)->primary();
+            $table->string('id_tim', 36);
+            $table->foreign('id_tim')->references('id')->on('tim_perusahaan')->onDelete('cascade');
+            $table->string('sender_id', 36);
+            $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
+            $table->longText('pesan');
             $table->timestamps();
-
-            // Foreign keys
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('tim_id')->references('id')->on('tim_perusahaan')->onDelete('cascade');
-
-            // Indexes untuk performa
-            $table->index(['tim_id', 'created_at'], 'idx_tim_waktu');
-            $table->index('user_id', 'idx_user');
-            $table->index('created_at', 'idx_waktu');
         });
+
+        Schema::create(('read_at_mesaage'), function (Blueprint $table){
+            $table->string('id', 36)->primary();
+            $table->string('id_message', 36);
+            $table->foreign('id_message')->references('id')->on('messages')->onDelete('cascade');
+            $table->string('id_user_read', 36);
+            $table->foreign('id_user_read')->references('id')->on('users')->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        Schema::create(('files_message'), function (Blueprint $table) {
+            $table->string('id', 36)->primary();
+            $table->string('id_message', 36);
+            $table->foreign('id_message')->references('id')->on('messages')->onDelete('cascade');
+            $table->string('file');
+            $table->timestamps();
+        });
+
     }
 
     public function down(): void
     {
         Schema::dropIfExists('messages');
+        Schema::dropIfExists('read_at_mesaage');
+        Schema::dropIfExists('files_message');
     }
 };

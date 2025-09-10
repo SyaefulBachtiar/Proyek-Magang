@@ -284,11 +284,6 @@ class ProyekController extends Controller
         return Inertia::render('pageProyek/Rinkas', ['dashboardId' => $id, 'activePage' => 'ringkasPage', 'tim' => $tim]);
     }
 
-    public function chatgrup ($id, $id_tim) {
-        $tim = TimPerusahaan::findOrFail($id_tim);
-        return Inertia::render('pageProyek/ChatGrup', ['dashboardId' => $id, 'activePage' => 'chatGrupPage', 'tim' => $tim]);
-    }
-
     public function laporan ($id, $id_tim) {
         $tim = TimPerusahaan::findOrFail($id_tim);
 

@@ -2,15 +2,14 @@
 
 use App\Http\Controllers\ProfilePengaturanController;
 use App\Http\Controllers\AksesTimController;
+use App\Http\Controllers\ChatGrup\ChatGrupController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProyekController;
-use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Komentar\KomenController;
 use App\Http\Controllers\Notif\NotifikasiController;
-use App\Http\Controllers\ProfilePerusahaanController;
 use App\Http\Controllers\Tim\Tim_perusahaanController;
 use App\Http\Controllers\Undangan\UndanganController;
 use Illuminate\Foundation\Application;
@@ -39,7 +38,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::get('/proyek/{id_tim}/board/{id_board}', [ProyekController::class, 'index'])->name('proyek');
     Route::get('/proyek/{id_tim}/ringkas', [ProyekController::class, 'ringkas'])->name('proyek.ringkas');
     Route::get('/proyek/{id_tim}/laporan', [ProyekController::class, 'laporan'])->name('proyek.laporan');
-    Route::get('/proyek/{id_tim}/chatgrup', [ProyekController::class, 'chatgrup'])->name('proyek.chatgrup');
+    Route::get('/proyek/{id_tim}/chatgrup', [ChatGrupController::class, 'chatgrup'])->name('proyek.chatgrup');
     Route::get('/proyek/{id_tim}/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
 
     // Tambah anggota Card Kanban
@@ -126,6 +125,9 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::post('komentar/{id_card}', [KomenController::class, 'komentar'])->name('komentar');
     Route::delete('komentar/{id_komentar}/delete', [KomenController::class, 'delete_komentar'])->name('delete.komentar');
     Route::put('komentar/edit/{id_card}', [KomenController::class, 'edit_komentar'])->name('edit.komentar');
+
+    // CHATING
+    Route::post('kirim/pesan/{id_tim}', [ChatGrupController::class, 'kirim_pesan'])->name('kirim.pesan');
 
 });
 

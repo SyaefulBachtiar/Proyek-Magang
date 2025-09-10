@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Http\Controllers\ChatGrup;
+
+use App\Events\BoardUpdated;
+use App\Http\Controllers\Controller;
+use App\Models\timPerusahaan\BoardModel;
+use App\Models\TimPerusahaan\Messages;
+use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Illuminate\Support\Str;
+
+class ChatGrupController extends Controller
+{
+    public function chatgrup ($id, $id_tim) {
+        $messages = Messages::where('id_tim', $id_tim)->with('sender', 'file')->orderBy('created_at', 'asc')->get();
+        $dataChat = $messages->map(function($message) {
+            $files = $message->file->map(function ($file){
+                return ['file' => $file->file];
+            })->all();
+            return [
+                'id' => $message->id,
+                'pesan' => $message->pesan,
+                'sender_id' => $message->sender_id,
+                'updated_at' => $message->created_at,
+                'name' => optional($message->sender)->name,
+                'poto' => optional($message->sender)->poto_profile_user,
+                'file' => $files,
+            ];
+        });
+
+        $tim = TimPerusahaan::where('id', $id_tim)->first();
+        $id_board = $tim->board_tim->id;
+
+        $tim = TimPerusahaan::findOrFail($id_tim);
+        return Inertia::render('pageProyek/ChatGrup', [
+            'dashboardId' => $id,
+            'activePage' => 'chatGrupPage', 
+            'tim' => $tim,
+            'chating' => $dataChat,
+            'id_board' => $id_board
+        ]);
+    }
+
+    public function kirim_pesan (Request $request, $id, $id_tim) {
+        // dd($request->all());
+        $request->validate([
+            'pesan_text' => 'nullable|string',
+            'pesan_file.*' => 'nullable|file|mimes:jpeg,png,pdf,doc,docx,xlsx|max:10240'
+        ]);
+
+        if (empty($request->pesan_text) && empty($request->pesan_file)) {
+            return response()->json(['message' => 'Pesan tidak boleh kosong.'], 400);
+        }
+
+        DB::beginTransaction();
+
+        try{
+
+            $message = Messages::create([
+                'id' => (string) Str::uuid(),
+                'id_tim' => $id_tim,
+                'sender_id' => $id,
+                'pesan' => $request->pesan_text
+            ]);
+
+            if($request->hasFile('pesan_file')){
+                foreach($request->pesan_file as $uploadFile){
+                    $filePath = $uploadFile->store('chat_files', 'public');
+
+                    $message->file()->create([
+                        'id' => (string) Str::uuid(),
+                        'id_message' => $message->id,
+                        'file' => $filePath,
+                    ]);
+                }
+            }
+
+            $timPerusahaan = TimPerusahaan::where('id', $id_tim)->first();
+            $id_board = $timPerusahaan->board_tim->id;
+
+            broadcast(new BoardUpdated($id_board));
+
+            DB::commit(); 
+        }catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['message' => 'Gagal mengirim pesan.', 'error' => $e->getMessage()], 500);
+        }
+    }
+}
