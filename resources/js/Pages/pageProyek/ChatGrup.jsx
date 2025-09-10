@@ -1,30 +1,236 @@
+// Cara install:
+// npm install emoji-picker-react
 
-import { EllipsisIcon, Paperclip, SendHorizonal, Smile } from "lucide-react";
+import {
+    EllipsisIcon,
+    Loader2,
+    Paperclip,
+    SendHorizonal,
+    Smile,
+    X,
+} from "lucide-react";
 import Proyek from "../Proyek";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
+import BubleChat from "@/Components/BubleChat";
+import { router, usePage } from "@inertiajs/react";
+// Import emoji picker
+import EmojiPicker from "emoji-picker-react";
 
-export default function ChatGrup ({ dashboardId, activePage, tim }) {
-    // State untuk menyimpan nilai dari textarea
-    const [message, setMessage] = useState("");
-    // Ref untuk mengakses elemen DOM textarea secara langsung
+const initialState = {
+    pesanText: "",
+    pesanFile: [],
+    previewFile: [],
+    loading: false,
+};
+
+function reducer(state, action) {
+    switch (action.type) {
+        case "SET_PESAN_TEXT":
+            return { ...state, pesanText: action.payload };
+        case "SET_PESAN_FILE":
+            return {
+                ...state,
+                pesanFile: [...state.pesanFile, action.payload.file],
+                previewFile: [...state.previewFile, action.payload.preview],
+            };
+        case "SET_LOADING":
+            return { ...state, loading: action.payload };
+        case "REMOVE_FILE":
+            URL.revokeObjectURL(state.previewFile[action.payload]);
+            const newFiles = state.pesanFile.filter(
+                (_, index) => index !== action.payload
+            );
+            const newPreviews = state.previewFile.filter(
+                (_, index) => index !== action.payload
+            );
+            return {
+                ...state,
+                pesanFile: newFiles,
+                previewFile: newPreviews,
+            };
+        case "RESET_STATE":
+            if (state.previewFile) {
+                URL.revokeObjectURL(state.previewFile);
+            }
+            return initialState;
+        default:
+            return state;
+    }
+}
+
+export default function ChatGrup({
+    dashboardId,
+    activePage,
+    tim,
+    chating,
+    id_board,
+}) {
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const { auth } = usePage().props;
+
+    // Refs
     const textareaRef = useRef(null);
+    const chatContainerRef = useRef(null);
+    const previousMessageCount = useRef(chating?.length || 0);
+    const emojiPickerRef = useRef(null);
 
-    // useEffect hook untuk menyesuaikan tinggi textarea setiap kali 'message' berubah
+    // Function untuk scroll ke bawah
+    const scrollToBottom = (behavior = "smooth") => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: behavior,
+            });
+        }
+    };
+
+    // Handle emoji click
+    const onEmojiClick = (emojiObject) => {
+        const emoji = emojiObject.emoji;
+        const textarea = textareaRef.current;
+
+        if (textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const currentText = state.pesanText;
+
+            // Insert emoji di posisi cursor
+            const newText =
+                currentText.substring(0, start) +
+                emoji +
+                currentText.substring(end);
+
+            dispatch({
+                type: "SET_PESAN_TEXT",
+                payload: newText,
+            });
+
+            // Fokus kembali ke textarea dan set cursor position
+            setTimeout(() => {
+                textarea.focus();
+                textarea.setSelectionRange(
+                    start + emoji.length,
+                    start + emoji.length
+                );
+            }, 0);
+        }
+
+        // Tutup emoji picker
+        setShowEmojiPicker(false);
+    };
+
+    // Close emoji picker when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                emojiPickerRef.current &&
+                !emojiPickerRef.current.contains(event.target)
+            ) {
+                setShowEmojiPicker(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    // broadcast untuk realtim
+    useEffect(() => {
+        if (!id_board) return;
+        const channel = window.Echo.private(`board.${id_board}`);
+        channel.listen(".board.updated", (event) => {
+            router.reload({
+                only: ["chating"],
+                preserveState: true,
+                preserveScroll: false,
+            });
+        });
+
+        return () => {
+            window.Echo.leave(`board.${id_board}`);
+        };
+    }, [id_board]);
+
+    // Auto scroll ketika ada pesan baru
+    useEffect(() => {
+        const currentMessageCount = chating?.length || 0;
+        if (currentMessageCount > previousMessageCount.current) {
+            setTimeout(() => {
+                scrollToBottom("smooth");
+            }, 100);
+        }
+        previousMessageCount.current = currentMessageCount;
+    }, [chating]);
+
+    // Scroll ke bawah saat pertama kali load
+    useEffect(() => {
+        setTimeout(() => {
+            scrollToBottom("auto");
+        }, 100);
+    }, []);
+
+    // Auto resize textarea
     useEffect(() => {
         if (textareaRef.current) {
-            // Atur tinggi ke 'auto' terlebih dahulu agar scrollHeight dihitung dengan benar
             textareaRef.current.style.height = "auto";
-            // Set tinggi elemen sesuai dengan scrollHeight-nya
             textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
         }
-    }, [message]);
+    }, [state.pesanText]);
+
+    const handleFileChange = (e) => {
+        const files = e.target.files;
+        if (files) {
+            for (const file of files) {
+                const previewUrl = URL.createObjectURL(file);
+                dispatch({
+                    type: "SET_PESAN_FILE",
+                    payload: { file, preview: previewUrl },
+                });
+            }
+        }
+        e.target.value = null;
+    };
 
     const handleSendMessage = () => {
-        // Logika untuk mengirim pesan
-        console.log("Pesan terkirim:", message);
-        // Kosongkan textarea setelah pesan dikirim
-        setMessage("");
+        if (state.pesanText.trim() === "" && state.pesanFile.length === 0) {
+            return;
+        }
+
+        dispatch({ type: "SET_LOADING", payload: true });
+
+        const payload = {
+            pesan_text: state.pesanText,
+            pesan_file: state.pesanFile,
+        };
+
+        router.post(
+            route("kirim.pesan", { id: auth.user.id, id_tim: tim?.id }),
+            payload,
+            {
+                preserveState: true,
+                preserveScroll: false,
+                onSuccess: () => {
+                    dispatch({ type: "RESET_STATE" });
+                    setTimeout(() => {
+                        scrollToBottom("smooth");
+                    }, 200);
+                },
+                onFinish: () => {
+                    dispatch({ type: "SET_LOADING", payload: false });
+                },
+            }
+        );
     };
+
+    const handleClearFile = (index) => {
+        dispatch({ type: "REMOVE_FILE", payload: index });
+    };
+
+    const isDisabled =
+        state.pesanText.trim() === "" && state.pesanFile.length === 0;
 
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
@@ -36,74 +242,152 @@ export default function ChatGrup ({ dashboardId, activePage, tim }) {
                         <EllipsisIcon />
                     </div>
                 </div>
+
                 {/* Chat konten */}
-                <div className="flex-1 overflow-y-auto p-4 my-scrollable-element">
-                    <div className="flex justify-end mb-4">
-                        <div className="bg-blue-500 text-white p-3 rounded-l-lg rounded-tr-lg max-w-sm">
-                            Halo, apa kabar semua? Semoga proyek kita berjalan
-                            lancar.
-                        </div>
-                    </div>
-                    <div className="flex justify-start mb-4">
-                        <div className="bg-gray-200 p-3 rounded-r-lg rounded-tl-lg max-w-sm text-gray-800">
-                            Kabar baik! Aku setuju, kita harus terus semangat.
-                        </div>
-                    </div>
-                    <div className="flex justify-end mb-4">
-                        <div className="bg-blue-500 text-white p-3 rounded-l-lg rounded-tr-lg max-w-sm">
-                            Halo, apa kabar semua? Semoga proyek kita berjalan
-                            lancar.
-                        </div>
-                    </div>
-                    <div className="flex justify-start mb-4">
-                        <div className="bg-gray-200 p-3 rounded-r-lg rounded-tl-lg max-w-sm text-gray-800">
-                            Kabar baik! Aku setuju, kita harus terus semangat.
-                        </div>
-                    </div>
-                    <div className="flex justify-end mb-4">
-                        <div className="bg-blue-500 text-white p-3 rounded-l-lg rounded-tr-lg max-w-sm">
-                            Halo, apa kabar semua? Semoga proyek kita berjalan
-                            lancar.
-                        </div>
-                    </div>
-                    <div className="flex justify-start mb-4">
-                        <div className="bg-gray-200 p-3 rounded-r-lg rounded-tl-lg max-w-sm text-gray-800">
-                            Kabar baik! Aku setuju, kita harus terus semangat.
-                        </div>
-                    </div>
+                <div
+                    ref={chatContainerRef}
+                    className="flex-1 overflow-y-auto p-4 my-scrollable-element"
+                    style={{ scrollBehavior: "smooth" }}
+                >
+                    <BubleChat chatting={chating} />
                 </div>
 
                 {/* Input chat */}
-                <div className="w-full px-2 pb-4 pt-2">
-                    <div className="flex items-center relative">
-                        <div className="w-full p-2 bg-white rounded-xl flex items-center shadow-lg">
-                            <textarea
-                                // Atribut ref untuk menghubungkan elemen DOM ke useRef
-                                ref={textareaRef}
-                                // State 'message' sebagai nilai textarea
-                                value={message}
-                                // Event handler untuk memperbarui state
-                                onChange={(e) => setMessage(e.target.value)}
-                                className="w-full rounded-xl p-4 border-none pr-[100px] resize-none focus:outline-none focus:ring-0 focus:shadow-none overflow-y-scroll min-h-[50px] max-h-[150px] hide-scrollbar"
-                                placeholder="Tulis pesan..."
-                                rows={1} // Menggunakan rows={1} agar height dihitung dari baris pertama
+                <div className="w-full px-2 pb-4 pt-2 relative">
+                    {/* Emoji Picker */}
+                    {showEmojiPicker && (
+                        <div
+                            ref={emojiPickerRef}
+                            className="absolute bottom-20 left-4 z-50 shadow-2xl rounded-lg overflow-hidden"
+                        >
+                            <EmojiPicker
+                                onEmojiClick={onEmojiClick}
+                                theme="light"
+                                width={320}
+                                height={400}
+                                previewConfig={{
+                                    showPreview: false,
+                                }}
+                                searchDisabled={false}
+                                skinTonesDisabled={false}
                             />
-                            <div className="absolute h-full right-5 top-0 flex items-end pb-4">
+                        </div>
+                    )}
+
+                    <div className="flex items-center relative">
+                        <div className="w-full pt-2 bg-white rounded-xl flex items-center shadow-lg">
+                            <div className="space-y-2 w-full">
+                                {/* Preview file */}
+                                {state.previewFile.length > 0 && (
+                                    <div className="p-2 mb-2 bg-gray-100 rounded-md flex flex-wrap gap-2">
+                                        {state.previewFile.map(
+                                            (previewUrl, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="w-[80px] h-[80px] relative rounded-md overflow-hidden"
+                                                >
+                                                    <img
+                                                        src={previewUrl}
+                                                        alt={`preview-${index}`}
+                                                        className="object-cover w-full h-full"
+                                                    />
+                                                    <div
+                                                        onClick={() =>
+                                                            handleClearFile(
+                                                                index
+                                                            )
+                                                        }
+                                                        className="absolute top-0 right-0 cursor-pointer bg-gray-300 rounded-full"
+                                                    >
+                                                        <X size={16} />
+                                                    </div>
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
+                                )}
+
+                                <textarea
+                                    ref={textareaRef}
+                                    value={state.pesanText}
+                                    onChange={(e) =>
+                                        dispatch({
+                                            type: "SET_PESAN_TEXT",
+                                            payload: e.target.value,
+                                        })
+                                    }
+                                    className="w-full rounded-xl p-4 border-none pr-[160px] resize-none focus:outline-none focus:ring-0 focus:shadow-none overflow-y-scroll min-h-[50px] max-h-[120px] hide-scrollbar"
+                                    placeholder="Tulis pesan..."
+                                    rows={1}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !e.shiftKey) {
+                                            e.preventDefault();
+                                            if (!isDisabled && !state.loading) {
+                                                handleSendMessage();
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <div className="absolute h-full right-5 top-0 flex items-end pb-[14px]">
                                 <div className="flex items-center gap-5">
                                     <div className="flex items-center gap-4">
-                                        <div className="cursor-pointer">
-                                            <Smile />
+                                        {/* Emoji Button */}
+                                        <div
+                                            className="cursor-pointer hover:bg-gray-100 p-2 rounded-full transition-colors"
+                                            onClick={() =>
+                                                setShowEmojiPicker(
+                                                    !showEmojiPicker
+                                                )
+                                            }
+                                        >
+                                            <Smile
+                                                className={
+                                                    showEmojiPicker
+                                                        ? "text-blue-600"
+                                                        : ""
+                                                }
+                                            />
                                         </div>
-                                        <div className="cursor-pointer">
-                                            <Paperclip />
+
+                                        {/* File Button */}
+                                        <div className="cursor-pointer hover:bg-gray-100 p-2 rounded-full transition-colors">
+                                            <label
+                                                htmlFor="pesanFile"
+                                                className="cursor-pointer"
+                                            >
+                                                <Paperclip />
+                                            </label>
+                                            <input
+                                                type="file"
+                                                id="pesanFile"
+                                                className="hidden"
+                                                onChange={handleFileChange}
+                                                multiple
+                                            />
                                         </div>
                                     </div>
-                                    <div
-                                        className="p-3 bg-blue-600 rounded-full text-white cursor-pointer"
+
+                                    {/* Send Button */}
+                                    <button
+                                        disabled={isDisabled}
+                                        className={`p-3 rounded-full text-white transition-all ${
+                                            isDisabled
+                                                ? "bg-gray-400 cursor-not-allowed"
+                                                : "bg-blue-600 cursor-pointer hover:bg-blue-700"
+                                        }`}
                                         onClick={handleSendMessage}
                                     >
-                                        <SendHorizonal size={20} />
-                                    </div>
+                                        {state.loading ? (
+                                            <Loader2
+                                                size={20}
+                                                className="animate-spin"
+                                            />
+                                        ) : (
+                                            <SendHorizonal size={20} />
+                                        )}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -112,4 +396,4 @@ export default function ChatGrup ({ dashboardId, activePage, tim }) {
             </div>
         </Proyek>
     );
-};
+}

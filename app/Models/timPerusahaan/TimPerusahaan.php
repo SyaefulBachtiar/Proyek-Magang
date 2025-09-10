@@ -4,6 +4,7 @@ namespace App\Models\timPerusahaan;
 
 use App\Models\Message;
 use App\Models\Perusahaan;
+use App\Models\TimPerusahaan\Messages;
 use App\Models\timPerusahaan\Title_Checklist;
 use App\Models\timPerusahaan\Title_Checklist_card;
 use App\Models\User;
@@ -100,5 +101,9 @@ class TimPerusahaan extends Model
 
     public function title_checklist_card () {
         return $this->hasMany(Title_Checklist_card::class, 'id_tim', 'id');
+    }
+
+    public function message () {
+        return $this->hasMany(Messages::class, 'id_tim', 'id');
     }
 }

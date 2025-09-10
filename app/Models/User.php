@@ -8,7 +8,9 @@ use App\Models\timPerusahaan\Anggota_card;
 use App\Models\timPerusahaan\Anggota_tim;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\TimPerusahaan\Komentar;
+use App\Models\TimPerusahaan\Messages;
 use App\Models\timPerusahaan\Notifikasi;
+use App\Models\TimPerusahaan\ReadAtMessage;
 use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -112,5 +114,13 @@ class User extends Authenticatable
 
     public function komentar () {
         return $this->hasMany(Komentar::class, 'id_user', 'id');
+    }
+
+    public function message () {
+        return $this->hasMany(Messages::class, 'sender_id', 'id');
+    }
+
+    public function read () {
+        return $this->hasMany(ReadAtMessage::class, 'id_user_read', 'id');
     }
 }
