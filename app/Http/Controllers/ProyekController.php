@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Models\timPerusahaan\Lampiran;
 use App\Events\BoardUpdated;
 use App\Events\NotifikasiEvent;
@@ -285,7 +286,35 @@ class ProyekController extends Controller
 
     public function laporan ($id, $id_tim) {
         $tim = TimPerusahaan::findOrFail($id_tim);
-        return Inertia::render('pageProyek/Laporan', ['dashboardId' => $id, 'activePage' => 'laporanPage', 'tim' => $tim]);
+
+        // --- MULAI KODE BARU ---
+        // Mengambil semua anggota tim berdasarkan id_tim_perusahaan dari URL
+        // dan mengambil data user terkait (terutama nama) melalui relasi
+        $anggota = Anggota_tim::with('user')
+                              ->where('id_tim_perusahaan', $id_tim)
+                              ->get();
+
+        // Memformat data agar sesuai dengan yang dibutuhkan frontend
+        $formattedAnggota = $anggota->map(function ($item) {
+            // Cek jika relasi user ada untuk menghindari error
+            if ($item->user) {
+                return [
+                    'id' => $item->user->id, // Menggunakan ID user sebagai key unik
+                    'name' => $item->user->name,
+                    'role' => $item->role_anggota,
+                ];
+            }
+            return null;
+        })->filter(); // Menghapus item null jika ada user yang tidak ditemukan
+        // --- SELESAI KODE BARU ---
+
+        // Mengirim data tim dan anggota yang sudah diformat ke komponen Laporan.jsx
+        return Inertia::render('pageProyek/Laporan', [
+            'dashboardId' => $id,
+            'activePage' => 'laporanPage',
+            'tim' => $tim,
+            'anggotaTim' => $formattedAnggota // Props baru berisi data anggota
+        ]);
     }
 
     private function broadcastBoardUpdate ($id_board) {
