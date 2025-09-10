@@ -46,5 +46,15 @@ html, body{
   border-radius: 10px;
 }
 
+  .hide-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+
+                /* Menyembunyikan scrollbar untuk Firefox */
+                .hide-scrollbar {
+                    -ms-overflow-style: none;  /* IE dan Edge lama */
+                    scrollbar-width: none;  /* Firefox */
+                }
+
 
 

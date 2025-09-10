@@ -133,23 +133,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/users', [Tim_perusahaanController::class, 'getUsers']); // untuk modal
 });
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/chat/{dashboardId}', [ChatController::class, 'index'])->name('chat.tim');
-    Route::post('/chat/store', [ChatController::class, 'store'])->name('chat.store');
-    Route::get('/chat/tim/{timId}/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
-});
-
-Route::middleware(['auth'])->prefix('chat')->name('chat.')->group(function () {
-    // Halaman chat grup
-    Route::get('/tim/{timId}', [ChatController::class, 'index'])->name('tim');
-    
-    // API kirim pesan
-    Route::post('/kirim', [ChatController::class, 'store'])->name('kirim');
-    
-    // API ambil pesan baru
-    Route::get('/tim/{timId}/baru', [ChatController::class, 'getNewMessages'])->name('baru');
-});
-
 Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim');
 
 require __DIR__.'/auth.php';
