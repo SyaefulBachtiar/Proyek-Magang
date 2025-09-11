@@ -1,245 +1,267 @@
 import Proyek from "../Proyek";
 import { useState, useMemo } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
-// --- Helper Icons (Komponen Ikon SVG untuk tampilan lebih bersih) ---
+// Impor dari Chart.js
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
+
+// Daftarkan komponen Chart.js
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+// --- Kumpulan Ikon SVG ---
 const SearchIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+  <svg xmlns="http://www.w.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
     <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
   </svg>
 );
-
-const StarIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.007z" clipRule="evenodd" />
+const StarIcon = ({ filled }) => (
+  <svg xmlns="http://www.w.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-5 h-5 ${filled ? 'text-yellow-400' : 'text-gray-300'}`}>
+    <path fillRule="evenodd" d="M10.868 2.884c.321-.662 1.134-.662 1.456 0l1.683 3.463 3.824 .556c.73.107 1.022.998.494 1.506l-2.768 2.698.654 3.808c.126.73-.638 1.283-1.29.952L10 13.6l-3.415 1.795c-.652.331-1.416-.222-1.29-.952l.654-3.808-2.768-2.698c-.528-.508-.236-1.399.494-1.506l3.824-.556L9.132 2.884z" clipRule="evenodd" />
   </svg>
 );
+const CheckIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+    </svg>
+);
+const MenuIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-400">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    </svg>
+);
 
+// --- Komponen Kartu untuk Membangun Dashboard ---
+const KinerjaCard = ({ user }) => (
+    <div className="bg-white p-5 rounded-xl shadow-sm flex flex-col justify-between h-full">
+        <div>
+            <h3 className="font-bold text-gray-800 mb-4">Laporan Kinerja Realtime:</h3>
+            <div className="flex items-center gap-4">
+                <img src={`https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=c7d2fe&color=3730a3&size=48`} alt={user.name} className="w-12 h-12 rounded-full"/>
+                <div>
+                    <p className="font-bold text-gray-900">{user.name}</p>
+                    <span className="text-xs bg-gray-800 text-white px-2 py-0.5 rounded-full font-semibold">{user.role}</span>
+                </div>
+            </div>
+            <p className="text-sm text-gray-500 mt-3">Tim : <span className="font-semibold text-gray-700">{user.team}</span></p>
+        </div>
+        <div className="mt-4 pt-4 border-t border-gray-100 flex items-end justify-between">
+            <div className="border border-gray-200 rounded-lg p-2 text-center">
+                <span className="text-xs bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full">Bagus</span>
+                <div className="flex justify-center mt-1.5">
+                    {[...Array(5)].map((_, i) => <StarIcon key={i} filled={i < 4} />)}
+                </div>
+            </div>
+            <div>
+                <p className="text-xs text-gray-500 text-right">Periode :</p>
+                <p className="font-semibold text-gray-800">1 Sep - 12 Sep</p>
+            </div>
+        </div>
+    </div>
+);
+const RingkasanCard = ({ user }) => {
+    const chartData = {
+        labels: user.progress.map(item => item.name),
+        datasets: [{
+            data: user.progress.map(item => item.value),
+            backgroundColor: user.progress.map(item => item.color),
+            borderColor: '#ffffff', borderWidth: 4,
+        }],
+    };
+    const chartOptions = {
+        responsive: true, maintainAspectRatio: false, 
+        cutout: '50%', 
+        plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true, backgroundColor: '#000', cornerRadius: 6, displayColors: true, boxPadding: 4, callbacks: { label: (c) => `${c.label}: ${c.raw}` }},
+        },
+    };
+    return (
+        <div className="bg-white p-5 rounded-xl shadow-sm h-full">
+            <h3 className="font-bold text-gray-800 mb-2">Ringkasan Tugas Realtime</h3>
+            <div className="flex items-center h-full -mt-2">
+                <div className="w-32 h-32 flex-shrink-0"><Doughnut data={chartData} options={chartOptions} /></div>
+                <div className="ml-4 flex flex-col gap-1.5">
+                    {user.progress.map((item) => (
+                        <div key={item.name} className="flex items-center gap-2 text-xs">
+                            <div className="w-2.5 h-2.5" style={{ backgroundColor: item.color }} />
+                            <span className="text-gray-600 font-medium">{item.name} : {item.value} ({item.percentage}%)</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+const SaranCard = () => (
+    <div className="bg-white p-5 rounded-xl shadow-sm h-full">
+        <h3 className="font-bold text-gray-800 mb-2">Saran</h3>
+        <p className="text-sm text-gray-600 leading-relaxed">Tinggal percepat lagi penyelesaian tugas-tugas yang sedang dikerjakan. Atau tambahkan lagi tugas dari yang belum dikerjakan.</p>
+    </div>
+);
+const TugasCard = ({ user }) => {
+    const [activeTab, setActiveTab] = useState("Selesai");
+    const tabs = ["Terlambat", "Dikerjakan", "Belum", "Selesai"];
+    const TaskItem = ({ task }) => (
+        <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p className="font-semibold text-gray-800">{task.title}</p>
+                <div className="flex items-center gap-2 mt-1.5">
+                    <span className="flex items-center gap-1 bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full"><CheckIcon/> {task.date}</span>
+                    <img src={task.assignee.avatar} alt={task.assignee.name} className="w-5 h-5 rounded-full" />
+                </div>
+            </div>
+            <MenuIcon />
+        </div>
+    );
+    return (
+        <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 h-full">
+            <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-2">
+                {tabs.map(tab => (
+                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors duration-200 flex-shrink-0 ${ activeTab === tab ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}> {tab} </button>
+                ))}
+            </div>
+            <div className="flex flex-col gap-4">
+                <div>
+                    <p className="text-sm font-bold text-gray-800 mb-2">Hari Ini</p>
+                    <div className="flex flex-col gap-3">
+                        {user.tasks.Selesai.slice(0, 2).map(task => <TaskItem key={task.id} task={task} />)}
+                    </div>
+                </div>
+                <div>
+                    <p className="text-sm font-bold text-gray-800 mb-2">Sabtu, 6 Sep 2025</p>
+                    <div className="flex flex-col gap-3">
+                        {user.tasks.Selesai.slice(2, 3).map(task => <TaskItem key={task.id} task={task} />)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+const PenghambatCard = () => (
+    <div className="bg-white p-5 rounded-xl shadow-sm h-full">
+        <h3 className="font-bold text-gray-800 mb-4">Kemungkinan Penghambat</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:divide-x md:divide-gray-200">
+            <div className="md:pr-4">
+                <p className="font-bold text-lg text-gray-800">0 dari 1 tugas yg belum</p><p className="text-xs text-gray-500 mt-1">masih belum dikerjakan &gt;40 hari</p>
+                <div className="mt-4 pt-4 border-t border-gray-100"><p className="text-xs font-semibold text-gray-700">Top 1 tugas terlama</p><p className="text-sm text-gray-500">Belum ada data</p></div>
+            </div>
+            <div className="md:pl-4"><p className="font-bold text-lg text-gray-800">0 dari 0 tugas yg dikerjakan</p><p className="text-xs text-gray-500 mt-1">masih belum selesai &gt;40 hari</p>
+                <div className="mt-4 pt-4 border-t border-gray-100"><p className="text-xs font-semibold text-gray-700">Top 1 tugas terlama</p><p className="text-sm text-gray-500">Belum ada data</p></div>
+            </div>
+        </div>
+    </div>
+);
 
-// --- Komponen-komponen Kecil untuk Merapikan Tampilan ---
-
-// 1. Komponen untuk daftar anggota di sidebar
 const MemberList = ({ members, selectedUser, onSelectUser }) => (
   <div className="flex flex-col gap-1.5 max-h-96 overflow-y-auto pr-2">
-    {members.length > 0 ? (
-      members.map((member) => (
-        <div
-          key={member.id}
-          onClick={() => onSelectUser(member)}
-          className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 ${
-            selectedUser?.id === member.id
-              ? "bg-blue-100 text-blue-800 font-semibold shadow-sm"
-              : "hover:bg-gray-100"
-          }`}
-        >
-          <img
-            src={`https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=random&color=fff&size=32`}
-            alt={member.name}
-            className="w-8 h-8 rounded-full flex-shrink-0"
-          />
-          <span className="text-sm truncate">{member.name}</span>
-        </div>
-      ))
-    ) : (
-      <p className="text-sm text-gray-500 text-center p-4">Anggota tidak ditemukan.</p>
-    )}
+    {members.map((member) => (
+      <div key={member.id} onClick={() => onSelectUser(member)} className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 ${ selectedUser?.id === member.id ? "bg-blue-100 text-blue-800 font-semibold shadow-sm" : "hover:bg-gray-100"}`}>
+        <img src={`https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=random&color=fff&size=32`} alt={member.name} className="w-8 h-8 rounded-full flex-shrink-0" />
+        <span className="text-sm truncate">{member.name}</span>
+      </div>
+    ))}
   </div>
 );
-
-// 2. Komponen untuk header utama (Info Kinerja & Pie Chart)
-const ReportHeader = ({ user }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    {/* Laporan Kinerja */}
-    <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-5 flex flex-col justify-between">
-      <div>
-        <p className="text-sm font-medium text-gray-500 mb-2">Laporan Kinerja Untuk:</p>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <img
-              src={`https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=random&color=fff&size=64`}
-              alt={user.name}
-              className="w-16 h-16 rounded-full border-2 border-gray-100"
-            />
-            <div>
-              <h3 className="text-xl font-bold text-gray-800">{user.name}</h3>
-              <span className="text-xs bg-gray-800 text-white px-3 py-1 rounded-full mt-1.5 inline-block font-medium">
-                {user.role}
-              </span>
-            </div>
-          </div>
-          <div className="text-center border rounded-xl px-4 py-2">
-            <span className="text-xs text-gray-500 mb-1.5 block">Rating Kinerja</span>
-            <div className="flex text-yellow-400 text-2xl">
-              {[...Array(5)].map((_, i) => (
-                <StarIcon key={i} className={i < user.rating ? 'text-yellow-400' : 'text-gray-300'} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-      <p className="text-sm text-gray-400 mt-4">
-        Tim: <span className="text-gray-900 font-semibold">{user.team}</span>
-      </p>
-    </div>
-
-    {/* Ringkasan Progres Tugas */}
-    <div className="bg-white rounded-2xl shadow-sm p-5">
-      <h4 className="font-semibold text-gray-800 mb-3 text-base">Ringkasan Progres</h4>
-      <div className="flex items-center h-full">
-        <div className="w-36 h-36">
-           <ResponsiveContainer width="100%" height="100%">
-             <PieChart>
-                <Pie data={user.progress} dataKey="value" innerRadius={45} outerRadius={65} paddingAngle={3} cornerRadius={5}>
-                    {user.progress.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} stroke={entry.color} />
-                    ))}
-                </Pie>
-            </PieChart>
-           </ResponsiveContainer>
-        </div>
-        <div className="ml-6 flex flex-col gap-2.5">
-            {user.progress.map((item) => (
-                <div key={item.name} className="flex items-center gap-2.5 text-sm">
-                    <div className="w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: item.color }} />
-                    <span className="text-gray-600">{item.name}:</span>
-                    <span className="font-medium text-gray-800">{item.value}</span>
-                </div>
-            ))}
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// 3. Komponen untuk panel Tugas (Tabs, List Tugas, dan Saran)
-const TaskPanel = ({ user }) => {
-    const [selectedTab, setSelectedTab] = useState("Terlambat");
-    const taskCategories = ["Terlambat", "Dikerjakan", "Belum", "Selesai"];
-
-    return(
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-5">
-                 <div className="flex border-b border-gray-200 mb-4">
-                    {taskCategories.map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setSelectedTab(tab)}
-                        className={`px-4 py-2 text-sm font-semibold transition-colors duration-200 ${
-                          selectedTab === tab
-                            ? "border-b-2 border-blue-600 text-blue-600"
-                            : "text-gray-500 hover:text-gray-800"
-                        }`}
-                      >
-                        {tab} <span className="text-xs bg-gray-200 rounded-full px-1.5 py-0.5">{user.tasks[tab]?.length || 0}</span>
-                      </button>
-                    ))}
-                 </div>
-
-                 <div className="flex flex-col gap-3 max-h-[280px] overflow-y-auto pr-2">
-                    {user.tasks[selectedTab] && user.tasks[selectedTab].length > 0 ? (
-                        user.tasks[selectedTab].map((item, i) => (
-                        <div key={i} className="bg-gray-50/80 p-3 rounded-lg border border-gray-200/80">
-                            <p className="text-xs text-gray-500 mb-0.5">{item.date}</p>
-                            <p className="font-semibold text-gray-800">{item.task}</p>
-                        </div>
-                        ))
-                    ) : (
-                        <p className="text-sm text-gray-500 text-center pt-10">Tidak ada tugas dalam kategori ini.</p>
-                    )}
-                 </div>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm p-5">
-                <h4 className="font-semibold text-gray-800 mb-2">Saran & Rekomendasi</h4>
-                <p className="text-sm text-gray-600">
-                    Saran yang dibuat otomatis oleh sistem akan muncul di sini untuk membantu meningkatkan produktivitas.
-                </p>
-            </div>
-         </div>
-    );
-}
 
 // --- Komponen Utama ---
 export default function Laporan({ dashboardId, activePage, tim, anggotaTim }) {
-  // Fungsi untuk menghasilkan data dummy yang lebih bervariasi
-  const generateFullTeamData = (members) => {
-    return members.map(member => ({
-      ...member,
-      team: tim.nama_tim,
-      rating: Math.floor(Math.random() * 3) + 3,
-      progress: [
-        { name: "Belum", value: Math.floor(Math.random() * 20) + 5, color: "#6B7280" },
-        { name: "Dikerjakan", value: Math.floor(Math.random() * 15) + 5, color: "#3B82F6" },
-        { name: "Terlambat", value: Math.floor(Math.random() * 5) + 1, color: "#EF4444" },
-        { name: "Selesai", value: Math.floor(Math.random() * 30) + 10, color: "#10B981" },
-      ],
-      tasks: {
-        Terlambat: [{ date: "24 Agu 2025", task: "Memperbaiki bug di halaman login" }],
-        Dikerjakan: [{ date: "15 Sep 2025", task: "Menyiapkan materi presentasi klien" }],
-        Belum: [{ date: "30 Sep 2025", task: "Riset kompetitor untuk fitur baru" }],
-        Selesai: [{ date: "05 Agu 2025", task: "Update dokumentasi API" }, { date: "01 Agu 2025", task: "Melakukan deployment v1.2" }],
-      },
-    }));
-  };
-  
-  const teamData = useMemo(() => generateFullTeamData(anggotaTim), [anggotaTim]);
-  const [selectedUser, setSelectedUser] = useState(teamData[0] || null);
-  const [searchTerm, setSearchTerm] = useState("");
+    
+    const generateFullTeamData = (members) => {
+        if (!members || members.length === 0) return [];
+        return members.map(member => {
+            const progressValues = [
+                { name: "Belum", value: 1, color: "#6B7280" }, { name: "Dikerjakan", value: 0, color: "#3B82F6" },
+                { name: "Terlambat", value: 0, color: "#EF4444" }, { name: "Selesai", value: 4, color: "#90EE90" },
+            ];
+            const total = progressValues.reduce((s, i) => s + i.value, 0);
+            const assignee = { name: member.name, avatar: `https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=random&color=fff&size=32` };
+            return {
+                ...member, team: tim.nama_tim,
+                progress: progressValues.map(i => ({ ...i, percentage: total > 0 ? Math.round((i.value / total) * 100) : 0 })),
+                tasks: {
+                    Selesai: [
+                        { id: 1, title: 'Handle WA Klien Week 1 Juni 25 - Contoh', date: '5 Sep', assignee },
+                        { id: 2, title: 'Buat 3 konten Tiktok Juni 25 - Contoh', date: '10 Sep', assignee },
+                        { id: 3, title: 'Proyek klien PT Mentari - Contoh', date: '6 Sep', assignee },
+                    ], Terlambat: [], Dikerjakan: [], Belum: [],
+                },
+            };
+        });
+    };
+    
+    const teamData = useMemo(() => generateFullTeamData(anggotaTim), [anggotaTim, tim]);
+    const [selectedUser, setSelectedUser] = useState(teamData[0] || null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedPeriod, setSelectedPeriod] = useState("Bulan Ini");
 
-  const filteredTeamData = teamData.filter(member =>
-    member.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    const filteredTeamData = teamData.filter(member =>
+        member.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  return (
-    <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
-      <div className="flex w-full min-h-screen bg-gray-50 p-4 lg:p-6 gap-6">
-        {/* === Sidebar Tim === */}
-        <aside className="w-full max-w-xs bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-4">
-          <div>
-            <h2 className="text-lg font-bold text-gray-800 mb-2">Laporan Tim</h2>
-            <div className="relative">
-              <select className="w-full border border-gray-300 rounded-lg p-2.5 text-sm appearance-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>Periode: Bulan Ini</option>
-                <option>Periode: Bulan Lalu</option>
-              </select>
-              <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none">▼</span>
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-gray-700 block mb-2">Pilih Anggota</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><SearchIcon /></span>
-              <input
-                type="text"
-                placeholder="Cari anggota..."
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="border-t border-gray-200 pt-3">
-             <MemberList members={filteredTeamData} selectedUser={selectedUser} onSelectUser={setSelectedUser} />
-          </div>
-        </aside>
+    return (
+        <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
+            <div className="flex flex-col lg:flex-row w-full min-h-screen bg-gray-100 p-4 lg:p-6 gap-6">
+                <aside className="w-full lg:max-w-xs bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-4 h-fit">
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            <h2 className="text-lg font-bold text-gray-800 mb-2">Laporan Tim</h2>
+                            <div className="relative">
+                                <select 
+                                    value={selectedPeriod}
+                                    onChange={(e) => setSelectedPeriod(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg p-2.5 text-sm appearance-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                >
+                                    <option value="Bulan Ini">Periode: Bulan Ini</option>
+                                    <option value="Bulan Lalu">Periode: Bulan Lalu</option>
+                                </select>
+                                <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none">▼</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-sm font-semibold text-gray-700 block mb-2">Pilih Anggota</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><SearchIcon /></span>
+                                <input type="text" placeholder="Cari anggota..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="border-t border-gray-200 pt-3">
+                        {filteredTeamData.length > 0 ? (
+                            <MemberList members={filteredTeamData} selectedUser={selectedUser} onSelectUser={setSelectedUser} />
+                        ) : (
+                             <p className="text-sm text-gray-500 text-center p-4">Anggota tidak ditemukan.</p>
+                        )}
+                    </div>
+                </aside>
 
-        {/* === Konten Utama === */}
-        <main className="flex-1 flex flex-col gap-4">
-          {selectedUser ? (
-            <>
-              <ReportHeader user={selectedUser} />
-              <TaskPanel user={selectedUser} />
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center bg-white rounded-2xl shadow-sm">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-800">Tidak Ada Anggota Tim</h3>
-                <p className="text-gray-500 mt-1">Silakan tambahkan anggota ke tim ini untuk melihat laporan.</p>
-              </div>
+                <main className="flex-1 flex flex-col gap-6">
+                    {selectedUser ? (
+                        <>
+                            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                                <KinerjaCard user={selectedUser} />
+                                <RingkasanCard user={selectedUser} />
+                                <SaranCard />
+                            </div>
+                            <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                                <div className="xl:col-span-3">
+                                    <TugasCard user={selectedUser} />
+                                </div>
+                                <div className="xl:col-span-2">
+                                    <PenghambatCard />
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center bg-white rounded-2xl shadow-sm">
+                            <div className="text-center">
+                                <h3 className="text-lg font-semibold text-gray-800">Silakan Pilih Anggota Tim</h3>
+                                <p className="text-gray-500 mt-1">Pilih anggota dari daftar di sebelah kiri untuk melihat laporan.</p>
+                            </div>
+                        </div>
+                    )}
+                </main>
             </div>
-          )}
-        </main>
-      </div>
-    </Proyek>
-  );
+        </Proyek>
+    );
 }
