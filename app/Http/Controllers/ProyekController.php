@@ -318,7 +318,6 @@ class ProyekController extends Controller
     }
 
     private function broadcastBoardUpdate ($id_board) {
-
         // Siarkan ke semua event client
         broadcast(new BoardUpdated($id_board));
     }

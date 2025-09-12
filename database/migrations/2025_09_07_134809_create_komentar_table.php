@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('komentar', function (Blueprint $table) {
             $table->string('id', 36)->primary();
+            $table->string('parent_id', 36)->nullable();
+            $table->foreign('parent_id')->references('id')->on('komentar')->onDelete('cascade');
             $table->string('mention')->nullable();
             $table->text('komentar');
             $table->string('lampiran_id')->nullable();
