@@ -15,12 +15,14 @@ class NotifikasiEvent implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $user_id;
+    public $company_users;
     /**
      * Create a new event instance.
      */
-    public function __construct($user_id)
+    public function __construct($user_id, $company_users = [])
     {
         $this->user_id = $user_id;
+        $this->company_users = $company_users;
     }
 
     /**
@@ -30,9 +32,14 @@ class NotifikasiEvent implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('user.' . $this->user_id),
-        ];
+         $channels = [];
+        
+        // Broadcast ke semua user dalam perusahaan yang sama
+        foreach ($this->company_users as $userId) {
+            $channels[] = new PrivateChannel('user.' . $userId);
+        }
+        
+        return $channels;
     }
 
     public function broadcastAs () : string

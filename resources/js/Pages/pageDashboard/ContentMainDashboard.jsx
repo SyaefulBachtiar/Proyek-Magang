@@ -2,7 +2,7 @@ import BuatTimModal from "@/modal/BuatTimModal";
 import EditTimModal from "@/modal/EditTimModal"; // Import modal edit
 
 import { router, useForm, usePage } from "@inertiajs/react";
-import { AlertCircle, CheckCircle, EllipsisVertical, Loader2, Plus } from "lucide-react";
+import { AlertCircle, CheckCircle, EllipsisVertical, Kanban, Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import Dashboard, { DashboardState } from "../Dashboard";
 
@@ -316,9 +316,12 @@ function MainDashboard() {
                                                     </div>
                                                     <div className="px-4 bg-white h-full">
                                                         <div className="pt-2">
-                                                            <h1 className="text-lg text-gray-700 group-hover:underline cursor-pointer">
-                                                                {tim.nama_tim}
-                                                            </h1>
+                                                            <div className="flex items-center gap-2">
+                                                                <Kanban size={16}/>
+                                                                <h1 className="text-lg text-gray-700 group-hover:underline cursor-pointer">
+                                                                    {tim.nama_tim}
+                                                                </h1>
+                                                            </div>
                                                             <p className="text-sm text-gray-400">
                                                                 {
                                                                     tim.deskripsi_tim

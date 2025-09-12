@@ -12,7 +12,7 @@ import {
 import Proyek from "../Proyek";
 import { useEffect, useReducer, useRef, useState } from "react";
 import BubleChat from "@/Components/BubleChat";
-import { router, usePage } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 // Import emoji picker
 import EmojiPicker from "emoji-picker-react";
 
@@ -234,6 +234,7 @@ export default function ChatGrup({
 
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
+            <Head title="Chat Grup"/>
             <div className="w-full h-full flex flex-col relative">
                 {/* Header */}
                 <div className="bg-[#90B4DE] p-6 text-gray-100 flex justify-between">

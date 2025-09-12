@@ -22,7 +22,7 @@ import {
     UserRoundPlus,
     X,
 } from "lucide-react";
-import { router, usePage } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 import Proyek from "../Proyek";
 import TambahAnggota from "@/modal/Proyek/TambahAnggota";
 import Kalender from "@/modal/Proyek/Kalender";
@@ -706,6 +706,7 @@ export default function Card_kanban() {
 
     return (
         <Proyek>
+            <Head title="Card"/>
             <div className="w-screen h-screen fixed top-0 left-0 bg-black/20 flex justify-center items-center z-50 ">
                 <div
                     ref={lihatCardRef}
@@ -1295,7 +1296,7 @@ export default function Card_kanban() {
                                                                                 <img
                                                                                     src={`/storage/${check.image}`}
                                                                                     alt="Checklist photo"
-                                                                                    className="w-full h-full object-cover rounded"
+                                                                                    className="w-full object-cover rounded"
                                                                                 />
                                                                                 <div
                                                                                     onClick={() =>

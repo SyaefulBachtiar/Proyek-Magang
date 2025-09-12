@@ -1,3 +1,4 @@
+import { Head } from "@inertiajs/react";
 import Proyek from "../Proyek";
 import { useState, useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
@@ -192,6 +193,7 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim }) {
 
   return (
     <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
+      <Head title="Laporan"/>
       <div className="flex w-full min-h-screen bg-gray-50 p-4 lg:p-6 gap-6">
         {/* === Sidebar Tim === */}
         <aside className="w-full max-w-xs bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-4">

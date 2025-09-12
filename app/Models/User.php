@@ -39,6 +39,8 @@ class User extends Authenticatable
         'poto_profile_user',
         'nama_perusahaan',
         'remember_token',
+        'is_online',
+        'last_seen'
     ];
 
     /**
@@ -103,9 +105,15 @@ class User extends Authenticatable
     );
     }
 
-    public function isOnline(): bool
+    public function isOnline()
     {
-        return Cache::has('user-is-online-' . $this->id);
+        // Cek cache terlebih dahulu
+        if (Cache::has('user-is-online-' . $this->id)) {
+            return true;
+        }
+        
+        // Fallback ke database jika perlu
+        return $this->is_online == true;
     }
     
     public function notifikasi () {
