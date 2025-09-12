@@ -1,9 +1,11 @@
+import { Head } from "@inertiajs/react";
 import Proyek from "../Proyek";
 import { useState, useMemo } from "react";
 
 // Impor dari Chart.js
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import { AlertTriangle, Calendar, CheckCircle2, ClipboardList, Coffee, ListTodo } from "lucide-react";
 
 // Daftarkan komponen Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -98,45 +100,128 @@ const SaranCard = () => (
         <p className="text-sm text-gray-600 leading-relaxed">Tinggal percepat lagi penyelesaian tugas-tugas yang sedang dikerjakan. Atau tambahkan lagi tugas dari yang belum dikerjakan.</p>
     </div>
 );
-const TugasCard = ({ user }) => {
-    const [activeTab, setActiveTab] = useState("Selesai");
-    const tabs = ["Terlambat", "Dikerjakan", "Belum", "Selesai"];
-    const TaskItem = ({ task }) => (
-        <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p className="font-semibold text-gray-800">{task.title}</p>
-                <div className="flex items-center gap-2 mt-1.5">
-                    <span className="flex items-center gap-1 bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full"><CheckIcon/> {task.date}</span>
-                    <img src={task.assignee.avatar} alt={task.assignee.name} className="w-5 h-5 rounded-full" />
+const TugasCard = ({ tabs }) => {
+    // Set tab aktif pertama yang memiliki tugas, jika tidak, default ke tab pertama
+    const firstTabWithTasks =
+        tabs.find((t) => t.cards.length > 0)?.id || tabs[0]?.id || "";
+    const [activeTab, setActiveTab] = useState(firstTabWithTasks);
+
+    // -- Sub-komponen untuk menampilkan setiap item tugas --
+    const TaskItem = ({ task }) => {
+        const hasChecklist = task.checklist_card_count > 0;
+        const isCompleted =
+            hasChecklist &&
+            task.completed_checklist_count === task.checklist_card_count;
+
+        // Fungsi untuk format tanggal
+        const formatDate = (dateString) => {
+            if (!dateString) return null;
+            return new Date(dateString).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+            });
+        };
+
+        return (
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-col gap-3 transition-shadow hover:shadow-md">
+                <p className="font-semibold text-gray-800 leading-snug">
+                    {task.nama_card}
+                </p>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                    {hasChecklist ? (
+                        <span
+                            className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${
+                                isCompleted
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-blue-100 text-blue-800"
+                            }`}
+                        >
+                            {isCompleted ? (
+                                <CheckCircle2 size={14} />
+                            ) : (
+                                <ClipboardList size={14} />
+                            )}
+                            <span className="font-medium">
+                                {task.completed_checklist_count}/
+                                {task.checklist_card_count}
+                            </span>
+                        </span>
+                    ) : (
+                        <span className="flex items-center gap-1.5 text-gray-400">
+                            <ListTodo size={14} />
+                            <span>Tanpa Checklist</span>
+                        </span>
+                    )}
+                    {(task.due_date || task.created_at) && (
+                        <span className="flex items-center gap-1.5">
+                            <Calendar size={14} />
+                            <span className="font-medium">
+                                {formatDate(task.due_date) ||
+                                    `Dibuat ${formatDate(task.created_at)}`}
+                            </span>
+                        </span>
+                    )}
                 </div>
             </div>
-            <MenuIcon />
-        </div>
-    );
+        );
+    };
+
+    // Data untuk tab yang sedang aktif
+    const activeTabData = tabs.find((tb) => tb.id === activeTab);
+
     return (
-        <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 h-full">
-            <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-2">
-                {tabs.map(tab => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors duration-200 flex-shrink-0 ${ activeTab === tab ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}> {tab} </button>
+        <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 h-full flex flex-col">
+            {/* Header Tab */}
+            <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-2 border-b my-scrollable-element">
+                {/* KONDISI `tab.cards.length > 0` TELAH DIHAPUS DARI SINI
+                  Sekarang semua tab akan selalu ditampilkan.
+                */}
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-colors duration-200 flex-shrink-0 flex items-center gap-2 ${
+                            activeTab === tab.id
+                                ? "bg-gray-800 text-white shadow-md"
+                                : "bg-white text-gray-600 hover:bg-gray-200 border border-gray-200"
+                        }`}
+                    >
+                        {tab.id === "selesai" && <CheckCircle2 size={14} />}
+                        {tab.id === "terlambat" && <AlertTriangle size={14} />}
+                        {tab.judul}
+                        <span
+                            className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                                activeTab === tab.id
+                                    ? "bg-white/20"
+                                    : "bg-gray-200"
+                            }`}
+                        >
+                            {tab.cards.length}
+                        </span>
+                    </button>
                 ))}
             </div>
-            <div className="flex flex-col gap-4">
-                <div>
-                    <p className="text-sm font-bold text-gray-800 mb-2">Hari Ini</p>
-                    <div className="flex flex-col gap-3">
-                        {user.tasks.Selesai.slice(0, 2).map(task => <TaskItem key={task.id} task={task} />)}
+
+            {/* Daftar Tugas */}
+            <div className="flex flex-col gap-3 overflow-y-auto pr-2 flex-1">
+                {activeTabData?.cards?.length > 0 ? (
+                    activeTabData.cards.map((task) => (
+                        <TaskItem key={task.id} task={task} />
+                    ))
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 text-sm p-8">
+                        <Coffee size={32} className="mb-3 text-gray-400" />
+                        <p className="font-semibold text-gray-600">
+                            Tidak Ada Tugas
+                        </p>
+                        <p>Anda bisa beristirahat sejenak di kategori ini.</p>
                     </div>
-                </div>
-                <div>
-                    <p className="text-sm font-bold text-gray-800 mb-2">Sabtu, 6 Sep 2025</p>
-                    <div className="flex flex-col gap-3">
-                        {user.tasks.Selesai.slice(2, 3).map(task => <TaskItem key={task.id} task={task} />)}
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );
 };
+
 const PenghambatCard = () => (
     <div className="bg-white p-5 rounded-xl shadow-sm h-full">
         <h3 className="font-bold text-gray-800 mb-4">Kemungkinan Penghambat</h3>
@@ -164,8 +249,8 @@ const MemberList = ({ members, selectedUser, onSelectUser }) => (
 );
 
 // --- Komponen Utama ---
-export default function Laporan({ dashboardId, activePage, tim, anggotaTim }) {
-    
+export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tugasPerTabs }) {
+   
     const generateFullTeamData = (members) => {
         if (!members || members.length === 0) return [];
         return members.map(member => {
@@ -198,39 +283,86 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim }) {
         member.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const filteredTugasTabs = useMemo(() => {
+        if (!selectedUser) {
+            // ... (return array kosong)
+        }
+
+        // Proses setiap tab untuk memfilter kartunya
+        return tugasPerTabs.map((tab) => ({
+            // Menggunakan prop `tugasPerTab`
+            ...tab,
+            cards: tab.cards.filter((task) =>
+                // Logika ini SEKARANG AKAN BERHASIL karena controller mengirim `anggota_card_list`
+                task.anggota_card_list.some(
+                    (anggota) => anggota.user.id === selectedUser.id
+                )
+            ),
+        }));
+    }, [selectedUser, tugasPerTabs]);
+
+    console.log(filteredTugasTabs);
+
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
             <div className="flex flex-col lg:flex-row w-full min-h-screen bg-gray-100 p-4 lg:p-6 gap-6">
                 <aside className="w-full lg:max-w-xs bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-4 h-fit">
                     <div className="flex flex-col gap-4">
                         <div>
-                            <h2 className="text-lg font-bold text-gray-800 mb-2">Laporan Tim</h2>
+                            <h2 className="text-lg font-bold text-gray-800 mb-2">
+                                Laporan Tim
+                            </h2>
                             <div className="relative">
-                                <select 
+                                <select
                                     value={selectedPeriod}
-                                    onChange={(e) => setSelectedPeriod(e.target.value)}
+                                    onChange={(e) =>
+                                        setSelectedPeriod(e.target.value)
+                                    }
                                     className="w-full border border-gray-300 rounded-lg p-2.5 text-sm appearance-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
-                                    <option value="Bulan Ini">Periode: Bulan Ini</option>
-                                    <option value="Bulan Lalu">Periode: Bulan Lalu</option>
+                                    <option value="Bulan Ini">
+                                        Periode: Bulan Ini
+                                    </option>
+                                    <option value="Bulan Lalu">
+                                        Periode: Bulan Lalu
+                                    </option>
                                 </select>
-                                <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none">▼</span>
+                                <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none">
+                                    ▼
+                                </span>
                             </div>
                         </div>
                         <div>
-                            <label className="text-sm font-semibold text-gray-700 block mb-2">Pilih Anggota</label>
+                            <label className="text-sm font-semibold text-gray-700 block mb-2">
+                                Pilih Anggota
+                            </label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><SearchIcon /></span>
-                                <input type="text" placeholder="Cari anggota..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"/>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                    <SearchIcon />
+                                </span>
+                                <input
+                                    type="text"
+                                    placeholder="Cari anggota..."
+                                    value={searchTerm}
+                                    onChange={(e) =>
+                                        setSearchTerm(e.target.value)
+                                    }
+                                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                                />
                             </div>
                         </div>
                     </div>
                     <div className="border-t border-gray-200 pt-3">
                         {filteredTeamData.length > 0 ? (
-                            <MemberList members={filteredTeamData} selectedUser={selectedUser} onSelectUser={setSelectedUser} />
+                            <MemberList
+                                members={filteredTeamData}
+                                selectedUser={selectedUser}
+                                onSelectUser={setSelectedUser}
+                            />
                         ) : (
-                             <p className="text-sm text-gray-500 text-center p-4">Anggota tidak ditemukan.</p>
+                            <p className="text-sm text-gray-500 text-center p-4">
+                                Anggota tidak ditemukan.
+                            </p>
                         )}
                     </div>
                 </aside>
@@ -245,7 +377,10 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim }) {
                             </div>
                             <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
                                 <div className="xl:col-span-3">
-                                    <TugasCard user={selectedUser} />
+                                    <TugasCard
+                                        tabs={filteredTugasTabs}
+                                        user={selectedUser}
+                                    />
                                 </div>
                                 <div className="xl:col-span-2">
                                     <PenghambatCard />
@@ -255,8 +390,13 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim }) {
                     ) : (
                         <div className="flex-1 flex items-center justify-center bg-white rounded-2xl shadow-sm">
                             <div className="text-center">
-                                <h3 className="text-lg font-semibold text-gray-800">Silakan Pilih Anggota Tim</h3>
-                                <p className="text-gray-500 mt-1">Pilih anggota dari daftar di sebelah kiri untuk melihat laporan.</p>
+                                <h3 className="text-lg font-semibold text-gray-800">
+                                    Silakan Pilih Anggota Tim
+                                </h3>
+                                <p className="text-gray-500 mt-1">
+                                    Pilih anggota dari daftar di sebelah kiri
+                                    untuk melihat laporan.
+                                </p>
                             </div>
                         </div>
                     )}

@@ -1,6 +1,6 @@
 import Proyek from "../Proyek"; // Asumsi path ini sudah benar
 import { useState, useEffect } from "react";
-import { router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 
 export default function Ringkas({ dashboardId, activePage, tim }) {
     const [clickCount, setClickCount] = useState({});
@@ -68,6 +68,7 @@ export default function Ringkas({ dashboardId, activePage, tim }) {
 
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
+            <Head title="Ringkasan"/>
             <div className="rounded-lg h-full bg-gray-100 flex justify-center items-center relative p-5">
                 {showEasterEgg && (
                     <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-6 py-3 rounded-lg shadow-lg z-50 animate-bounce">

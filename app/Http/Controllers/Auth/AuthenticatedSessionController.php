@@ -39,23 +39,6 @@ class AuthenticatedSessionController extends Controller
 
         $id = $user->id;
 
-        // // cek apakah sudah punya perusahaan
-        // if($user->perusahaan){
-
-        //     // jika sudah punya perusahaan, update role menjadi member
-        //     $user->perusahaan->update([
-        //         'role' => 'member'
-        //     ]);
-        // }else{
-        //     // jika belum punya perusahaan, buat perusahaan baru
-        //     // dengan ID random dan role super user
-        //     Perusahaan::create([
-        //         'id' => strtoupper(Str::random(20)),
-        //         'user_id' => $id,
-        //         'role' => 'Super User',
-        //         'jabatan' => null,
-        //     ]);
-        // }
 
         return redirect()->intended(route('dashboard.with.id', ['id' => $id]));
 

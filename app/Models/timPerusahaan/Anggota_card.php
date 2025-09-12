@@ -20,7 +20,7 @@ class Anggota_card extends Model
     ];
 
     public function user () {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class, 'id_user', 'id');
     }
 
     public function cards () {

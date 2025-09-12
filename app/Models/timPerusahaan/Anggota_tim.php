@@ -36,7 +36,7 @@ class Anggota_tim extends Model
     // relasi ke table Tim perusahaan 
    public function tim()
     {
-        return $this->belongsTo(TimPerusahaan::class);
+        return $this->belongsTo(TimPerusahaan::class, 'id_tim_perusahaan', 'id');
     }
 
     // relasi ke table user

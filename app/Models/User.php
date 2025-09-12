@@ -39,6 +39,8 @@ class User extends Authenticatable
         'poto_profile_user',
         'nama_perusahaan',
         'remember_token',
+        'is_online',
+        'last_seen'
     ];
 
     /**
@@ -89,7 +91,7 @@ class User extends Authenticatable
     // relasi ke table anggota tim
     public function anggota_tim()
     {
-        return $this->hasMany(Anggota_tim::class, 'id_users', 'id');
+        return $this->hasOne(Anggota_tim::class, 'id_users', 'id');
     }
 
     // relasi ke table tim perusahaan
@@ -103,9 +105,19 @@ class User extends Authenticatable
     );
     }
 
-    public function isOnline(): bool
+    public function anggota_card () {
+        return $this->hasMany(Anggota_card::class, 'id_user', 'id');
+    }
+
+    public function isOnline()
     {
-        return Cache::has('user-is-online-' . $this->id);
+        // Cek cache terlebih dahulu
+        if (Cache::has('user-is-online-' . $this->id)) {
+            return true;
+        }
+        
+        // Fallback ke database jika perlu
+        return $this->is_online == true;
     }
     
     public function notifikasi () {

@@ -9,6 +9,7 @@ use App\Http\Controllers\PengaturanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProyekController;
 use App\Http\Controllers\Komentar\KomenController;
+use App\Http\Controllers\Laporan\LaporanController;
 use App\Http\Controllers\Notif\NotifikasiController;
 use App\Http\Controllers\Tim\Tim_perusahaanController;
 use App\Http\Controllers\Undangan\UndanganController;
@@ -37,7 +38,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // Halaman Proyek
     Route::get('/proyek/{id_tim}/board/{id_board}', [ProyekController::class, 'index'])->name('proyek');
     Route::get('/proyek/{id_tim}/ringkas', [ProyekController::class, 'ringkas'])->name('proyek.ringkas');
-    Route::get('/proyek/{id_tim}/laporan', [ProyekController::class, 'laporan'])->name('proyek.laporan');
+    Route::get('/proyek/{id_tim}/laporan', [LaporanController::class, 'laporan'])->name('proyek.laporan');
     Route::get('/proyek/{id_tim}/chatgrup', [ChatGrupController::class, 'chatgrup'])->name('proyek.chatgrup');
     Route::get('/proyek/{id_tim}/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
 

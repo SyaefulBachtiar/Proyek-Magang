@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Anggota_perusahaan;
+use App\Models\Perusahaan;
 use App\Models\timPerusahaan\BoardModel;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\Notifikasi;
@@ -75,30 +76,29 @@ class HandleInertiaRequests extends Middleware
                     $currentUser = $request->user();
 
                     // 2. Pastikan user dan relasi perusahaannya ada
-                    if (! $currentUser || ! $currentUser->perusahaan) {
+                    if (!$currentUser || !$currentUser->anggotaPerusahaan) {
                         return []; // Sudah benar, kembalikan array kosong
                     }
 
                     // 3. Ambil nama perusahaan dari user yang login
-                    $namaPerusahaan = $currentUser->perusahaan->nama_perusahaan;
+                    $namaPerusahaan = $currentUser->anggotaPerusahaan->perusahaan->nama_perusahaan;
 
-                    // 4. Cari semua user yang berada di perusahaan yang sama menggunakan relasi
-                    // Ini adalah cara yang jauh lebih bersih dan aman
-                    return User::whereHas('perusahaan', function ($query) use ($namaPerusahaan) {
+                    return User::whereHas('anggotaPerusahaan.perusahaan', function ($query) use ($namaPerusahaan){
                         $query->where('nama_perusahaan', $namaPerusahaan);
                     })
+                    ->with('anggotaPerusahaan.perusahaan')
+                    ->orderBy('name')
                     ->get()
                     ->map(function ($user) {
-                        // 5. Bentuk data secara manual agar struktur outputnya pasti dan tidak bocor
                         return [
                             'id' => $user->id,
                             'name' => $user->name,
                             'email' => $user->email,
                             'poto_profile_user' => $user->poto_profile_user,
-                            // Gunakan null-safe di sini untuk keamanan ekstra
-                            'role' => $user->perusahaan->anggotaPerusahaan->role, 
-                            'jabatan' => $user->perusahaan->anggotaPerusahaan->jabatan, // Tambahkan jabatan jika ada
-                            'is_online' => $user->isOnline()
+                            'role' => $user->anggotaPerusahaan->role,
+                            'jabatan' => $user->anggotaPerusahaan->jabatan,
+                            'is_online' => $user->isOnline(),
+                            'last_seen' => $user->last_seen
                         ];
                     });
                 },
@@ -109,12 +109,36 @@ class HandleInertiaRequests extends Middleware
                         return [];
                     }
 
-                    $user->load([
-                    'tim_perusahaan.anggota_tim_perusahaan.user',
-                    'tim_perusahaan.board_tim.listBoards'
-                    ]);
+                    // $user->load([
+                    // 'tim_perusahaan.anggota_tim_perusahaan.user',
+                    // 'tim_perusahaan.board_tim.listBoards'
+                    // ]);
 
-                    return $user->tim_perusahaan;
+                    $keanggotaan = $user->anggotaPerusahaan;
+                    $role = optional($keanggotaan)->role;
+                    $perusahaan = optional($keanggotaan)->perusahaan;
+
+                    if (!$perusahaan){
+                        return [];
+                    }
+
+                    $query = TimPerusahaan::with([
+                            'anggota_tim_perusahaan.user',
+                            'board_tim.listBoards',
+                            'perusahaan'
+                        ])->where('perusahaan_id', $perusahaan->id);
+
+                    if (!in_array($role, ['Super User', 'Admin'])) {
+                    // kalau member → hanya tim yang dia bergabung
+                    $query->whereHas('anggota_tim_perusahaan', function ($q) use ($user) {
+                        $q->where('id_users', $user->id);
+                    });
+                }
+
+                    $data = $query->get();
+
+
+                    return $data;
                 },
                 'id_board' => function () use ($request) {
                     $id_tim = $request->route('id_tim');

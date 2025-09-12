@@ -297,7 +297,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
     return (
         <>
             <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
-                <Head title="Proyek" />
+                <Head title="Board Proyek" />
                 <div className="h-full w-full bg-slate-300 rounded-lg overflow-x-auto">
                     <DragDropContext onDragEnd={handleDragEnd}>
                         <Droppable
