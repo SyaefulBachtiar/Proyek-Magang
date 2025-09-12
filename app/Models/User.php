@@ -91,7 +91,7 @@ class User extends Authenticatable
     // relasi ke table anggota tim
     public function anggota_tim()
     {
-        return $this->hasMany(Anggota_tim::class, 'id_users', 'id');
+        return $this->hasOne(Anggota_tim::class, 'id_users', 'id');
     }
 
     // relasi ke table tim perusahaan
@@ -103,6 +103,10 @@ class User extends Authenticatable
         'id_users',
         'id_tim_perusahaan'
     );
+    }
+
+    public function anggota_card () {
+        return $this->hasMany(Anggota_card::class, 'id_user', 'id');
     }
 
     public function isOnline()
