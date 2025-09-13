@@ -1240,6 +1240,9 @@ export default function Card_kanban() {
                                                                                 checked={
                                                                                     !!check.is_checked
                                                                                 }
+                                                                                disabled={
+                                                                                    state.loading
+                                                                                }
                                                                                 onChange={(
                                                                                     e
                                                                                 ) =>
@@ -1555,10 +1558,12 @@ export default function Card_kanban() {
                                                                             },
                                                                     })
                                                                 }
+                                                                disabled={state.loading}
                                                                 className="p-2 text-xs bg-gray-300 text-gray-900 rounded-md hover:bg-gray-400"
                                                             >
-                                                                Tambah
-                                                                Checklist
+                                                                {state.loading
+                                                                    ? "Loading..."
+                                                                    : "Tambah Checklist"}
                                                             </button>
                                                         </div>
                                                     )}

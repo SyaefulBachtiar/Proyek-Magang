@@ -1,6 +1,6 @@
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import Proyek from "../Proyek";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 // Impor dari Chart.js
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
@@ -60,36 +60,145 @@ const KinerjaCard = ({ user }) => (
         </div>
     </div>
 );
-const RingkasanCard = ({ user }) => {
+// Update RingkasanCard component untuk menggunakan data real
+const RingkasanCard = ({ user, tugasPerTabs }) => {
+    // Hitung data berdasarkan tugasPerTabs yang difilter untuk user yang dipilih
+    const calculateProgressData = () => {
+        if (!user || !tugasPerTabs) {
+            return [
+                { name: "Belum", value: 0, color: "#6B7280", percentage: 0 },
+                { name: "Dikerjakan", value: 0, color: "#3B82F6", percentage: 0 },
+                { name: "Terlambat", value: 0, color: "#EF4444", percentage: 0 },
+                { name: "Selesai", value: 0, color: "#10B981", percentage: 0 },
+                // { name: "Selesai Terlambat", value: 0, color: "#F59E0B", percentage: 0 }
+            ];
+        }
+
+        // Hitung jumlah tugas per kategori untuk user yang dipilih
+        const counts = {
+            start: 0,
+            progress: 0,
+            terlambat: 0,
+            selesai: 0,
+            selesai_terlambat: 0
+        };
+
+        tugasPerTabs.forEach(tab => {
+            tab.cards.forEach(task => {
+                // Filter tugas yang melibatkan user yang dipilih
+                const isUserInvolved = task.anggota_card_list.some(
+                    anggota => anggota.user.id === user.id
+                );
+                
+                if (isUserInvolved) {
+                    if (tab.id === 'start') counts.start++;
+                    else if (tab.id === 'progress') counts.progress++;
+                    else if (tab.id === 'terlambat') counts.terlambat++;
+                    else if (tab.id === 'selesai') counts.selesai++;
+                    else if (tab.id === 'selesai_terlambat') counts.selesai_terlambat++;
+                }
+            });
+        });
+
+        const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+        return [
+            { 
+                name: "Belum", 
+                value: counts.start, 
+                color: "#6B7280", 
+                percentage: total > 0 ? Math.round((counts.start / total) * 100) : 0 
+            },
+            { 
+                name: "Dikerjakan", 
+                value: counts.progress, 
+                color: "#3B82F6", 
+                percentage: total > 0 ? Math.round((counts.progress / total) * 100) : 0 
+            },
+            { 
+                name: "Terlambat", 
+                value: counts.terlambat, 
+                color: "#EF4444", 
+                percentage: total > 0 ? Math.round((counts.terlambat / total) * 100) : 0 
+            },
+            { 
+                name: "Selesai", 
+                value: counts.selesai, 
+                color: "#10B981", 
+                percentage: total > 0 ? Math.round((counts.selesai / total) * 100) : 0 
+            },
+            // { 
+            //     name: "Selesai Terlambat", 
+            //     value: counts.selesai_terlambat, 
+            //     color: "#F59E0B", 
+            //     percentage: total > 0 ? Math.round((counts.selesai_terlambat / total) * 100) : 0 
+            // }
+        ].filter(item => item.value > 0); // Hanya tampilkan kategori yang memiliki data
+    };
+
+    const progressData = calculateProgressData();
+
     const chartData = {
-        labels: user.progress.map(item => item.name),
+        labels: progressData.map(item => item.name),
         datasets: [{
-            data: user.progress.map(item => item.value),
-            backgroundColor: user.progress.map(item => item.color),
-            borderColor: '#ffffff', borderWidth: 4,
+            data: progressData.map(item => item.value),
+            backgroundColor: progressData.map(item => item.color),
+            borderColor: '#ffffff', 
+            borderWidth: 4,
         }],
     };
+
     const chartOptions = {
-        responsive: true, maintainAspectRatio: false, 
+        responsive: true, 
+        maintainAspectRatio: false, 
         cutout: '50%', 
         plugins: {
             legend: { display: false },
-            tooltip: { enabled: true, backgroundColor: '#000', cornerRadius: 6, displayColors: true, boxPadding: 4, callbacks: { label: (c) => `${c.label}: ${c.raw}` }},
+            tooltip: { 
+                enabled: true, 
+                backgroundColor: '#000', 
+                cornerRadius: 6, 
+                displayColors: true, 
+                boxPadding: 4, 
+                callbacks: { 
+                    label: (c) => `${c.label}: ${c.raw} tugas` 
+                }
+            },
         },
     };
+
     return (
         <div className="bg-white p-5 rounded-xl shadow-sm h-full">
             <h3 className="font-bold text-gray-800 mb-2">Ringkasan Tugas Realtime</h3>
             <div className="flex items-center h-full -mt-2">
-                <div className="w-32 h-32 flex-shrink-0"><Doughnut data={chartData} options={chartOptions} /></div>
-                <div className="ml-4 flex flex-col gap-1.5">
-                    {user.progress.map((item) => (
-                        <div key={item.name} className="flex items-center gap-2 text-xs">
-                            <div className="w-2.5 h-2.5" style={{ backgroundColor: item.color }} />
-                            <span className="text-gray-600 font-medium">{item.name} : {item.value} ({item.percentage}%)</span>
+                {progressData.length > 0 ? (
+                    <>
+                        <div className="w-32 h-32 flex-shrink-0">
+                            <Doughnut data={chartData} options={chartOptions} />
                         </div>
-                    ))}
-                </div>
+                        <div className="ml-4 flex flex-col gap-1.5">
+                            {progressData.map((item) => (
+                                <div key={item.name} className="flex items-center gap-2 text-xs">
+                                    <div 
+                                        className="w-2.5 h-2.5 rounded-full" 
+                                        style={{ backgroundColor: item.color }} 
+                                    />
+                                    <span className="text-gray-600 font-medium">
+                                        {item.name}: {item.value} ({item.percentage}%)
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <div className="flex items-center justify-center h-full w-full">
+                        <div className="text-center text-gray-500">
+                            <Coffee size={32} className="mx-auto mb-2 text-gray-400" />
+                            <p className="text-sm font-semibold text-gray-600">Tidak Ada Tugas</p>
+                            <p className="text-xs">User ini belum memiliki tugas.</p>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -249,7 +358,24 @@ const MemberList = ({ members, selectedUser, onSelectUser }) => (
 );
 
 // --- Komponen Utama ---
-export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tugasPerTabs }) {
+export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tugasPerTabs, id_board }) {
+
+    // realtime
+    useEffect(() => {
+        if(!id_board) return;
+
+        const channel = window.Echo.private(`board.${id_board}`);
+        channel.listen('.board.updated', (event) => {
+            router.reload({
+                only: ["tugasPerTabs", "anggotaTim", "tim"],
+                preserveState: true,
+                preserveScroll: true,
+            });
+        })
+        return () => {
+            window.Echo.leave(`board.${id_board}`);
+        }
+    }, [id_board]);
    
     const generateFullTeamData = (members) => {
         if (!members || members.length === 0) return [];
@@ -300,8 +426,6 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
             ),
         }));
     }, [selectedUser, tugasPerTabs]);
-
-    console.log(filteredTugasTabs);
 
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
@@ -372,7 +496,10 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                         <>
                             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                                 <KinerjaCard user={selectedUser} />
-                                <RingkasanCard user={selectedUser} />
+                                <RingkasanCard
+                                    user={selectedUser}
+                                    tugasPerTabs={filteredTugasTabs}
+                                />
                                 <SaranCard />
                             </div>
                             <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">

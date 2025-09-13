@@ -177,27 +177,24 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
                                     </div>
                                 </div>
                                 <button
-                                    disabled={isAdding}
-                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 rounded transition-opacity disabled:opacity-50"
+                                    onClick={() =>
+                                        router.delete(
+                                            route("proyek.card.destroy", {
+                                                id: user.id,
+                                                id_user: tim.id,
+                                                cardId: card_id,
+                                            })
+                                        )
+                                    }
+                                    // disabled={isAdding}
+                                    className={`opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-100 rounded transition-opacity disabled:opacity-50 ${
+                                        tim.name === user.name &&
+                                        tim.role === "Ketua tim"
+                                            ? "hidden"
+                                            : "flex"
+                                    }`}
                                 >
-                                    <X
-                                        onClick={() =>
-                                            router.delete(
-                                                route("proyek.card.destroy", {
-                                                    id: user.id,
-                                                    id_user: tim.id,
-                                                    cardId: card_id,
-                                                })
-                                            )
-                                        }
-                                        size={14}
-                                        className={`${
-                                            tim.name === user.name ||
-                                            tim.role === "Ketua tim"
-                                                ? "hidden"
-                                                : "flex"
-                                        }`}
-                                    />
+                                    <X size={14} className="text-red-600" />
                                 </button>
                             </div>
                         ))

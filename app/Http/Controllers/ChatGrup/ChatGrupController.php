@@ -90,5 +90,17 @@ class ChatGrupController extends Controller
             DB::rollback();
             return response()->json(['message' => 'Gagal mengirim pesan.', 'error' => $e->getMessage()], 500);
         }
+    }public function delete_pesan ($id, $id_pesan) {
+        $hapus_pesan = Messages::findOrFail($id_pesan);
+
+        $id_board = $hapus_pesan->tim->board_tim->id;
+
+        broadcast(new BoardUpdated($id_board));
+
+        $hapus_pesan->delete();
+
+        return redirect()->back()->with('success', 'berhasil hapus pesan');
     }
+
+    
 }
