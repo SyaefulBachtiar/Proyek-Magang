@@ -1,22 +1,26 @@
 import { router, usePage } from "@inertiajs/react";
-import { EllipsisIcon, Reply, Trash2 } from "lucide-react";
+import { EllipsisIcon, Reply, SquarePen, Trash2 } from "lucide-react";
 import { useEffect, useReducer, useRef } from "react";
 
 const initialState = {
     ellipsisChat: "",
+    focusPesanBalas: "",
 };
 
 function reducer(state, action) {
     switch (action.type) {
         case "SET_ELLIPSIS":
             return { ...state, ellipsisChat: action.payload.ellipsisChat };
+        case "PESAN_BALAS":
+            return {...state, focusPesanBalas: action.payload}
         default:
             return state;
     }
 }
 
-const OpsiEllipsis = ({ ellipsisClose, triggerRef, messageId, isOwn, auth }) => {
+const OpsiEllipsis = ({ ellipsisClose, triggerRef, isOwn, auth, limit, edit_pesan, balas_pesan, itemChatUser }) => {
     const modalRef = useRef(null);
+
 
     useEffect(() => {
         function handleClickOutside(e) {
@@ -49,14 +53,33 @@ const OpsiEllipsis = ({ ellipsisClose, triggerRef, messageId, isOwn, auth }) => 
             }}
         >
             <ul className="p-1">
+                {itemChatUser?.sender_id === auth.user.id && !limit ? (
+                    <>
+                        <li
+                            onClick={() =>
+                                router.delete(
+                                    route("delete.pesan", {
+                                        id: auth.user.id,
+                                        id_pesan: itemChatUser?.id,
+                                    })
+                                )
+                            }
+                            className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                        >
+                            <Trash2 size={14} />
+                            <span>Hapus</span>
+                        </li>
+                        <li 
+                        onClick={() => edit_pesan(itemChatUser?.pesan, itemChatUser?.id)}
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm">
+                            <SquarePen size={14}/>
+                            <span>edit</span>
+                        </li>
+                    </>
+                ) : null}
                 <li 
-                onClick={() => router.delete(route('delete.pesan', {id: auth.user.id, id_pesan: messageId}))}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                >
-                    <Trash2 size={14} />
-                    <span>Hapus</span>
-                </li>
-                <li className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm">
+                onClick={() => balas_pesan(itemChatUser.id, itemChatUser.name, itemChatUser.pesan)}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm">
                     <Reply size={14} />
                     <span>Balas</span>
                 </li>
@@ -65,11 +88,14 @@ const OpsiEllipsis = ({ ellipsisClose, triggerRef, messageId, isOwn, auth }) => 
     );
 };
 
-export default function BubleChat({ chatting }) {
+export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
     const { auth } = usePage().props;
     const [state, dispatch] = useReducer(reducer, initialState);
     const triggerRefs = useRef({});
+    const messageRefs = useRef({});
+    const previousHighlightedRef = useRef(null);
 
+    
     const handleEllipsisClick = (messageId) => {
         dispatch({
             type: "SET_ELLIPSIS",
@@ -78,6 +104,40 @@ export default function BubleChat({ chatting }) {
             },
         });
     };
+    
+    const removeHighlight = () => {
+        if (previousHighlightedRef.current) {
+            previousHighlightedRef.current.classList.remove("bg-yellow-100");
+            previousHighlightedRef.current = null;
+        }
+    };
+
+      useEffect(() => {
+          if (
+            state.focusPesanBalas &&
+            messageRefs.current[state.focusPesanBalas]
+          ) {
+
+            removeHighlight();
+
+            const targetElement = messageRefs.current[state.focusPesanBalas];
+
+            targetElement.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+
+              // highlight sebentar
+            targetElement.classList.add("bg-yellow-100");
+
+            previousHighlightedRef.current = targetElement;
+
+            // setTimeout(() => {
+            //     removeHighlight();
+            // }, 3000);
+            
+          }
+      }, [state.focusPesanBalas]);
 
     const handleEllipsisClose = () => {
         dispatch({
@@ -98,13 +158,25 @@ export default function BubleChat({ chatting }) {
                         .padStart(2, "0");
                     const formattedTime = `${hours}:${minutes}`;
 
+                    const now =  new Date();
+
+                    const diffMinutes = (now - date) / 1000 / 60;
+
+                    const isOverMinutes = diffMinutes > 5;
+
                     const isOwn = item.sender_id === auth.user.id;
+
+                     const repliedMessage = item.parent_id
+                         ? chatting.find((c) => c.id === item.parent_id)
+                         : null;
+
 
                     return isOwn ? (
                         // Pesan dari user yang sedang login (kanan)
                         <div
                             key={item.id}
-                            className="flex justify-end mb-2 items-center relative"
+                            ref={(el) => (messageRefs.current[item.id] = el)}
+                            className="flex justify-end mb-5 items-center relative"
                         >
                             <div className="flex items-center gap-3 cursor-pointer group relative">
                                 <div
@@ -132,10 +204,32 @@ export default function BubleChat({ chatting }) {
                                             messageId={item.id}
                                             isOwn={true}
                                             auth={auth}
+                                            itemChatUser={item}
+                                            edit_pesan={edit_pesan}
+                                            limit={isOverMinutes}
+                                            balas_pesan={balas_pesan}
                                         />
                                     )}
                                 </div>
                                 <div className="bg-white p-3 rounded-l-2xl rounded-tr-2xl max-w-sm min-w-32 shadow-md">
+                                    {repliedMessage && (
+                                        <div
+                                            onClick={() =>
+                                                dispatch({
+                                                    type: "PESAN_BALAS",
+                                                    payload: repliedMessage.id,
+                                                })
+                                            }
+                                            className="bg-gray-100 p-2 rounded mb-2"
+                                        >
+                                            <p className="text-sm text-gray-700">
+                                                {repliedMessage.name === auth.user.name ? "Anda" : repliedMessage.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                {repliedMessage.pesan}
+                                            </p>
+                                        </div>
+                                    )}
                                     <p className="text-sm leading-relaxed">
                                         {item.pesan}
                                     </p>
@@ -151,7 +245,8 @@ export default function BubleChat({ chatting }) {
                         // Pesan dari user lain (kiri)
                         <div
                             key={item.id}
-                            className="flex justify-start items-center gap-3 w-fit mb-4 group cursor-pointer"
+                            ref={(el) => (messageRefs.current[item.id] = el)}
+                            className="flex justify-start items-center gap-3 mb-4 group cursor-pointer"
                         >
                             <div className="flex flex-row gap-3 justify-start">
                                 {/* Avatar */}
@@ -162,12 +257,30 @@ export default function BubleChat({ chatting }) {
                                 </div>
 
                                 {/* Bubble pesan */}
-                                <div className="p-3 bg-white min-w-32 max-w-sm rounded-bl-2xl rounded-r-2xl shadow-md border border-gray-100">
+                                <div className="p-2 bg-white min-w-40 max-w-sm rounded-bl-2xl rounded-r-2xl shadow-md border border-gray-100">
+                                    <h1 className="text-blue-700 text-sm font-semibold mb-1">
+                                        {item.name}
+                                    </h1>
+                                    {repliedMessage && (
+                                        <div
+                                            onClick={() =>
+                                                dispatch({
+                                                    type: "PESAN_BALAS",
+                                                    payload: repliedMessage.id,
+                                                })
+                                            }
+                                            className="bg-gray-100 p-2 rounded"
+                                        >
+                                            <p className="text-sm text-gray-700">
+                                                {repliedMessage.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                {repliedMessage.pesan}
+                                            </p>
+                                        </div>
+                                    )}
                                     {/* Nama pengirim */}
-                                    <div>
-                                        <h1 className="text-blue-700 text-sm font-semibold mb-1">
-                                            {item.name}
-                                        </h1>
+                                    <div className="mt-2">
                                         <p className="text-sm leading-relaxed text-gray-800">
                                             {item.pesan}
                                         </p>
@@ -202,6 +315,9 @@ export default function BubleChat({ chatting }) {
                                         messageId={item.id}
                                         isOwn={false}
                                         auth={auth}
+                                        itemChatUser={item}
+                                        edit_pesan={edit_pesan}
+                                        balas_pesan={balas_pesan}
                                     />
                                 )}
                             </div>

@@ -14,6 +14,8 @@ return new class extends Migration
             $table->foreign('id_tim')->references('id')->on('tim_perusahaan')->onDelete('cascade');
             $table->string('sender_id', 36);
             $table->foreign('sender_id')->references('id')->on('users')->onDelete('cascade');
+            $table->string('parent_id', 36)->nullable();
+            $table->foreign('parent_id')->references('id')->on('messages')->onDelete('cascade');
             $table->longText('pesan');
             $table->timestamps();
         });

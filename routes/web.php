@@ -132,6 +132,8 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // DELETE PESAN
     Route::delete('delete/pesan/{id_pesan}', [ChatGrupController::class, 'delete_pesan'])->name('delete.pesan');
+    // EDIT PESAN
+    Route::put('edit/pesan/{id_pesan}', [ChatGrupController::class, 'edit_pesan'])->name('edit.pesan');
 
 });
 
