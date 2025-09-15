@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('komentar', function (Blueprint $table) {
             $table->string('id', 36)->primary();
-            $table->string('parent_id', 36)->nullable();
             $table->foreign('parent_id')->references('id')->on('komentar')->onDelete('cascade');
+            $table->string('parent_id', 36)->nullable();
             $table->string('mention')->nullable();
             $table->text('komentar');
             $table->string('lampiran_id')->nullable();
@@ -22,8 +22,6 @@ return new class extends Migration
             $table->string('id_user', 36);
             $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
             $table->string('id_card', 36);
-            $table->string('parent_id', 36)->nullable();
-            $table->foreign('parent_id')->references('id')->on('komentar')->onDelete('cascade');
             $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
             $table->timestamps();
         });
