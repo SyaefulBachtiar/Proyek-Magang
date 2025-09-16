@@ -122,11 +122,11 @@ function DashboardContent({children}){
                     {/* flash alert */}
                     <div
                         className={`
-                                fixed top-[150px] right-10 z-50 min-w-[100px] rounded-md p-4 
+                                fixed bottom-16 right-10 z-50 min-w-[100px] rounded-md p-4 
                                 border border-gray-100 cursor-pointer
                                 transform transition-transform duration-500 ease-in-out
                                 ${
-                                    showFlashSuccess
+                                    showFlashSuccess || showFlashError
                                         ? "translate-x-0 opacity-100"
                                         : "translate-x-full opacity-0"
                                 }

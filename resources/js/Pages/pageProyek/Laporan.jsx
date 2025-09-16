@@ -1,4 +1,4 @@
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import Proyek from "../Proyek";
 import { useState, useMemo, useEffect } from "react";
 
@@ -7,17 +7,17 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
 // Impor Ikon dari Lucide React untuk konsistensi visual
-import { 
-    AlertTriangle, 
-    Calendar, 
-    CheckCircle2, 
-    ChevronDown, 
-    ClipboardList, 
-    Coffee, 
-    Lightbulb, 
-    ListTodo, 
-    Search, 
-    Star, 
+import {
+    AlertTriangle,
+    Calendar,
+    CheckCircle2,
+    ChevronDown,
+    ClipboardList,
+    Coffee,
+    Lightbulb,
+    ListTodo,
+    Search,
+    Star,
     UserX,
     Users
 } from "lucide-react";
@@ -63,40 +63,143 @@ const KinerjaCard = ({ user }) => (
     </div>
 );
 
-const RingkasanCard = ({ user }) => {
+// Update RingkasanCard component untuk menggunakan data real
+const RingkasanCard = ({ user, tugasPerTabs }) => {
+    // Hitung data berdasarkan tugasPerTabs yang difilter untuk user yang dipilih
+    const calculateProgressData = () => {
+        if (!user || !tugasPerTabs) {
+            return [
+                { name: "Belum", value: 0, color: "#6B7280", percentage: 0 },
+                { name: "Dikerjakan", value: 0, color: "#3B82F6", percentage: 0 },
+                { name: "Terlambat", value: 0, color: "#EF4444", percentage: 0 },
+                { name: "Selesai", value: 0, color: "#10B981", percentage: 0 },
+            ];
+        }
+
+        // Hitung jumlah tugas per kategori untuk user yang dipilih
+        const counts = {
+            start: 0,
+            progress: 0,
+            terlambat: 0,
+            selesai: 0,
+            selesai_terlambat: 0
+        };
+
+        tugasPerTabs.forEach(tab => {
+            tab.cards.forEach(task => {
+                // Filter tugas yang melibatkan user yang dipilih
+                const isUserInvolved = task.anggota_card_list.some(
+                    anggota => anggota.user.id === user.id
+                );
+
+                if (isUserInvolved) {
+                    if (tab.id === 'start') counts.start++;
+                    else if (tab.id === 'progress') counts.progress++;
+                    else if (tab.id === 'terlambat') counts.terlambat++;
+                    else if (tab.id === 'selesai') counts.selesai++;
+                    else if (tab.id === 'selesai_terlambat') counts.selesai_terlambat++;
+                }
+            });
+        });
+
+        const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+        return [
+            {
+                name: "Belum",
+                value: counts.start,
+                color: "#6B7280",
+                percentage: total > 0 ? Math.round((counts.start / total) * 100) : 0
+            },
+            {
+                name: "Dikerjakan",
+                value: counts.progress,
+                color: "#3B82F6",
+                percentage: total > 0 ? Math.round((counts.progress / total) * 100) : 0
+            },
+            {
+                name: "Terlambat",
+                value: counts.terlambat,
+                color: "#EF4444",
+                percentage: total > 0 ? Math.round((counts.terlambat / total) * 100) : 0
+            },
+            {
+                name: "Selesai",
+                value: counts.selesai,
+                color: "#10B981",
+                percentage: total > 0 ? Math.round((counts.selesai / total) * 100) : 0
+            },
+        ].filter(item => item.value > 0); // Hanya tampilkan kategori yang memiliki data
+    };
+
+    const progressData = calculateProgressData();
+
     const chartData = {
-        labels: user.progress.map(item => item.name),
+        labels: progressData.map(item => item.name),
         datasets: [{
-            data: user.progress.map(item => item.value),
-            backgroundColor: user.progress.map(item => item.color),
-            borderColor: '#ffffff', borderWidth: 4,
+            data: progressData.map(item => item.value),
+            backgroundColor: progressData.map(item => item.color),
+            borderColor: '#ffffff',
+            borderWidth: 4,
         }],
     };
+
     const chartOptions = {
-        responsive: true, maintainAspectRatio: false, 
-        cutout: '50%', 
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '50%',
         plugins: {
             legend: { display: false },
-            tooltip: { enabled: true, backgroundColor: '#000', cornerRadius: 6, displayColors: true, boxPadding: 4, callbacks: { label: (c) => `${c.label}: ${c.raw}` }},
+            tooltip: {
+                enabled: true,
+                backgroundColor: '#000',
+                cornerRadius: 6,
+                displayColors: true,
+                boxPadding: 4,
+                callbacks: {
+                    label: (c) => `${c.label}: ${c.raw} tugas`
+                }
+            },
         },
     };
+
     return (
         <div className="bg-white p-5 rounded-xl shadow-sm h-full">
             <h3 className="font-bold text-gray-800 mb-2">Ringkasan Tugas Realtime</h3>
             <div className="flex items-center h-full -mt-2">
-                <div className="w-32 h-32 flex-shrink-0"><Doughnut data={chartData} options={chartOptions} /></div>
-                <div className="ml-4 flex flex-col gap-1.5">
-                    {user.progress.map((item) => (
-                        <div key={item.name} className="flex items-center gap-2 text-xs">
-                            <div className="w-2.5 h-2.5" style={{ backgroundColor: item.color }} />
-                            <span className="text-gray-600 font-medium text-xs">{item.name} : {item.value} ({item.percentage}%)</span>
+                {progressData.length > 0 ? (
+                    <>
+                        <div className="w-32 h-32 flex-shrink-0">
+                            <Doughnut data={chartData} options={chartOptions} />
                         </div>
-                    ))}
-                </div>
+                        <div className="ml-4 flex flex-col gap-1.5">
+                            {progressData.map((item) => (
+                                <div key={item.name} className="flex items-center gap-2 text-xs">
+                                    <div
+                                        className="w-2.5 h-2.5 rounded-full"
+                                        style={{ backgroundColor: item.color }}
+                                    />
+                                    <span className="text-gray-600 font-medium">
+                                        {item.name}: {item.value} ({item.percentage}%)
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <div className="flex items-center justify-center h-full w-full">
+                        <div className="text-center text-gray-500">
+                            <Coffee size={32} className="mx-auto mb-2 text-gray-400" />
+                            <p className="text-sm font-semibold text-gray-600">Tidak Ada Tugas</p>
+                            <p className="text-xs">User ini belum memiliki tugas.</p>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
+
 
 const SaranCard = () => (
     <div className="bg-indigo-600 text-white p-6 rounded-2xl shadow-sm h-full flex flex-col items-start border border-indigo-700">
@@ -203,13 +306,13 @@ const PenghambatCard = () => {
         <div className="bg-white p-6 rounded-2xl shadow-sm h-full border border-gray-200/80">
             <h3 className="text-sm font-semibold text-gray-500 mb-4">Potensi Penghambat</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <StatItem 
+                <StatItem
                     value="0 dari 1"
                     label="Belum Dikerjakan"
                     subLabel="lebih dari 40 hari"
                     taskName="Belum ada data"
                 />
-                 <StatItem 
+                 <StatItem
                     value="0 dari 0"
                     label="Masih Dikerjakan"
                     subLabel="lebih dari 40 hari"
@@ -223,19 +326,19 @@ const PenghambatCard = () => {
 const MemberList = ({ members, selectedUser, onSelectUser }) => (
   <div className="flex flex-col gap-1.5 max-h-96 overflow-y-auto pr-2 styled-scrollbar">
     {members.map((member) => (
-      <div 
-        key={member.id} 
-        onClick={() => onSelectUser(member)} 
-        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${ 
-            selectedUser?.id === member.id 
-            ? "bg-blue-600 text-white font-semibold shadow-md" 
+      <div
+        key={member.id}
+        onClick={() => onSelectUser(member)}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${
+            selectedUser?.id === member.id
+            ? "bg-blue-600 text-white font-semibold shadow-md"
             : "text-gray-700 hover:bg-gray-100"
         }`}
       >
-        <img 
-            src={`https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=random&color=fff&size=32`} 
-            alt={member.name} 
-            className="w-8 h-8 rounded-full flex-shrink-0" 
+        <img
+            src={`https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=random&color=fff&size=32`}
+            alt={member.name}
+            className="w-8 h-8 rounded-full flex-shrink-0"
         />
         <span className="text-sm truncate">{member.name}</span>
       </div>
@@ -245,8 +348,25 @@ const MemberList = ({ members, selectedUser, onSelectUser }) => (
 
 
 // --- Komponen Utama ---
-export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tugasPerTabs }) {
-   
+export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tugasPerTabs, id_board }) {
+
+    // realtime
+    useEffect(() => {
+        if(!id_board) return;
+
+        const channel = window.Echo.private(`board.${id_board}`);
+        channel.listen('.board.updated', (event) => {
+            router.reload({
+                only: ["tugasPerTabs", "anggotaTim", "tim"],
+                preserveState: true,
+                preserveScroll: true,
+            });
+        })
+        return () => {
+            window.Echo.leave(`board.${id_board}`);
+        }
+    }, [id_board]);
+
     // --- LOGIKA FUNGSI DI BAWAH INI TIDAK DIUBAH SAMA SEKALI ---
     const generateFullTeamData = (members) => {
         if (!members || members.length === 0) return [];
@@ -262,13 +382,13 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
             };
         });
     };
-    
+
     const teamData = useMemo(() => generateFullTeamData(anggotaTim), [anggotaTim, tim]);
     const [selectedUser, setSelectedUser] = useState(teamData[0] || null);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedPeriod, setSelectedPeriod] = useState("Bulan Ini");
 
-    const filteredTeamData = useMemo(() => 
+    const filteredTeamData = useMemo(() =>
         teamData.filter(member =>
             member.name.toLowerCase().includes(searchTerm.toLowerCase())
         ), [teamData, searchTerm]
@@ -287,7 +407,6 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
             ),
         }));
     }, [selectedUser, tugasPerTabs]);
-    // --- AKHIR DARI BAGIAN LOGIKA FUNGSI ---
 
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
@@ -302,14 +421,14 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                 `}</style>
             </Head>
             <div className="flex flex-col lg:flex-row w-full min-h-screen bg-gray-50 p-4 lg:p-6 gap-6">
-                
+
                 {/* Sidebar Kontrol */}
                 <aside className="w-full lg:w-80 lg:flex-shrink-0 bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-5 h-fit border border-gray-200/80">
                     <div>
                         <h2 className="text-xl font-bold text-gray-800 mb-1">Laporan Tim</h2>
                         <p className="text-sm text-gray-500">Analisis kinerja per anggota.</p>
                     </div>
-                    
+
                     <div className="relative">
                         <select
                             value={selectedPeriod}
@@ -339,7 +458,7 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                             />
                         </div>
                     </div>
-                   
+
                     <div>
                         {filteredTeamData.length > 0 ? (
                             <MemberList
@@ -363,7 +482,10 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                         <>
                             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                                 <KinerjaCard user={selectedUser} />
-                                <RingkasanCard user={selectedUser} />
+                                <RingkasanCard
+                                    user={selectedUser}
+                                    tugasPerTabs={filteredTugasTabs}
+                                />
                                 <SaranCard />
                             </div>
                             <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">

@@ -19,6 +19,7 @@ class Messages extends Model
         'id_tim',
         'sender_id',
         'pesan',
+        'parent_id'
     ];
 
     public function tim () {

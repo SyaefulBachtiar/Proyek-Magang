@@ -1,75 +1,67 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, forwardRef } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
 import Dashboard from "../Dashboard";
 import DeleteUserForm from "./Partials/DeleteUserForm";
 import UpdatePasswordForm from "./Partials/UpdatePasswordForm";
-import { Pencil, Camera, User, Mail, FileText } from "lucide-react";
+import { Pencil, Camera, User, Mail, FileText, Briefcase } from "lucide-react";
 
+// Komponen Utama Halaman Edit Profil
 export default function Edit({ auth, user }) {
     return (
         <Dashboard>
-            <Head title={auth.user.name} />
-            <ProfileContent user={auth.user} userProfile={user} />
+            <Head title={`Pengaturan Profil - ${auth.user.name}`} />
+            <div className="min-h-screen bg-slate-50">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+                    {/* Komponen utama untuk informasi profil */}
+                    <ProfileContent user={auth.user} userProfile={user} />
+
+                    {/* Komponen untuk pengaturan kata sandi */}
+                    <ProfileSection
+                        title="Ubah Kata Sandi"
+                        description="Pastikan akun Anda menggunakan kata sandi yang panjang dan acak agar tetap aman."
+                    >
+                        <UpdatePasswordForm className="p-6" />
+                    </ProfileSection>
+
+                    {/* Komponen untuk hapus akun */}
+                    <ProfileSection
+                        title="Hapus Akun"
+                        description="Setelah akun Anda dihapus, semua sumber daya dan datanya akan dihapus secara permanen."
+                        variant="danger"
+                    >
+                        <DeleteUserForm className="p-6" />
+                    </ProfileSection>
+                </div>
+            </div>
         </Dashboard>
     );
 }
 
+// -- Komponen Inti: Konten Profil --
 function ProfileContent({ user, userProfile }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, isDirty, reset } = useForm({
         name: user.name || "",
         email: user.email || "",
         jabatan: userProfile.perusahaan?.jabatan || "",
         bio_profile: userProfile.bio_profile || "",
-        poto_profile_user: userProfile.poto_profile_user || null,
+        poto_profile_user: null,
     });
 
     const [editMode, setEditMode] = useState(false);
     const [previewImage, setPreviewImage] = useState(null);
-    const [isDirty, setIsDirty] = useState(false);
-
-    const initialData = useMemo(
-        () => ({
-            name: user.name || "",
-            email: user.email || "",
-            jabatan: userProfile.perusahaan?.jabatan || "",
-            bio_profile: userProfile.bio_profile || "",
-            poto_profile_user: userProfile.poto_profile_user || null,
-        }),
-        [user, userProfile]
-    );
-
-    useEffect(() => {
-        const isImageChanged =
-            data.poto_profile_user instanceof File || previewImage !== null;
-
-        const otherDataChanged =
-            data.name !== initialData.name ||
-            data.email !== initialData.email ||
-            data.jabatan !== initialData.jabatan ||
-            data.bio_profile !== initialData.bio_profile;
-
-        setIsDirty(isImageChanged || otherDataChanged);
-    }, [data, previewImage, initialData]);
-
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.append("_method", "PUT");
-        formData.append("name", data.name);
-        formData.append("email", data.email);
-        formData.append("jabatan", data.jabatan || "");
-        formData.append("bio_profile", data.bio_profile || "");
-        if (data.poto_profile_user) {
-            formData.append("poto_profile_user", data.poto_profile_user);
-        }
-
-        router.post(route("profile.update", { id: user.id }), formData, {
+        router.post(route("profile.update", { id: user.id }), {
+            _method: 'put',
+            ...data,
+        }, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 setEditMode(false);
                 setPreviewImage(null);
+                reset('poto_profile_user');
             },
         });
     };
@@ -78,227 +70,171 @@ function ProfileContent({ user, userProfile }) {
         const file = e.target.files[0];
         if (file) {
             setData("poto_profile_user", file);
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setPreviewImage(e.target.result);
-            };
-            reader.readAsDataURL(file);
+            setPreviewImage(URL.createObjectURL(file));
         }
     };
+
+    const handleCancel = () => {
+        setEditMode(false);
+        setPreviewImage(null);
+        reset(); // Reset form ke kondisi awal
+    }
 
     const getProfileImageSrc = () => {
         if (previewImage) return previewImage;
         if (userProfile.poto_profile_user)
             return `/storage/${userProfile.poto_profile_user}`;
-        return (
-            "https://ui-avatars.com/api/?name=" +
-            encodeURIComponent(user.name) +
-            "&size=128&background=e5e7eb&color=6b7280"
-        );
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&size=256&background=f1f5f9&color=1e293b&bold=true`;
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-4xl mx-auto px-4 space-y-6">
-                <div className="text-center mb-8">
-                    <h1 className="text-2xl font-semibold text-gray-800 mb-2">
-                        Profil Pengguna
-                    </h1>
-                    <p className="text-gray-600 text-sm">
-                        Kelola informasi profil dan pengaturan akun Anda
-                    </p>
-                </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+            {/* Banner Section */}
+            <div className="h-32 bg-slate-100">
+                {/* Anda bisa menaruh gambar banner di sini jika mau */}
+            </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="h-24 bg-gradient-to-r from-slate-100 to-gray-100"></div>
-
-                    <div className="relative px-6 pb-6">
-                        <div className="relative -mt-12 mb-6 flex justify-center">
-                            <div className="relative">
-                                <img
-                                    src={getProfileImageSrc()}
-                                    alt="Foto Profil"
-                                    className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-sm"
+            {/* Content Section */}
+            <div className="px-6 pb-8">
+                {/* Avatar and Edit Button Container */}
+                <div className="relative flex flex-col sm:flex-row items-center sm:items-end -mt-16">
+                    <div className="relative flex-shrink-0">
+                        <img
+                            src={getProfileImageSrc()}
+                            alt="Foto Profil"
+                            className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md"
+                        />
+                        {editMode && (
+                            <label
+                                htmlFor="profile-image-upload"
+                                className="absolute bottom-1 right-1 grid place-items-center w-9 h-9 bg-black/60 text-white rounded-full backdrop-blur-sm hover:bg-slate-800 cursor-pointer transition-all duration-300"
+                                title="Ubah Foto Profil"
+                            >
+                                <Camera size={18} />
+                                <input
+                                    id="profile-image-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="hidden"
                                 />
-                                {editMode && (
-                                    <label
-                                        htmlFor="profile-image"
-                                        className="absolute bottom-0 right-0 bg-gray-600 text-white p-1.5 rounded-full shadow-sm hover:bg-gray-700 cursor-pointer"
-                                        title="Ubah Foto Profil"
-                                    >
-                                        <Camera size={14} />
-                                        <input
-                                            id="profile-image"
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageChange}
-                                            className="hidden"
-                                        />
-                                    </label>
-                                )}
-                            </div>
-                        </div>
-
-                        {editMode ? (
-                            <form onSubmit={handleSubmit} className="space-y-5">
-                                {/* Input Fields */}
-                                <InputField
-                                    label="Nama Lengkap"
-                                    icon={
-                                        <User
-                                            size={16}
-                                            className="mr-2 text-gray-500"
-                                        />
-                                    }
-                                    type="text"
-                                    value={data.name}
-                                    onChange={(e) =>
-                                        setData("name", e.target.value)
-                                    }
-                                    error={errors.name}
-                                />
-                                <InputField
-                                    label="Jabatan"
-                                    icon={
-                                        <FileText
-                                            size={16}
-                                            className="mr-2 text-gray-500"
-                                        />
-                                    }
-                                    type="text"
-                                    value={data.jabatan}
-                                    onChange={(e) =>
-                                        setData("jabatan", e.target.value)
-                                    }
-                                    placeholder="Jabatan di perusahaan"
-                                    error={errors.jabatan}
-                                />
-                                <InputField
-                                    label="Email"
-                                    icon={
-                                        <Mail
-                                            size={16}
-                                            className="mr-2 text-gray-500"
-                                        />
-                                    }
-                                    type="email"
-                                    value={data.email}
-                                    onChange={(e) =>
-                                        setData("email", e.target.value)
-                                    }
-                                    error={errors.email}
-                                />
-                                <InputTextArea
-                                    label="Bio Profil"
-                                    icon={
-                                        <FileText
-                                            size={16}
-                                            className="mr-2 text-gray-500"
-                                        />
-                                    }
-                                    value={data.bio_profile}
-                                    onChange={(e) =>
-                                        setData("bio_profile", e.target.value)
-                                    }
-                                    placeholder="Ceritakan tentang diri Anda"
-                                    error={errors.bio_profile}
-                                />
-
-                                {/* Action Buttons */}
-                                <div className="flex justify-center gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setEditMode(false);
-                                            setPreviewImage(null);
-                                            setData(initialData);
-                                        }}
-                                        className="px-5 py-2.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    >
-                                        Batal
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={processing || !isDirty}
-                                        className="px-6 py-2.5 rounded-lg bg-gray-800 text-white hover:bg-gray-900 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {processing
-                                            ? "Menyimpan..."
-                                            : "Simpan Perubahan"}
-                                    </button>
+                            </label>
+                        )}
+                    </div>
+                    <div className="w-full sm:ml-6 mt-4 sm:mt-0 text-center sm:text-left flex-grow">
+                        {/* Conditional rendering for Name and Edit button */}
+                        {!editMode && (
+                             <div className="flex flex-col sm:flex-row justify-between items-center">
+                                <div>
+                                    <h1 className="text-2xl font-bold text-slate-800">{user.name}</h1>
+                                    <p className="text-sm text-slate-500">{user.email}</p>
                                 </div>
-                            </form>
-                        ) : (
-                            <div className="text-center flex flex-col items-center">
-                                <div className="my-4">
-                                    <h2 className="text-xl font-semibold text-gray-800">
-                                        {user.name}
-                                    </h2>
-                                    <p className="text-gray-600 text-sm">
-                                        {user.email}
-                                    </p>
-                                </div>
-                                <p className="text-black text-sm bg-green-400 p-2 rounded-md">
-                                    {userProfile.perusahaan?.jabatan || "Tidak ada jabatan"}
-                                </p>
-                                <p className="text-gray-700 text-sm leading-relaxed bg-gray-50 my-4 rounded-lg p-4">
-                                    {userProfile.bio_profile ||
-                                        "Belum ada bio."}
-                                </p>
-                                <button
-                                    onClick={() => setEditMode(true)}
-                                    className="inline-flex items-center px-5 py-2.5 rounded-lg bg-gray-800 text-white hover:bg-gray-900 font-medium"
-                                >
-                                    <Pencil size={14} className="mr-2" />
-                                    Edit Profil
+                                <button onClick={() => setEditMode(true)} className="mt-4 sm:mt-0 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-white hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-800 transition-colors duration-300">
+                                    <Pencil size={14} /> Edit Profil
                                 </button>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Password & Delete Section */}
-                <UpdatePasswordForm className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6" />
-                <DeleteUserForm className="bg-white rounded-2xl shadow-sm border border-red-100 p-6" />
+                {/* Profile Details (View or Edit) */}
+                <div className="mt-8">
+                    {editMode ? (
+                        // -- FORM EDIT --
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                             {errors.poto_profile_user && <p className="text-red-500 text-xs text-center -mt-2 mb-4">{errors.poto_profile_user}</p>}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <InputField label="Nama Lengkap" id="name" value={data.name} onChange={e => setData('name', e.target.value)} error={errors.name} icon={<User />} />
+                                <InputField label="Email" id="email" type="email" value={data.email} onChange={e => setData('email', e.target.value)} error={errors.email} icon={<Mail />} />
+                            </div>
+                             <InputField label="Jabatan" id="jabatan" value={data.jabatan} onChange={e => setData('jabatan', e.target.value)} error={errors.jabatan} icon={<Briefcase />} placeholder="Contoh: Frontend Developer" />
+                             <InputTextArea label="Bio Profil" id="bio" value={data.bio_profile} onChange={e => setData('bio_profile', e.target.value)} error={errors.bio_profile} placeholder="Ceritakan sedikit tentang diri Anda..." icon={<FileText />} />
+                            
+                            <div className="flex justify-end items-center gap-4 pt-5 border-t border-slate-200">
+                                <button type="button" onClick={handleCancel} className="px-4 py-2 text-sm font-semibold text-slate-700 rounded-lg hover:bg-slate-100 transition-colors duration-300">
+                                    Batal
+                                </button>
+                                <button type="submit" disabled={processing || !isDirty} className="px-5 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-white hover:bg-slate-900 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-300">
+                                    {processing ? "Menyimpan..." : "Simpan Perubahan"}
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        // -- TAMPILAN VIEW --
+                        <div className="space-y-4">
+                            <div>
+    {/* Label "Jabatan" sebagai judul */}
+    <span className="text-sm font-semibold text-slate-500">
+        Jabatan
+    </span>
+    
+    {/* Nilai/Jawaban di bawahnya, diberi jarak margin-top (mt-2) */}
+    <div className="mt-2">
+        <span className="text-sm font-semibold bg-sky-100 text-sky-800 px-3 py-1 rounded-md">
+            {userProfile.perusahaan?.jabatan || "Belum diatur"}
+        </span>
+    </div>
+</div>
+                            <div>
+                                <span className="text-sm font-semibold text-slate-500">Bio</span>
+                                <p className="mt-1 text-base text-slate-700 max-w-2xl leading-relaxed">
+                                    {userProfile.bio_profile || "Pengguna ini belum menulis bio."}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
 }
 
-function InputField({ label, icon, type, value, onChange, error, placeholder }) {
-    return (
-        <div className="space-y-2">
-            <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
-                {icon}
-                {label}
-            </label>
-            <input
-            placeholder={placeholder}
-                type={type}
-                value={value}
-                onChange={onChange}
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-200 text-sm"
-            />
-            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-        </div>
-    );
-}
+// -- Komponen Pembantu (UI Components) --
 
-function InputTextArea({ label, icon, value, onChange, error, placeholder }) {
+const ProfileSection = ({ title, description, children, variant = "default" }) => {
+    const borderClass = variant === "danger" ? "border-red-300/70" : "border-slate-200/80";
+    const titleClass = variant === "danger" ? "text-red-900" : "text-slate-900";
+
     return (
-        <div className="space-y-2">
-            <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
-                {icon}
-                {label}
-            </label>
-            <textarea
-                placeholder={placeholder}
-                value={value}
-                onChange={onChange}
-                rows={3}
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-200 resize-none text-sm"
-            />
-            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+        <div className={`bg-white rounded-2xl shadow-sm border ${borderClass}`}>
+            <div className="p-6 border-b ${borderClass}">
+                <h3 className={`text-lg font-bold ${titleClass}`}>{title}</h3>
+                <p className="mt-1 text-sm text-slate-600">{description}</p>
+            </div>
+            {children}
         </div>
     );
-}
+};
+
+const InputField = forwardRef(({ id, label, icon, type = "text", error, ...props }, ref) => (
+    <div>
+        <label htmlFor={id} className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+            {icon && <span className="text-slate-400">{icon}</span>}
+            {label}
+        </label>
+        <input
+            id={id}
+            type={type}
+            ref={ref}
+            className={`w-full px-4 py-2.5 bg-slate-50 rounded-lg border text-sm text-slate-800 placeholder:text-slate-400 ${error ? 'border-red-400 focus:ring-red-500/50' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/50'} focus:ring-2 focus:ring-offset-2 transition-all duration-300`}
+            {...props}
+        />
+        {error && <p className="text-red-600 text-xs mt-1.5">{error}</p>}
+    </div>
+));
+
+const InputTextArea = ({ id, label, icon, error, ...props }) => (
+    <div>
+        <label htmlFor={id} className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+             {icon && <span className="text-slate-400">{icon}</span>}
+             {label}
+        </label>
+        <textarea
+            id={id}
+            rows={4}
+            className={`w-full px-4 py-2.5 bg-slate-50 rounded-lg border text-sm text-slate-800 placeholder:text-slate-400 resize-none ${error ? 'border-red-400 focus:ring-red-500/50' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/50'} focus:ring-2 focus:ring-offset-2 transition-all duration-300`}
+            {...props}
+        />
+        {error && <p className="text-red-600 text-xs mt-1.5">{error}</p>}
+    </div>
+);

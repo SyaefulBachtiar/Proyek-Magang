@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 
 class ChatGrupController extends Controller
 {
+    // CHAT GRUP
     public function chatgrup ($id, $id_tim) {
         $messages = Messages::where('id_tim', $id_tim)->with('sender', 'file')->orderBy('created_at', 'asc')->get();
         $dataChat = $messages->map(function($message) {
@@ -26,6 +27,7 @@ class ChatGrupController extends Controller
                 'id' => $message->id,
                 'pesan' => $message->pesan,
                 'sender_id' => $message->sender_id,
+                'parent_id' => $message->parent_id,
                 'updated_at' => $message->created_at,
                 'name' => optional($message->sender)->name,
                 'poto' => optional($message->sender)->poto_profile_user,
@@ -46,10 +48,12 @@ class ChatGrupController extends Controller
         ]);
     }
 
+    // KIRIM PESAN
     public function kirim_pesan (Request $request, $id, $id_tim) {
-        // dd($request->all());
+        
         $request->validate([
             'pesan_text' => 'nullable|string',
+            'id_pesan_balas' => 'nullable|string',
             'pesan_file.*' => 'nullable|file|mimes:jpeg,png,pdf,doc,docx,xlsx|max:10240'
         ]);
 
@@ -61,12 +65,23 @@ class ChatGrupController extends Controller
 
         try{
 
-            $message = Messages::create([
+            if($request->id_pesan_balas){
+                $message = Messages::create([
                 'id' => (string) Str::uuid(),
                 'id_tim' => $id_tim,
                 'sender_id' => $id,
-                'pesan' => $request->pesan_text
+                'pesan' => $request->pesan_text,
+                'parent_id' => $request->id_pesan_balas
             ]);
+            }else{
+                 $message = Messages::create([
+                'id' => (string) Str::uuid(),
+                'id_tim' => $id_tim,
+                'sender_id' => $id,
+                'pesan' => $request->pesan_text,
+                'parent_id' => null
+            ]);
+            }
 
             if($request->hasFile('pesan_file')){
                 foreach($request->pesan_file as $uploadFile){
@@ -80,6 +95,7 @@ class ChatGrupController extends Controller
                 }
             }
 
+
             $timPerusahaan = TimPerusahaan::where('id', $id_tim)->first();
             $id_board = $timPerusahaan->board_tim->id;
 
@@ -90,5 +106,37 @@ class ChatGrupController extends Controller
             DB::rollback();
             return response()->json(['message' => 'Gagal mengirim pesan.', 'error' => $e->getMessage()], 500);
         }
+    }
+    
+    // HAPUS PESAN
+    public function delete_pesan ($id, $id_pesan) {
+        $hapus_pesan = Messages::findOrFail($id_pesan);
+
+        $id_board = $hapus_pesan->tim->board_tim->id;
+
+        $hapus_pesan->delete();
+
+        broadcast(new BoardUpdated($id_board));
+
+        // return redirect()->back()->with('success', 'berhasil hapus pesan');
+    }
+
+    // EDIT PESAN
+    public function edit_pesan (Request $request, $id, $id_pesan) {
+        $request->validate([
+            'pesan_text' => 'nullable|string',
+        ]);
+
+        $pesan = Messages::findOrFail($id_pesan);
+
+        $id_board = $pesan->tim->board_tim->id;
+
+        $pesan->update([
+            'pesan' => $request->pesan_text
+        ]);
+
+        broadcast(new BoardUpdated($id_board));
+
+        // return redirect()->back()->with('success', 'berhasil edit pesan');
     }
 }

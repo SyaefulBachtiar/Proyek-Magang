@@ -21,6 +21,10 @@ const initialState = {
     pesanFile: [],
     previewFile: [],
     loading: false,
+    pesan_edit: "",
+    id_balas: "",
+    nama_balasan: "",
+    pesan_balasan: "",
 };
 
 function reducer(state, action) {
@@ -33,6 +37,12 @@ function reducer(state, action) {
                 pesanFile: [...state.pesanFile, action.payload.file],
                 previewFile: [...state.previewFile, action.payload.preview],
             };
+        case "EDIT_PESAN":
+            return {...state, pesan_edit: action.payload };
+        case "BALAS_PESAN":
+            return {...state, id_balas: action.payload.id_balas, nama_balasan: action.payload.nama_balasan, pesan_balasan: action.payload.pesan_balasan}
+        case "RESET_BALAS": 
+            return {...state, id_balas: "", nama_balasan: "", pesan_balasan: ""}
         case "SET_LOADING":
             return { ...state, loading: action.payload };
         case "REMOVE_FILE":
@@ -165,6 +175,17 @@ export default function ChatGrup({
         previousMessageCount.current = currentMessageCount;
     }, [chating]);
 
+    // focus ke inputan
+    useEffect(() => {
+        if (textareaRef.current && state.pesanText !== "") {
+            textareaRef.current.focus();
+            textareaRef.current.setSelectionRange(
+                state.pesanText.length,
+                state.pesanText.length
+            );
+        }
+    }, [state.pesanText]);
+
     // Scroll ke bawah saat pertama kali load
     useEffect(() => {
         setTimeout(() => {
@@ -204,25 +225,51 @@ export default function ChatGrup({
         const payload = {
             pesan_text: state.pesanText,
             pesan_file: state.pesanFile,
+            ...(state.id_balas && {id_pesan_balas: state.id_balas})
         };
 
-        router.post(
-            route("kirim.pesan", { id: auth.user.id, id_tim: tim?.id }),
-            payload,
-            {
-                preserveState: true,
-                preserveScroll: false,
-                onSuccess: () => {
-                    dispatch({ type: "RESET_STATE" });
-                    setTimeout(() => {
-                        scrollToBottom("smooth");
-                    }, 200);
+        if(state.pesan_edit){
+            router.put(
+                route("edit.pesan", {
+                    id: auth.user.id,
+                    id_pesan: state.pesan_edit,
+                }),
+                {
+                    pesan_text: state.pesanText,
                 },
-                onFinish: () => {
-                    dispatch({ type: "SET_LOADING", payload: false });
-                },
-            }
-        );
+                {
+                    preserveState: true,
+                    preserveScroll: false,
+                    onSuccess: () => {
+                        dispatch({ type: "RESET_STATE" });
+                        setTimeout(() => {
+                            scrollToBottom("smooth");
+                        }, 200);
+                    },
+                    onFinish: () => {
+                        dispatch({typ: "SET_LOADING", payload: false});
+                    }
+                }
+            );
+        }else{
+            router.post(
+                route("kirim.pesan", { id: auth.user.id, id_tim: tim?.id }),
+                payload,
+                {
+                    preserveState: true,
+                    preserveScroll: false,
+                    onSuccess: () => {
+                        dispatch({ type: "RESET_STATE" });
+                        setTimeout(() => {
+                            scrollToBottom("smooth");
+                        }, 200);
+                    },
+                    onFinish: () => {
+                        dispatch({ type: "SET_LOADING", payload: false });
+                    },
+                }
+            );
+        }
     };
 
     const handleClearFile = (index) => {
@@ -234,7 +281,7 @@ export default function ChatGrup({
 
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
-            <Head title="Chat Grup"/>
+            <Head title="Chat Grup" />
             <div className="w-full h-full flex flex-col relative">
                 {/* Header */}
                 <div className="bg-[#90B4DE] p-6 text-gray-100 flex justify-between">
@@ -250,7 +297,18 @@ export default function ChatGrup({
                     className="flex-1 overflow-y-auto p-4 my-scrollable-element"
                     style={{ scrollBehavior: "smooth" }}
                 >
-                    <BubleChat chatting={chating} />
+                    <BubleChat
+                        chatting={chating}
+                        edit_pesan={(val, id) =>{
+                            dispatch({ type: "SET_PESAN_TEXT", payload: val })
+                            dispatch({ type: "EDIT_PESAN", payload: id });
+                        }
+                        }
+                        balas_pesan={(idBalasan, nama, pesan) => {
+                            dispatch({type: "BALAS_PESAN", payload: {id_balas: idBalasan, nama_balasan: nama, pesan_balasan: pesan}});
+                            textareaRef.current?.focus();
+                        }}
+                    />
                 </div>
 
                 {/* Input chat */}
@@ -279,6 +337,19 @@ export default function ChatGrup({
                         <div className="w-full pt-2 bg-white rounded-xl flex items-center shadow-lg">
                             <div className="space-y-2 w-full">
                                 {/* Preview file */}
+                                {state.id_balas ? (
+                                    <div className="px-2 bg-white">
+                                        <div 
+                                        onClick={() => dispatch({type: "RESET_BALAS" })}
+                                        className="cursor-pointer">
+                                            <X size={14} />
+                                        </div>
+                                        <div className="p-2 bg-gray-100 rounded">
+                                            <p className="text-gray-800">{state.nama_balasan === auth.user.name ? "Anda" : state.nama_balasan}</p>
+                                            <p className="text-gray-500 ml-2">{state.pesan_balasan}</p>
+                                        </div>
+                                    </div>
+                                ) : null}
                                 {state.previewFile.length > 0 && (
                                     <div className="p-2 mb-2 bg-gray-100 rounded-md flex flex-wrap gap-2">
                                         {state.previewFile.map(

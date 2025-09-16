@@ -43,7 +43,9 @@ class LaporanController extends Controller
 
     $tugas = Card_listModel::whereHas('anggota_card_list', function ($query) use ($anggotaIds) {
         $query->whereIn('id_user', $anggotaIds);
-    })->with('kalender', 'anggota_card_list.user') 
+    })
+    ->with('kalender', 'anggota_card_list.user')
+    ->withMax('checklist_card', 'updated_at')
     ->withCount([
         'checklist_card',
         'checklist_card as completed_checklist_count' => function ($q) {
@@ -52,32 +54,38 @@ class LaporanController extends Controller
     ])
     ->get();
 
-    // --- LOGIKA PENGELOMPOKAN TUGAS ---
+    // --- LOGIKA PENGELOMPOKAN TUGAS (UPDATED) ---
     $groupedTugas = $tugas->groupBy(function ($item) {
-        // === PERUBAHAN DI SINI ===
-        // Cek jika relasi kalender ada, tanggalnya sudah lewat, dan tugas belum selesai.
-        // Ganti 'end_date' sesuai dengan nama kolom di tabel kalender Anda (misal: tanggal_selesai, due_date, dll)
         $jadwal = $item->kalender->first();
+        $isTaskCompleted = $item->checklist_card_count > 0 && $item->completed_checklist_count === $item->checklist_card_count;
+        $isOverdue = $jadwal && $jadwal->due_date < now();
 
-        if ($jadwal && $jadwal->due_date < now() && $item->completed_checklist_count < $item->checklist_card_count) {
+        // 1. SELESAI TAPI TERLAMBAT - Prioritas tertinggi
+        // Tugas selesai tetapi melewati deadline
+        if ($isTaskCompleted && $isOverdue) {
             return 'terlambat';
         }
 
-        // Jika jumlah checklist > 0 dan semuanya sudah selesai dicek
-        if ($item->checklist_card_count > 0 && $item->completed_checklist_count === $item->checklist_card_count) {
+        // 2. TERLAMBAT - Belum selesai dan sudah melewati deadline
+        // if ($isOverdue && !$isTaskCompleted) {
+        //     return 'terlambat';
+        // }
+
+        // 3. SELESAI - Selesai tepat waktu atau belum ada deadline
+        if ($isTaskCompleted) {
             return 'selesai';
         }
 
-        // Jika ada checklist yang sudah dicek tapi belum semua
-        if ($item->completed_checklist_count > 0) {
+        // 4. PROGRESS - Ada checklist yang sudah dikerjakan tapi belum semua selesai
+        if ($item->completed_checklist_count > 0 && $item->completed_checklist_count < $item->checklist_card_count) {
             return 'progress';
         }
 
-        // Jika belum ada checklist yang dicek sama sekali
+        // 5. START - Belum ada checklist yang dikerjakan sama sekali
         return 'start';
     });
 
-    // --- MEMBUAT STRUKTUR DATA UNTUK TABS ---
+    // --- MEMBUAT STRUKTUR DATA UNTUK TABS (UPDATED) ---
     $tugasPerTab = [
         [
             'id' => 'start',
@@ -101,14 +109,14 @@ class LaporanController extends Controller
         ],
     ];
 
-
         // Mengirim data tim dan anggota yang sudah diformat ke komponen Laporan.jsx
         return Inertia::render('pageProyek/Laporan', [
             'dashboardId' => $id,
             'activePage' => 'laporanPage',
             'tim' => $tim,
             'anggotaTim' => $formattedAnggota ,
-            'tugasPerTabs' => $tugasPerTab
+            'tugasPerTabs' => $tugasPerTab,
+            'id_board' => $id_board
         ]);
     }
 }

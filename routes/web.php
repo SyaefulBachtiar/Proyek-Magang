@@ -130,6 +130,11 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // CHATING
     Route::post('kirim/pesan/{id_tim}', [ChatGrupController::class, 'kirim_pesan'])->name('kirim.pesan');
 
+    // DELETE PESAN
+    Route::delete('delete/pesan/{id_pesan}', [ChatGrupController::class, 'delete_pesan'])->name('delete.pesan');
+    // EDIT PESAN
+    Route::put('edit/pesan/{id_pesan}', [ChatGrupController::class, 'edit_pesan'])->name('edit.pesan');
+
 });
 
 Route::middleware('auth')->group(function () {
