@@ -6,98 +6,103 @@ import { useState, useMemo, useEffect } from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
-// Impor Ikon dari Lucide React untuk konsistensi visual
+// Impor Ikon dari Lucide React (sudah ditambahkan ikon untuk SaranCard)
 import {
-    AlertTriangle,
-    Calendar,
-    CheckCircle2,
-    ChevronDown,
-    ClipboardList,
-    Coffee,
-    Lightbulb,
-    ListTodo,
-    Search,
-    Star,
-    UserX,
-    Users
+    AlertTriangle, Calendar, CheckCircle2, ChevronDown, ClipboardList, Coffee, Lightbulb, ListTodo,
+    Rocket, Search, ShieldAlert, Sparkles, Star, ThumbsUp, UserX, Users, Wrench
 } from "lucide-react";
 
 // Daftarkan komponen Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-// --- Komponen Ikon Kustom (Dibuat ulang dengan Lucide untuk konsistensi) ---
+// Map untuk mencocokkan nama ikon (string) dari backend ke komponen Ikon React
+const iconMap = {
+    Rocket, ThumbsUp, Lightbulb, Wrench, ShieldAlert, Sparkles, Coffee
+};
+
+// --- Komponen Ikon Kustom ---
 const StarIcon = ({ filled }) => (
   <Star className={`w-5 h-5 ${filled ? 'text-yellow-400' : 'text-gray-300'}`} fill={filled ? 'currentColor' : 'none'} />
 );
 
-// --- Komponen Kartu untuk Membangun Dashboard (Tampilan disempurnakan) ---
+// --- Komponen Kartu ---
 
-const KinerjaCard = ({ user }) => (
-    <div className="bg-white p-6 rounded-2xl shadow-sm flex flex-col justify-between h-full border border-gray-200/80">
-        <div>
-            <h3 className="text-sm font-semibold text-gray-500 mb-4">Laporan Kinerja</h3>
-            <div className="flex items-center gap-4">
-                <img src={`https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=c7d2fe&color=3730a3&size=48`} alt={user.name} className="w-12 h-12 rounded-full"/>
+const KinerjaCard = ({ user }) => {
+    // Helper untuk menentukan warna label berdasarkan rating
+    const getRatingColorClasses = (label) => {
+        if (!label) return 'bg-gray-100 text-gray-800';
+        switch (label.toLowerCase()) {
+            case 'sangat bagus':
+            case 'bagus':
+                return 'bg-green-100 text-green-800';
+            case 'cukup':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'kurang':
+            case 'buruk':
+                return 'bg-red-100 text-red-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    return (
+        <div className="bg-white p-6 rounded-2xl shadow-sm flex flex-col justify-between h-full border border-gray-200/80">
+            <div>
+                <h3 className="text-sm font-semibold text-gray-500 mb-4">Laporan Kinerja</h3>
+                <div className="flex items-center gap-4">
+                    <img src={`https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=c7d2fe&color=3730a3&size=48`} alt={user.name} className="w-12 h-12 rounded-full"/>
                 <div>
                     <p className="font-bold text-gray-800 text-lg">{user.name}</p>
-                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold">{user.role}</span>
+                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-sm font-semibold">{user.role}</span>
                 </div>
             </div>
-            <p className="text-sm text-gray-500 mt-3 flex items-center gap-2">
-                <Users size={14} />
-                Tim: <span className="font-semibold text-gray-700">{user.team}</span>
-            </p>
-        </div>
-        <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
-            <div className="text-center">
-                <span className="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full">Bagus</span>
-                <div className="flex justify-center mt-2 gap-0.5">
-                    {[...Array(5)].map((_, i) => <StarIcon key={i} filled={i < 4} />)}
+                <p className="text-sm text-gray-500 mt-3 flex items-center gap-2">
+                    <Users size={14} />
+                    Tim: <span className="font-semibold text-gray-700">{user.team}</span>
+                </p>
+            </div>
+            <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
+                <div className="text-center">
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${getRatingColorClasses(user.rating_label)}`}>
+                        {user.rating_label}
+                    </span>
+                    <div className="flex justify-center mt-2 gap-0.5">
+                        {[...Array(5)].map((_, i) => <StarIcon key={i} filled={i < user.rating_bintang} />)}
+                    </div>
+                </div>
+                <div className="text-right">
+                    <p className="text-xs text-gray-500">Periode</p>
+                    <p className="font-semibold text-gray-800">1 Sep - 12 Sep</p> {/* Note: Periode masih statis */}
                 </div>
             </div>
-            <div className="text-right">
-                <p className="text-xs text-gray-500">Periode</p>
-                <p className="font-semibold text-gray-800">1 Sep - 12 Sep</p>
-            </div>
         </div>
-    </div>
-);
+    );
+};
 
-// Update RingkasanCard component untuk menggunakan data real
 const RingkasanCard = ({ user, tugasPerTabs }) => {
-    // Hitung data berdasarkan tugasPerTabs yang difilter untuk user yang dipilih
     const calculateProgressData = () => {
         if (!user || !tugasPerTabs) {
-            return [
-                { name: "Belum", value: 0, color: "#6B7280", percentage: 0 },
-                { name: "Dikerjakan", value: 0, color: "#3B82F6", percentage: 0 },
-                { name: "Terlambat", value: 0, color: "#EF4444", percentage: 0 },
-                { name: "Selesai", value: 0, color: "#10B981", percentage: 0 },
-            ];
+            return [];
         }
 
-        // Hitung jumlah tugas per kategori untuk user yang dipilih
         const counts = {
             start: 0,
             progress: 0,
             terlambat: 0,
             selesai: 0,
-            selesai_terlambat: 0
         };
 
+        // Filter tugas untuk user yang dipilih dari semua tabs
         tugasPerTabs.forEach(tab => {
-            tab.cards.forEach(task => {
-                // Filter tugas yang melibatkan user yang dipilih
+             tab.cards.forEach(task => {
                 const isUserInvolved = task.anggota_card_list.some(
                     anggota => anggota.user.id === user.id
                 );
-
                 if (isUserInvolved) {
                     if (tab.id === 'start') counts.start++;
                     else if (tab.id === 'progress') counts.progress++;
                     else if (tab.id === 'terlambat') counts.terlambat++;
                     else if (tab.id === 'selesai') counts.selesai++;
-                    else if (tab.id === 'selesai_terlambat') counts.selesai_terlambat++;
                 }
             });
         });
@@ -105,34 +110,14 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
         const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
         return [
-            {
-                name: "Belum",
-                value: counts.start,
-                color: "#6B7280",
-                percentage: total > 0 ? Math.round((counts.start / total) * 100) : 0
-            },
-            {
-                name: "Dikerjakan",
-                value: counts.progress,
-                color: "#3B82F6",
-                percentage: total > 0 ? Math.round((counts.progress / total) * 100) : 0
-            },
-            {
-                name: "Terlambat",
-                value: counts.terlambat,
-                color: "#EF4444",
-                percentage: total > 0 ? Math.round((counts.terlambat / total) * 100) : 0
-            },
-            {
-                name: "Selesai",
-                value: counts.selesai,
-                color: "#10B981",
-                percentage: total > 0 ? Math.round((counts.selesai / total) * 100) : 0
-            },
-        ].filter(item => item.value > 0); // Hanya tampilkan kategori yang memiliki data
+            { name: "Belum", value: counts.start, color: "#6B7280", percentage: total > 0 ? Math.round((counts.start / total) * 100) : 0 },
+            { name: "Dikerjakan", value: counts.progress, color: "#3B82F6", percentage: total > 0 ? Math.round((counts.progress / total) * 100) : 0 },
+            { name: "Terlambat", value: counts.terlambat, color: "#EF4444", percentage: total > 0 ? Math.round((counts.terlambat / total) * 100) : 0 },
+            { name: "Selesai", value: counts.selesai, color: "#10B981", percentage: total > 0 ? Math.round((counts.selesai / total) * 100) : 0 },
+        ].filter(item => item.value > 0);
     };
 
-    const progressData = calculateProgressData();
+    const progressData = useMemo(calculateProgressData, [user, tugasPerTabs]);
 
     const chartData = {
         labels: progressData.map(item => item.name),
@@ -145,21 +130,10 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
     };
 
     const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '50%',
+        responsive: true, maintainAspectRatio: false, cutout: '50%',
         plugins: {
             legend: { display: false },
-            tooltip: {
-                enabled: true,
-                backgroundColor: '#000',
-                cornerRadius: 6,
-                displayColors: true,
-                boxPadding: 4,
-                callbacks: {
-                    label: (c) => `${c.label}: ${c.raw} tugas`
-                }
-            },
+            tooltip: { enabled: true, backgroundColor: '#000', cornerRadius: 6, displayColors: true, boxPadding: 4, callbacks: { label: (c) => `${c.label}: ${c.raw} tugas` } },
         },
     };
 
@@ -175,10 +149,7 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
                         <div className="ml-4 flex flex-col gap-1.5">
                             {progressData.map((item) => (
                                 <div key={item.name} className="flex items-center gap-2 text-xs">
-                                    <div
-                                        className="w-2.5 h-2.5 rounded-full"
-                                        style={{ backgroundColor: item.color }}
-                                    />
+                                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                                     <span className="text-gray-600 font-medium">
                                         {item.name}: {item.value} ({item.percentage}%)
                                     </span>
@@ -200,22 +171,41 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
     );
 };
 
+const SaranCard = ({ user }) => {
+    const IconComponent = iconMap[user.saran_ikon] || Lightbulb;
 
-const SaranCard = () => (
-    <div className="bg-indigo-600 text-white p-6 rounded-2xl shadow-sm h-full flex flex-col items-start border border-indigo-700">
-        <div className="bg-white/20 p-2 rounded-lg mb-4">
-          <Lightbulb size={24} className="text-white"/>
+   
+    const colorClasses = {
+        green: 'bg-green-600 border-green-700 text-green-50',
+        indigo: 'bg-indigo-600 border-indigo-700 text-indigo-100',
+        amber: 'bg-amber-600 border-amber-700 text-amber-50',
+        red: 'bg-red-600 border-red-700 text-red-50',
+        sky: 'bg-sky-600 border-sky-700 text-sky-50',
+    };
+    const cardColor = colorClasses[user.saran_warna] || colorClasses.indigo;
+
+    return (
+        <div className={`${cardColor} p-6 rounded-2xl shadow-sm h-full flex flex-col items-start border transition-colors duration-300`}>
+            <div className="bg-white/20 p-2 rounded-lg mb-4">
+                <IconComponent size={24} className="text-white" />
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-white">Saran & Rekomendasi</h3>
+            <p className="text-sm leading-relaxed">
+                {user.saran_teks}
+            </p>
         </div>
-        <h3 className="font-bold text-lg mb-2">Saran & Rekomendasi</h3>
-        <p className="text-sm text-indigo-100 leading-relaxed">
-            Percepat penyelesaian tugas yang sedang dikerjakan, atau mulai kerjakan tugas baru untuk menjaga produktivitas.
-        </p>
-    </div>
-);
+    );
+};
 
 const TugasCard = ({ tabs }) => {
     const firstTabWithTasks = tabs.find((t) => t.cards.length > 0)?.id || tabs[0]?.id || "";
     const [activeTab, setActiveTab] = useState(firstTabWithTasks);
+
+     useEffect(() => {
+        const firstTab = tabs.find((t) => t.cards.length > 0)?.id || tabs[0]?.id || "";
+        setActiveTab(firstTab);
+    }, [tabs]);
+
 
     const TaskItem = ({ task }) => {
         const hasChecklist = task.checklist_card_count > 0;
@@ -256,15 +246,8 @@ const TugasCard = ({ tabs }) => {
         <div className="bg-white p-5 rounded-2xl shadow-sm h-full flex flex-col border border-gray-200/80">
             <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-3 border-b border-gray-200 styled-scrollbar">
                 {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex-shrink-0 flex items-center gap-2 ${
-                            activeTab === tab.id
-                                ? "bg-gray-800 text-white shadow-md"
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }`}
-                    >
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 flex-shrink-0 flex items-center gap-2 ${activeTab === tab.id ? "bg-gray-800 text-white shadow-md" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                         {tab.id === "selesai" && <CheckCircle2 size={16} />}
                         {tab.id === "terlambat" && <AlertTriangle size={16} />}
                         {tab.judul}
@@ -274,11 +257,11 @@ const TugasCard = ({ tabs }) => {
                     </button>
                 ))}
             </div>
-            <div className="flex flex-col gap-3 overflow-y-auto pr-2 flex-1 styled-scrollbar">
+            <div className="flex flex-col gap-3 overflow-y-auto max-h-80 pr-2 flex-1 styled-scrollbar">
                 {activeTabData?.cards?.length > 0 ? (
                     activeTabData.cards.map((task) => <TaskItem key={task.id} task={task} />)
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 text-sm p-8">
+                     <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 text-sm p-8">
                         <Coffee size={36} className="mb-4 text-gray-400" />
                         <p className="font-semibold text-gray-700 text-base">Tidak Ada Tugas</p>
                         <p>Anda bisa beristirahat sejenak di kategori ini.</p>
@@ -303,43 +286,22 @@ const PenghambatCard = () => {
     );
 
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-sm h-full border border-gray-200/80">
+        <div className="bg-white p-6 rounded-2xl shadow-sm h-70 border border-gray-200/80">
             <h3 className="text-sm font-semibold text-gray-500 mb-4">Potensi Penghambat</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <StatItem
-                    value="0 dari 1"
-                    label="Belum Dikerjakan"
-                    subLabel="lebih dari 40 hari"
-                    taskName="Belum ada data"
-                />
-                 <StatItem
-                    value="0 dari 0"
-                    label="Masih Dikerjakan"
-                    subLabel="lebih dari 40 hari"
-                    taskName="Belum ada data"
-                />
+                <StatItem value="0 dari 1" label="Belum Dikerjakan" subLabel="lebih dari 40 hari" taskName="Belum ada data" />
+                <StatItem value="0 dari 0" label="Masih Dikerjakan" subLabel="lebih dari 40 hari" taskName="Belum ada data" />
             </div>
         </div>
     );
 };
 
 const MemberList = ({ members, selectedUser, onSelectUser }) => (
-  <div className="flex flex-col gap-1.5 max-h-96 overflow-y-auto pr-2 styled-scrollbar">
+  <div className="flex flex-col gap-1.5 max-h-80 overflow-y-auto pr-2 styled-scrollbar">
     {members.map((member) => (
-      <div
-        key={member.id}
-        onClick={() => onSelectUser(member)}
-        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${
-            selectedUser?.id === member.id
-            ? "bg-blue-600 text-white font-semibold shadow-md"
-            : "text-gray-700 hover:bg-gray-100"
-        }`}
-      >
-        <img
-            src={`https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=random&color=fff&size=32`}
-            alt={member.name}
-            className="w-8 h-8 rounded-full flex-shrink-0"
-        />
+      <div key={member.id} onClick={() => onSelectUser(member)}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${selectedUser?.id === member.id ? "bg-blue-600 text-white font-semibold shadow-md" : "text-gray-700 hover:bg-gray-100"}`}>
+        <img src={`https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=random&color=fff&size=32`} alt={member.name} className="w-8 h-8 rounded-full flex-shrink-0" />
         <span className="text-sm truncate">{member.name}</span>
       </div>
     ))}
@@ -350,40 +312,25 @@ const MemberList = ({ members, selectedUser, onSelectUser }) => (
 // --- Komponen Utama ---
 export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tugasPerTabs, id_board }) {
 
-    // realtime
+    // Realtime update listener
     useEffect(() => {
-        if(!id_board) return;
-
+        if (!id_board) return;
         const channel = window.Echo.private(`board.${id_board}`);
-        channel.listen('.board.updated', (event) => {
+        channel.listen('.board.updated', () => {
             router.reload({
                 only: ["tugasPerTabs", "anggotaTim", "tim"],
                 preserveState: true,
                 preserveScroll: true,
             });
-        })
+        });
         return () => {
             window.Echo.leave(`board.${id_board}`);
         }
     }, [id_board]);
 
-    // --- LOGIKA FUNGSI DI BAWAH INI TIDAK DIUBAH SAMA SEKALI ---
-    const generateFullTeamData = (members) => {
-        if (!members || members.length === 0) return [];
-        return members.map(member => {
-            const progressValues = [
-                { name: "Belum", value: 1, color: "#6B7280" }, { name: "Dikerjakan", value: 0, color: "#3B82F6" },
-                { name: "Terlambat", value: 0, color: "#EF4444" }, { name: "Selesai", value: 4, color: "#22C55E" },
-            ];
-            const total = progressValues.reduce((s, i) => s + i.value, 0);
-            return {
-                ...member, team: tim.nama_tim, role: "Anggota Tim",
-                progress: progressValues.map(i => ({ ...i, percentage: total > 0 ? Math.round((i.value / total) * 100) : 0 })),
-            };
-        });
-    };
+    // Data tim dari backend, sudah termasuk rating dan saran
+    const teamData = useMemo(() => anggotaTim, [anggotaTim]);
 
-    const teamData = useMemo(() => generateFullTeamData(anggotaTim), [anggotaTim, tim]);
     const [selectedUser, setSelectedUser] = useState(teamData[0] || null);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedPeriod, setSelectedPeriod] = useState("Bulan Ini");
@@ -394,6 +341,7 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
         ), [teamData, searchTerm]
     );
 
+    // Filter tugas untuk ditampilkan di tab "TugasCard" berdasarkan user yang dipilih
     const filteredTugasTabs = useMemo(() => {
         if (!selectedUser) {
             return tugasPerTabs.map(tab => ({ ...tab, cards: [] }));
@@ -408,11 +356,26 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
         }));
     }, [selectedUser, tugasPerTabs]);
 
+    // Efek untuk memastikan data `selectedUser` selalu yang terbaru
+    useEffect(() => {
+        if (teamData.length > 0 && !teamData.some(member => member.id === selectedUser?.id)) {
+            // Jika user yang dipilih sebelumnya sudah tidak ada di list (misal karena filter), pilih yg pertama
+            setSelectedUser(teamData[0]);
+        } else if (teamData.length === 0) {
+            setSelectedUser(null);
+        } else if (selectedUser) {
+            // Perbarui data user yang sedang dipilih jika ada perubahan (misal: rating baru setelah reload)
+            const updatedSelectedUser = teamData.find(member => member.id === selectedUser.id);
+            if (updatedSelectedUser) {
+                setSelectedUser(updatedSelectedUser);
+            }
+        }
+    }, [teamData]);
+
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
             <Head>
                 <title>Laporan Kinerja Tim</title>
-                {/* CSS untuk scrollbar yang lebih modern */}
                 <style>{`
                     .styled-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
                     .styled-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
@@ -433,8 +396,7 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                         <select
                             value={selectedPeriod}
                             onChange={(e) => setSelectedPeriod(e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-sm appearance-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
+                            className="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-sm appearance-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="Bulan Ini">Periode: Bulan Ini</option>
                             <option value="Bulan Lalu">Periode: Bulan Lalu</option>
                         </select>
@@ -484,9 +446,9 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                                 <KinerjaCard user={selectedUser} />
                                 <RingkasanCard
                                     user={selectedUser}
-                                    tugasPerTabs={filteredTugasTabs}
+                                    tugasPerTabs={tugasPerTabs}
                                 />
-                                <SaranCard />
+                                <SaranCard user={selectedUser} />
                             </div>
                             <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
                                 <div className="xl:col-span-3">

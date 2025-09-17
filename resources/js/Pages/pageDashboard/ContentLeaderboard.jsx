@@ -20,10 +20,12 @@ const getStarRating = (tasks) => {
   if (tasks >= 8) return 4;
   if (tasks >= 6) return 3;
   if (tasks >= 4) return 2;
-  return 1;
+  // Berikan minimal 1 bintang jika ada tugas yang diselesaikan tepat waktu
+  if (tasks > 0) return 1;
+  return 0; // Tidak ada bintang jika 0 tugas
 };
 
-// ✨ [BARU] Helper function untuk detail podium
+// Helper function untuk detail podium (Tidak ada perubahan)
 const getPodiumDetails = (rank) => {
   switch (rank) {
     case 1:
@@ -64,7 +66,7 @@ const getPodiumDetails = (rank) => {
   }
 };
 
-// ✨ [BARU] Komponen untuk kartu di Podium
+// Komponen untuk kartu di Podium
 function PodiumCard({ user }) {
   const details = getPodiumDetails(user.rank);
   const Icon = details.icon;
@@ -76,6 +78,14 @@ function PodiumCard({ user }) {
         <div className={`absolute -top-3 ${details.text}`}>
           <Icon size={32} />
         </div>
+        
+        {/* --- AWAL TAMBAHAN --- */}
+        {/* Lingkaran kecil untuk menampilkan angka peringkat */}
+        <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full ${details.bg} flex items-center justify-center text-white text-base font-bold border-2 border-white shadow-md`}>
+          {user.rank}
+        </div>
+        {/* --- AKHIR TAMBAHAN --- */}
+
       </div>
       <h3 className="mt-4 text-xl font-bold text-gray-800 text-center truncate w-full">{user.name}</h3>
       <div className="flex items-center gap-1 mt-1 text-amber-500">
@@ -89,13 +99,13 @@ function PodiumCard({ user }) {
   );
 }
 
-// ✨ [BARU] Komponen untuk baris di daftar peringkat umum
+// Komponen untuk baris di daftar peringkat umum (Tidak ada perubahan)
 function UserRow({ user }) {
   return (
     <div className="flex items-center p-4 bg-white border-b border-gray-200 transition-colors hover:bg-gray-50">
       <span className="w-10 text-center text-lg font-semibold text-gray-400">{user.rank}</span>
       <div className="flex items-center gap-4 flex-grow">
-        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center font-bold text-lg text-gray-600">
+        <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-lg text-indigo-600">
           {user.name.charAt(0)}
         </div>
         <div>
@@ -113,29 +123,20 @@ function UserRow({ user }) {
   );
 }
 
-// Komponen utama Leaderboard dengan tampilan yang disempurnakan
+// Komponen utama Leaderboard (Tidak ada perubahan)
 function Leaderboard() {
-  const { activePage } = usePage().props;
+  // Ambil 'leaderboardData' dari props yang dikirim controller
+  const { activePage, leaderboardData } = usePage().props; 
   const { setActivePage } = DashboardState();
 
   useEffect(() => {
     if (activePage && setActivePage) setActivePage(activePage);
   }, [activePage, setActivePage]);
 
-  // Data dan logika state tidak diubah
-  const allData = [
-    { name: "Sahrul Maulidi", tasks: 10 },
-    { name: "Syaeful Bachri", tasks: 9 },
-    { name: "Muhammad Fikri", tasks: 8 },
-    { name: "Agus Setiawan", tasks: 8 },
-    { name: "Ahmad Yani", tasks: 6 },
-    { name: "Budi Santoso", tasks: 5 },
-    { name: "Citra Lestari", tasks: 4 },
-  ];
-
   const [search, setSearch] = useState("");
 
-  const filteredData = allData
+  // Gunakan 'leaderboardData' dari props, pastikan berupa array untuk mencegah error
+  const filteredData = (leaderboardData || []) 
     .map((user, index) => ({ ...user, rank: index + 1 }))
     .filter((user) =>
       user.name.toLowerCase().includes(search.toLowerCase())
@@ -151,7 +152,7 @@ function Leaderboard() {
         <div className="text-center mb-10">
           <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">Papan Peringkat</h1>
           <p className="text-gray-600 mt-2 text-lg">
-            Kinerja anggota teratas bulan ini per tanggal {new Date().toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}.
+            Kinerja anggota teratas berdasarkan tugas yang diselesaikan tepat waktu.
           </p>
         </div>
 
@@ -167,7 +168,7 @@ function Leaderboard() {
           />
         </div>
 
-        {/* ✨ Podium Section for Top 3 */}
+        {/* Podium Section for Top 3 */}
         {topThree.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 items-end mb-12">
             {topThree.map((user) => (
@@ -176,7 +177,7 @@ function Leaderboard() {
           </div>
         )}
 
-        {/* ✨ General Ranking List */}
+        {/* General Ranking List */}
         {restOfUsers.length > 0 && (
           <div>
              <h2 className="text-xl font-bold text-gray-700 mb-4 px-2">Peringkat Lainnya</h2>
@@ -188,8 +189,19 @@ function Leaderboard() {
           </div>
         )}
 
-        {/* Pesan jika tidak ditemukan */}
-        {filteredData.length === 0 && (
+        {/* Pesan jika tidak ada data sama sekali */}
+        {(leaderboardData || []).length === 0 && search === '' && (
+          <div className="text-center text-gray-500 py-16 bg-white rounded-xl shadow-md">
+            <HiOutlineUserGroup size={50} className="mx-auto text-gray-400 mb-4" />
+            <p className="text-xl font-semibold text-gray-700">Belum Ada Data</p>
+            <p className="text-base mt-1">
+              Papan peringkat akan muncul setelah anggota menyelesaikan tugas.
+            </p>
+          </div>
+        )}
+
+        {/* Pesan jika tidak ditemukan saat mencari */}
+        {filteredData.length === 0 && search !== '' && (
           <div className="text-center text-gray-500 py-16 bg-white rounded-xl shadow-md">
             <HiOutlineUserGroup size={50} className="mx-auto text-gray-400 mb-4" />
             <p className="text-xl font-semibold text-gray-700">Anggota tidak ditemukan</p>
