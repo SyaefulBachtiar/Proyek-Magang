@@ -513,27 +513,18 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                                     <div
                                                                                                         className={`w-full flex flex-col ${card.label.length > 0 ? 'gap-2' : 'gap-0'}`
                                                                                                     }>
-                                                                                                        <div className="grid grid-cols-3 w-full">
-                                                                                                            {card.label.map(
-                                                                                                                (
-                                                                                                                    label
-                                                                                                                ) => (
-                                                                                                                    <div
-                                                                                                                        key={`${card.id}-${label.id}`}
-                                                                                                                        className="rounded-md h-[5px] group cursor-pointer overflow-hidden transition-all ease-in-out duration-150"
-                                                                                                                        style={{
-                                                                                                                            backgroundColor:
-                                                                                                                                label.warna,
-                                                                                                                        }}
-                                                                                                                    >
-                                                                                                                        <p className="absolute hidden group-hover:flex -top-5 bg-gray-800/70 text-white text-xs px-2 py-1 rounded z-[9999]">
-                                                                                                                            {
-                                                                                                                                label.title
-                                                                                                                            }
-                                                                                                                        </p>
-                                                                                                                    </div>
-                                                                                                                )
-                                                                                                            )}
+                                                                                                        <div className="flex items-center gap-1.5">
+                                                                                                            {card.label.map((label) => (
+                                                                                                                <div
+                                                                                                                    key={`${card.id}-${label.id}`}
+                                                                                                                    className="rounded-md px-2 py-0.5 text-xs font-semibold text-black"
+                                                                                                                    style={{
+                                                                                                                        backgroundColor: label.warna,
+                                                                                                                    }}
+                                                                                                                >
+                                                                                                                    {label.title}
+                                                                                                                </div>
+                                                                                                            ))}
                                                                                                         </div>
                                                                                                         <div className="flex items-center gap-4 ">
                                                                                                         <div>
