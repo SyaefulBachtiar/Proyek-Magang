@@ -1,15 +1,21 @@
-
-import Dashboard, {DashboardState} from "./Dashboard";
-import { AlignEndHorizontal, AppWindow, LayoutList, MessageSquare, SquareKanban, UserRoundPlus } from "lucide-react";
+import Dashboard, { DashboardState } from "./Dashboard";
+import {
+    AlignEndHorizontal,
+    AppWindow,
+    LayoutList,
+    MessageSquare,
+    SquareKanban,
+    UserRoundPlus,
+    Megaphone, // <-- 1. Menambahkan import ikon baru
+} from "lucide-react";
 import { useState } from "react";
 import Kanban from "./pageProyek/Kanban";
 import { router, usePage } from "@inertiajs/react";
 import TambahAnggotaBoard from "@/modal/Proyek/TambahAnggotaBoard";
 
-
 export default function Proyek({ children, dashboardId, activePage, tim }) {
-    const {id_board, role, nama_board} = usePage().props;
-    const [tambahAnggota, setTambahAnggota] =useState(false);
+    const { id_board, role, nama_board } = usePage().props;
+    const [tambahAnggota, setTambahAnggota] = useState(false);
     return (
         <>
             <Dashboard
@@ -96,6 +102,33 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                         }`}
                                     ></div>
                                 </div>
+
+                                {/* ===== BLOK KODE BARU UNTUK MENU PENGUMUMAN ===== */}
+                                <div
+                                    className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                                    onClick={() =>
+                                        router.visit(
+                                            route("proyek.pengumuman", { // <-- 2. Arahkan ke route baru
+                                                id: dashboardId,
+                                                id_tim: tim.id,
+                                            })
+                                        )
+                                    }
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Megaphone size={20} /> {/* <-- 3. Gunakan ikon baru */}
+                                        <h1>Pengumuman</h1>
+                                    </div>
+                                    <div
+                                        className={`bg-[#A8E038] h-1 left-0 absolute ${
+                                            activePage === "pengumumanPage" // <-- 4. Kondisi untuk underline aktif
+                                                ? "w-full"
+                                                : ""
+                                        }`}
+                                    ></div>
+                                </div>
+                                {/* ===== AKHIR BLOK KODE BARU ===== */}
+                                
                                 <div
                                     className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
                                     onClick={() =>
@@ -152,11 +185,6 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
     );
 }
 
-function ProyekContent ({children}) {
-
-    return(
-        <>
-        {children} 
-        </>
-    )
+function ProyekContent({ children }) {
+    return <>{children}</>;
 }

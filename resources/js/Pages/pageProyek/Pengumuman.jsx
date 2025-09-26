@@ -1,0 +1,164 @@
+import Proyek from "../Proyek";
+import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
+import { Transition } from '@headlessui/react';
+
+// Komponen ini sekarang siap menerima data asli dari model Pengumuman
+export default function Pengumuman({ dashboardId, activePage, tim, listPengumuman }) {
+    // State untuk mengontrol visibilitas modal
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Inertia form helper
+    const { data, setData, post, processing, errors, reset } = useForm({
+        judul: '',
+        isi: '',
+    });
+
+    // Fungsi untuk menangani submit form
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const url = route('proyek.pengumuman.store', { id: dashboardId, id_tim: tim.id });
+        post(url, {
+            onSuccess: () => {
+                setIsModalOpen(false); // Tutup modal setelah berhasil
+                reset(); // Reset form
+            },
+        });
+    };
+
+    return (
+        <Proyek
+            dashboardId={dashboardId}
+            activePage={activePage}
+            tim={tim}
+        >
+            <div className="p-4 md:p-8">
+                {/* Header dan Tombol Buat Pengumuman */}
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+                        Papan Pengumuman - {tim.nama_tim}
+                    </h1>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="px-4 py-2 bg-[#006F78] text-white rounded-lg font-semibold shadow-md hover:bg-[#005a62] transition duration-200 ease-in-out transform hover:scale-105"
+                    >
+                        Buat Pengumuman Baru
+                    </button>
+                </div>
+
+                {/* Daftar Pengumuman */}
+                {listPengumuman.length === 0 ? (
+                    <div className="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed">
+                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2z" />
+                        </svg>
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">Belum ada pengumuman</h3>
+                        <p className="mt-1 text-sm text-gray-500">Buat pengumuman pertama Anda untuk tim.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-5">
+                        {listPengumuman.map((item) => (
+                            <div key={item.id} className="bg-white border rounded-xl shadow-sm p-6 transition hover:shadow-lg">
+                                <div className="flex justify-between items-start mb-3">
+                                    <h2 className="text-xl font-bold text-[#006F78]">
+                                        {item.judul}
+                                    </h2>
+                                    <span className="text-sm text-gray-500 flex-shrink-0 ml-4">
+                                        {new Date(item.created_at).toLocaleDateString("id-ID", {
+                                            day: 'numeric', month: 'long', year: 'numeric'
+                                        })}
+                                    </span>
+                                </div>
+                                <p className="text-gray-700 mb-4 whitespace-pre-wrap leading-relaxed">
+                                    {item.isi}
+                                </p>
+                                <div className="text-right text-sm text-gray-600 font-medium pt-3 border-t">
+                                    - Dibuat oleh {item.pembuat.name}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Modal untuk Membuat Pengumuman Baru */}
+            <Transition show={isModalOpen} as="div" className="fixed inset-0 z-50 overflow-y-auto" onClose={() => setIsModalOpen(false)}>
+                <div className="min-h-screen px-4 text-center">
+                    <Transition.Child
+                        as="div"
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0"
+                        enterTo="opacity-100"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                    >
+                        <div className="fixed inset-0 bg-black bg-opacity-40" />
+                    </Transition.Child>
+
+                    <span className="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
+
+                    <Transition.Child
+                        as="div"
+                        className="inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl"
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0 scale-95"
+                        enterTo="opacity-100 scale-100"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100 scale-100"
+                        leaveTo="opacity-0 scale-95"
+                    >
+                        <h3 className="text-xl font-bold leading-6 text-gray-900 mb-4">
+                            Buat Pengumuman Baru
+                        </h3>
+                        <form onSubmit={handleSubmit}>
+                            <div className="space-y-4">
+                                <div>
+                                    <label htmlFor="judul" className="block text-sm font-medium text-gray-700">Judul</label>
+                                    <input
+                                        type="text"
+                                        id="judul"
+                                        value={data.judul}
+                                        onChange={(e) => setData('judul', e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#006F78] focus:border-[#006F78]"
+                                        required
+                                    />
+                                    {errors.judul && <p className="text-xs text-red-500 mt-1">{errors.judul}</p>}
+                                </div>
+                                <div>
+                                    <label htmlFor="isi" className="block text-sm font-medium text-gray-700">Isi Pengumuman</label>
+                                    <textarea
+                                        id="isi"
+                                        rows="6"
+                                        value={data.isi}
+                                        onChange={(e) => setData('isi', e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#006F78] focus:border-[#006F78]"
+                                        required
+                                    ></textarea>
+                                    {errors.isi && <p className="text-xs text-red-500 mt-1">{errors.isi}</p>}
+                                </div>
+                            </div>
+
+                            <div className="mt-6 flex justify-end space-x-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-transparent rounded-md hover:bg-gray-200 focus:outline-none"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-[#006F78] border border-transparent rounded-md shadow-sm hover:bg-[#005a62] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#006F78] disabled:opacity-50"
+                                >
+                                    {processing ? 'Mengirim...' : 'Kirim Pengumuman'}
+                                </button>
+                            </div>
+                        </form>
+                    </Transition.Child>
+                </div>
+            </Transition>
+        </Proyek>
+    );
+}

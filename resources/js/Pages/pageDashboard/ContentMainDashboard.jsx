@@ -193,7 +193,7 @@ function MainDashboard() {
                                     ) : (
                                         <>
                                             <CheckCircle size={18} />
-                                            Buat Perusahaan
+                                            Buat Instansi
                                         </>
                                     )}
                                 </button>

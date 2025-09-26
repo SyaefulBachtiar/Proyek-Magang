@@ -89,7 +89,7 @@ export default function Login({ status, canResetPassword }) {
                             }
                         />
                         <span className="ms-2 text-sm text-gray-600">
-                            Remember me
+                            Ingatkan Saya
                         </span>
                     </label>
                 </div>
