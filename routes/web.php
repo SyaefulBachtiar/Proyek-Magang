@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\ProfilePengaturanController;
+
+use App\Http\Controllers\RingkasController;
 use App\Http\Controllers\AksesTimController;
 use App\Http\Controllers\ChatGrup\ChatGrupController;
 use App\Http\Controllers\Pengumuman\PengumumanController;
@@ -38,14 +39,17 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // Halaman Proyek
     Route::get('/proyek/{id_tim}/board/{id_board}', [ProyekController::class, 'index'])->name('proyek');
-    Route::get('/proyek/{id_tim}/ringkas', [ProyekController::class, 'ringkas'])->name('proyek.ringkas');
+    Route::get('/proyek/{id_tim}/ringkas', [RingkasController::class, 'index'])->name('proyek.ringkas');
     Route::get('/proyek/{id_tim}/laporan', [LaporanController::class, 'laporan'])->name('proyek.laporan');
     Route::get('/proyek/{id_tim}/chatgrup', [ChatGrupController::class, 'chatgrup'])->name('proyek.chatgrup');
     Route::get('/proyek/{id_tim}/card/{cardId}', [ProyekController::class, 'showCard'])->name('proyek.card');
     Route::get('/proyek/{id_tim}/pengumuman', [PengumumanController::class, 'pengumuman'])->name('proyek.pengumuman');
 
-
+    // Pengumuman
     Route::post('/proyek/{id_tim}/pengumuman', [PengumumanController::class, 'store'])->name('proyek.pengumuman.store');
+    Route::put('/proyek/pengumuman/{pengumuman}', [PengumumanController::class, 'update'])->name('proyek.pengumuman.update');
+    Route::delete('/proyek/pengumuman/{pengumuman}', [PengumumanController::class, 'destroy'])->name('proyek.pengumuman.destroy');
+
     // Tambah anggota Card Kanban
     Route::post('proyek/{id_user}/card/{cardId}', [ProyekController::class, 'tambah_anggota_card'])->name('proyek.card.invite');
     Route::delete('proyek/{id_user}/{cardId}', [ProyekController::class, 'destroy_anggota_card'])->name('proyek.card.destroy');

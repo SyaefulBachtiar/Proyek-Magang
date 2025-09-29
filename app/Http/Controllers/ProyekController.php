@@ -150,6 +150,19 @@ class ProyekController extends Controller
     }
 
     public function showCard($id, $id_tim,  $cardId ) {
+        // =================== KODE PERBAIKAN (WAJIB) ===================
+        // Cek otorisasi: pastikan user yang login adalah anggota card ini
+        $userId = Auth::id();
+        $isMember = Anggota_card::where('id_card', $cardId)
+                                ->where('id_user', $userId)
+                                ->exists();
+
+        // Jika bukan anggota, hentikan proses dan kirim response 403 (Forbidden)
+        if (!$isMember) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat detail tugas ini.');
+        }
+        // =================== AKHIR DARI KODE PERBAIKAN ===================
+
         $kalender = Kalender::where('id_card', $cardId)->first();
         $label_tim = Label_tim::where('id_tim_perusahaan', $id_tim)->get();
         $label_card = Label_card::where('id_card', $cardId)->get();
@@ -276,11 +289,6 @@ class ProyekController extends Controller
         }catch (\Exception $e) {
             return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
         }
-    }
-
-    public function ringkas ($id, $id_tim) {
-        $tim = TimPerusahaan::findOrFail($id_tim);
-        return Inertia::render('pageProyek/Rinkas', ['dashboardId' => $id, 'activePage' => 'ringkasPage', 'tim' => $tim]);
     }
 
     private function broadcastBoardUpdate ($id_board) {
