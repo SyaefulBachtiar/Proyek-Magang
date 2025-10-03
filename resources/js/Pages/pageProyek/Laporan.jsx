@@ -1,14 +1,18 @@
 import { Head, router } from "@inertiajs/react";
 import Proyek from "../Proyek";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+
+// Import untuk Date Picker
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 // Impor dari Chart.js
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
-// Impor Ikon dari Lucide React (sudah ditambahkan ikon untuk SaranCard)
+// Impor Ikon dari Lucide React
 import {
-    AlertTriangle, Calendar, CheckCircle2, ChevronDown, ClipboardList, Coffee, Lightbulb, ListTodo,
+    AlertTriangle, Calendar, CheckCircle2, ChevronDown, ClipboardList, Coffee, Hourglass, Lightbulb, ListTodo,
     Rocket, Search, ShieldAlert, Sparkles, Star, ThumbsUp, UserX, Users, Wrench
 } from "lucide-react";
 
@@ -27,8 +31,7 @@ const StarIcon = ({ filled }) => (
 
 // --- Komponen Kartu ---
 
-const KinerjaCard = ({ user }) => {
-    // Helper untuk menentukan warna label berdasarkan rating
+const KinerjaCard = ({ user, startDate, endDate }) => {
     const getRatingColorClasses = (label) => {
         if (!label) return 'bg-gray-100 text-gray-800';
         switch (label.toLowerCase()) {
@@ -45,17 +48,27 @@ const KinerjaCard = ({ user }) => {
         }
     };
 
+    const periodeDisplay = useMemo(() => {
+        if (startDate && endDate) {
+            const options = { day: 'numeric', month: 'short' };
+            const start = startDate.toLocaleDateString('id-ID', options);
+            const end = endDate.toLocaleDateString('id-ID', options);
+            return `${start} - ${end}`;
+        }
+        return "Periode Ini"; // Teks default jika tidak ada tanggal dipilih
+    }, [startDate, endDate]);
+
     return (
         <div className="bg-white p-6 rounded-2xl shadow-sm flex flex-col justify-between h-full border border-gray-200/80">
             <div>
                 <h3 className="text-sm font-semibold text-gray-500 mb-4">Laporan Kinerja</h3>
                 <div className="flex items-center gap-4">
                     <img src={`https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=c7d2fe&color=3730a3&size=48`} alt={user.name} className="w-12 h-12 rounded-full"/>
-                <div>
-                    <p className="font-bold text-gray-800 text-lg">{user.name}</p>
-                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-sm font-semibold">{user.role}</span>
+                    <div>
+                        <p className="font-bold text-gray-800 text-lg">{user.name}</p>
+                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-sm font-semibold">{user.role}</span>
+                    </div>
                 </div>
-            </div>
                 <p className="text-sm text-gray-500 mt-3 flex items-center gap-2">
                     <Users size={14} />
                     Tim: <span className="font-semibold text-gray-700">{user.team}</span>
@@ -72,7 +85,7 @@ const KinerjaCard = ({ user }) => {
                 </div>
                 <div className="text-right">
                     <p className="text-xs text-gray-500">Periode</p>
-                    <p className="font-semibold text-gray-800">1 Sep - 12 Sep</p> {/* Note: Periode masih statis */}
+                    <p className="font-semibold text-gray-800">{periodeDisplay}</p>
                 </div>
             </div>
         </div>
@@ -92,7 +105,6 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
             selesai: 0,
         };
 
-        // Filter tugas untuk user yang dipilih dari semua tabs
         tugasPerTabs.forEach(tab => {
              tab.cards.forEach(task => {
                 const isUserInvolved = task.anggota_card_list.some(
@@ -173,7 +185,6 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
 
 const SaranCard = ({ user }) => {
     const IconComponent = iconMap[user.saran_ikon] || Lightbulb;
-
    
     const colorClasses = {
         green: 'bg-green-600 border-green-700 text-green-50',
@@ -272,26 +283,88 @@ const TugasCard = ({ tabs }) => {
     );
 };
 
-const PenghambatCard = () => {
-    const StatItem = ({ value, label, subLabel, taskName }) => (
-        <div>
-            <p className="text-2xl font-bold text-gray-800">{value}</p>
-            <p className="text-sm font-semibold text-gray-600">{label}</p>
-            <p className="text-xs text-gray-400 mt-1">{subLabel}</p>
-            <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-xs font-semibold text-gray-700">Tugas terlama</p>
-                <p className="text-sm text-gray-500 mt-1 truncate">{taskName}</p>
+const PenghambatCard = ({ data, tim, dashboardId }) => {
+
+    const StatItem = ({ icon, value, label, subLabel, task, colorClass }) => {
+        
+        const handleTaskClick = () => {
+            if (task && task.id) {
+                router.visit(route('proyek.card', {
+                    id: dashboardId,
+                    id_tim: tim.id,
+                    cardId: task.id
+                }));
+            }
+        };
+
+        return (
+            <div className="flex flex-col justify-between">
+                <div>
+                    <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${colorClass.bg}`}>
+                            {icon}
+                        </div>
+                        <div>
+                            <p className={`text-2xl font-bold ${colorClass.text}`}>{value}</p>
+                            <p className="text-sm font-semibold text-gray-600">{label}</p>
+                        </div>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2 ml-12">{subLabel}</p>
+                </div>
+                {task ? (
+                     <div className="mt-4 pt-4 border-t border-gray-100">
+                        <p className="text-xs font-semibold text-gray-700">Tugas Paling Kritis</p>
+                        <p 
+                            onClick={handleTaskClick} 
+                            className="text-sm text-blue-600 mt-1 truncate cursor-pointer hover:underline"
+                            title={task.nama_card}
+                        >
+                            {task.nama_card}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                        <p className="text-xs font-semibold text-gray-700">Tugas Paling Kritis</p>
+                        <p className="text-sm text-gray-400 mt-1">Tidak ada data</p>
+                    </div>
+                )}
             </div>
-        </div>
-    );
+        );
+    };
+
+    const hasBlockers = data?.mengendap?.jumlah > 0 || data?.terlambat_kritis?.jumlah > 0;
 
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-sm h-70 border border-gray-200/80">
-            <h3 className="text-sm font-semibold text-gray-500 mb-4">Potensi Penghambat</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <StatItem value="0 dari 1" label="Belum Dikerjakan" subLabel="lebih dari 40 hari" taskName="Belum ada data" />
-                <StatItem value="0 dari 0" label="Masih Dikerjakan" subLabel="lebih dari 40 hari" taskName="Belum ada data" />
-            </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm h-full border border-gray-200/80">
+            <h3 className="text-sm font-semibold text-gray-500 mb-5">Potensi Penghambat</h3>
+            {hasBlockers ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 h-full">
+                    <StatItem
+                        icon={<Hourglass size={20} className="text-amber-600"/>}
+                        value={data.mengendap.jumlah}
+                        label="Tugas Mengendap"
+                        subLabel={`> ${data.mengendap.threshold_hari} hari tidak update`}
+                        task={data.mengendap.tugas_terlama}
+                        colorClass={{ text: 'text-amber-500', bg: 'bg-amber-100' }}
+                        tim={tim} dashboardId={dashboardId}
+                    />
+                    <StatItem
+                        icon={<AlertTriangle size={20} className="text-red-600"/>}
+                        value={data.terlambat_kritis.jumlah}
+                        label="Terlambat Kritis"
+                        subLabel={`> ${data.terlambat_kritis.threshold_hari} hari dari tenggat`}
+                        task={data.terlambat_kritis.tugas_paling_terlambat}
+                        colorClass={{ text: 'text-red-500', bg: 'bg-red-100' }}
+                        tim={tim} dashboardId={dashboardId}
+                    />
+                </div>
+            ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                    <CheckCircle2 size={40} className="text-green-500 mb-3" />
+                    <p className="font-semibold text-gray-800">Semua Berjalan Lancar!</p>
+                    <p className="text-sm text-gray-500 mt-1">Tidak ada tugas yang terdeteksi sebagai penghambat.</p>
+                </div>
+            )}
         </div>
     );
 };
@@ -310,7 +383,7 @@ const MemberList = ({ members, selectedUser, onSelectUser }) => (
 
 
 // --- Komponen Utama ---
-export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tugasPerTabs, id_board }) {
+export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tugasPerTabs, id_board, penghambat }) {
 
     // Realtime update listener
     useEffect(() => {
@@ -318,7 +391,7 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
         const channel = window.Echo.private(`board.${id_board}`);
         channel.listen('.board.updated', () => {
             router.reload({
-                only: ["tugasPerTabs", "anggotaTim", "tim"],
+                only: ["tugasPerTabs", "anggotaTim", "tim", "penghambat"],
                 preserveState: true,
                 preserveScroll: true,
             });
@@ -328,12 +401,52 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
         }
     }, [id_board]);
 
-    // Data tim dari backend, sudah termasuk rating dan saran
     const teamData = useMemo(() => anggotaTim, [anggotaTim]);
 
     const [selectedUser, setSelectedUser] = useState(teamData[0] || null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedPeriod, setSelectedPeriod] = useState("Bulan Ini");
+    
+    const [dateRange, setDateRange] = useState([null, null]);
+    const [startDate, endDate] = dateRange;
+    const datePickerRef = useRef(null);
+    const triggerRef = useRef(null);
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
+
+    useEffect(() => {
+        if (startDate && endDate) {
+            const formatDate = (date) => date.toISOString().split('T')[0];
+
+            router.get(
+                route('proyek.laporan', { id: dashboardId, id_tim: tim.id }),
+                {
+                    start_date: formatDate(startDate),
+                    end_date: formatDate(endDate),
+                },
+                {
+                    preserveState: true,
+                    replace: true,
+                    onSuccess: () => {
+                        setIsPickerOpen(false);
+                    }
+                }
+            );
+        }
+    }, [dateRange]);
+
+     useEffect(() => {
+        function handleClickOutside(event) {
+            if (
+                datePickerRef.current &&
+                !datePickerRef.current.contains(event.target) &&
+                triggerRef.current &&
+                !triggerRef.current.contains(event.target)
+            ) {
+                setIsPickerOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const filteredTeamData = useMemo(() =>
         teamData.filter(member =>
@@ -341,7 +454,6 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
         ), [teamData, searchTerm]
     );
 
-    // Filter tugas untuk ditampilkan di tab "TugasCard" berdasarkan user yang dipilih
     const filteredTugasTabs = useMemo(() => {
         if (!selectedUser) {
             return tugasPerTabs.map(tab => ({ ...tab, cards: [] }));
@@ -356,21 +468,26 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
         }));
     }, [selectedUser, tugasPerTabs]);
 
-    // Efek untuk memastikan data `selectedUser` selalu yang terbaru
     useEffect(() => {
         if (teamData.length > 0 && !teamData.some(member => member.id === selectedUser?.id)) {
-            // Jika user yang dipilih sebelumnya sudah tidak ada di list (misal karena filter), pilih yg pertama
             setSelectedUser(teamData[0]);
         } else if (teamData.length === 0) {
             setSelectedUser(null);
         } else if (selectedUser) {
-            // Perbarui data user yang sedang dipilih jika ada perubahan (misal: rating baru setelah reload)
             const updatedSelectedUser = teamData.find(member => member.id === selectedUser.id);
             if (updatedSelectedUser) {
                 setSelectedUser(updatedSelectedUser);
             }
         }
     }, [teamData]);
+
+    const formatDateRangeText = () => {
+        if (!startDate || !endDate) {
+            return "Pilih Periode Tanggal";
+        }
+        const options = { day: 'numeric', month: 'short', year: 'numeric' };
+        return `${startDate.toLocaleDateString('id-ID', options)} - ${endDate.toLocaleDateString('id-ID', options)}`;
+    };
 
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
@@ -381,6 +498,13 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                     .styled-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
                     .styled-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
                     .styled-scrollbar::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+                    .react-datepicker { font-family: 'Inter', sans-serif; border-radius: 0.75rem; border-color: #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+                    .react-datepicker__header { background-color: #f9fafb; border-bottom-color: #e5e7eb; border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem;}
+                    .react-datepicker__current-month, .react-datepicker-time__header, .react-datepicker-year-header { font-weight: 600; color: #1f2937; }
+                    .react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name { color: #4b5563; }
+                    .react-datepicker__day--selected, .react-datepicker__day--in-selecting-range, .react-datepicker__day--in-range { background-color: #3b82f6; color: white; }
+                    .react-datepicker__day--selected:hover, .react-datepicker__day--in-range:hover { background-color: #2563eb; }
+                    .react-datepicker__day--keyboard-selected { background-color: #dbeafe; color: #1e40af; }
                 `}</style>
             </Head>
             <div className="flex flex-col lg:flex-row w-full min-h-screen bg-gray-50 p-4 lg:p-6 gap-6">
@@ -393,16 +517,26 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                     </div>
 
                     <div className="relative">
-                        <select
-                            value={selectedPeriod}
-                            onChange={(e) => setSelectedPeriod(e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-sm appearance-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="Bulan Ini">Periode: Bulan Ini</option>
-                            <option value="Bulan Lalu">Periode: Bulan Lalu</option>
-                        </select>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                           <ChevronDown size={18}/>
-                        </span>
+                        <button
+                            ref={triggerRef}
+                            onClick={() => setIsPickerOpen(!isPickerOpen)}
+                            className="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-sm text-left bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex justify-between items-center"
+                        >
+                            <span className="truncate">{formatDateRangeText()}</span>
+                            <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
+                        </button>
+
+                        {isPickerOpen && (
+                            <div ref={datePickerRef} className="absolute top-full mt-2 z-50">
+                                <DatePicker
+                                    selectsRange={true}
+                                    startDate={startDate}
+                                    endDate={endDate}
+                                    onChange={(update) => setDateRange(update)}
+                                    inline
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 -mx-5"/>
@@ -443,7 +577,7 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                     {selectedUser ? (
                         <>
                             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                                <KinerjaCard user={selectedUser} />
+                                <KinerjaCard user={selectedUser} startDate={startDate} endDate={endDate} />
                                 <RingkasanCard
                                     user={selectedUser}
                                     tugasPerTabs={tugasPerTabs}
@@ -455,7 +589,7 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                                     <TugasCard tabs={filteredTugasTabs} />
                                 </div>
                                 <div className="xl:col-span-2">
-                                    <PenghambatCard />
+                                    <PenghambatCard data={penghambat} tim={tim} dashboardId={dashboardId} />
                                 </div>
                             </div>
                         </>

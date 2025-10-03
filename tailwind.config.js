@@ -16,7 +16,7 @@ export default {
             fontFamily: {
                 sans: ["Figtree", ...defaultTheme.fontFamily.sans],
             },
-            // <-- TAMBAHKAN MULAI DARI SINI -->
+            
             keyframes: {
                 'fade-in-down': {
                     '0%': {
@@ -32,7 +32,6 @@ export default {
             animation: {
                 'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
             },
-            // <-- SAMPAI SINI -->
         },
     },
 

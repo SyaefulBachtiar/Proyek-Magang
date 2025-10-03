@@ -12,7 +12,7 @@ use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
-    public function laporan($id, $id_tim)
+    public function laporan(Request $request, $id, $id_tim)
     {
         $tim = TimPerusahaan::findOrFail($id_tim);
         $id_board = optional($tim->board_tim)->id;
@@ -24,18 +24,30 @@ class LaporanController extends Controller
 
         $anggotaIds = $anggota->pluck('user.id')->filter()->toArray();
 
-        $semuaTugas = Card_listModel::whereHas('anggota_card_list', function ($query) use ($anggotaIds) {
+        // Memulai query untuk semua tugas
+        $querySemuaTugas = Card_listModel::whereHas('anggota_card_list', function ($query) use ($anggotaIds) {
             $query->whereIn('id_user', $anggotaIds);
-        })
-        ->with('kalender', 'anggota_card_list.user')
-        ->withMax('checklist_card', 'updated_at')
-        ->withCount([
-            'checklist_card',
-            'checklist_card as completed_checklist_count' => function ($q) {
-                $q->where('is_checked', true);
-            }
-        ])
-        ->get();
+        });
+
+        // Menerapkan filter tanggal jika ada di request dari frontend
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
+            $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
+
+            // Filter tugas yang 'created_at'-nya (tanggal pembuatan tugas) berada dalam rentang tanggal yang dipilih
+            $querySemuaTugas->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        
+        // Mengeksekusi query setelah filter diterapkan
+        $semuaTugas = $querySemuaTugas->with('kalender', 'anggota_card_list.user')
+            ->withMax('checklist_card', 'updated_at')
+            ->withCount([
+                'checklist_card',
+                'checklist_card as completed_checklist_count' => function ($q) {
+                    $q->where('is_checked', true);
+                }
+            ])
+            ->get();
 
         $formattedAnggota = $anggota->map(function ($item) use ($semuaTugas, $tim) {
             if (!$item->user) {
@@ -84,10 +96,9 @@ class LaporanController extends Controller
                  $ratingLabel = 'Belum Ada Data';
             }
 
-            // --- AWAL LOGIKA SARAN DINAMIS ---
             $saranTeks = '';
-            $saranIkon = 'Lightbulb'; // Ikon default
-            $saranWarna = 'indigo'; // Warna default
+            $saranIkon = 'Lightbulb';
+            $saranWarna = 'indigo';
 
             switch ($ratingBintang) {
                 case 5:
@@ -121,7 +132,6 @@ class LaporanController extends Controller
                     $saranWarna = 'sky';
                     break;
             }
-            // --- AKHIR LOGIKA SARAN DINAMIS ---
 
             return [
                 'id' => $item->user->id,
@@ -130,14 +140,12 @@ class LaporanController extends Controller
                 'team' => $tim->nama_tim,
                 'rating_bintang' => $ratingBintang,
                 'rating_label' => $ratingLabel,
-                // Tambahkan data saran ke response
                 'saran_teks' => $saranTeks,
                 'saran_ikon' => $saranIkon,
                 'saran_warna' => $saranWarna,
             ];
         })->filter()->values();
 
-        // ... (sisa kode untuk $groupedTugas dan $tugasPerTab tetap sama) ...
         $groupedTugas = $semuaTugas->groupBy(function ($item) {
             $jadwal = $item->kalender->first();
             $isTaskCompleted = $item->checklist_card_count > 0 && $item->completed_checklist_count === $item->checklist_card_count;
@@ -158,6 +166,37 @@ class LaporanController extends Controller
             ['id' => 'terlambat', 'judul' => 'Terlambat', 'cards' => $groupedTugas->get('terlambat', collect())->values()],
         ];
 
+        // --- AWAL LOGIKA POTENSI PENGHAMBAT ---
+        $stagnantThresholdDays = 7; // Batas hari untuk tugas dianggap mengendap
+        $overdueThresholdDays = 3;  // Batas hari untuk tugas dianggap terlambat kritis
+
+        // 1. Analisis Tugas Mengendap
+        $tugasMengendap = $semuaTugas->filter(function ($tugas) use ($stagnantThresholdDays) {
+            $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
+            return !$isCompleted && Carbon::parse($tugas->updated_at)->lessThan(now()->subDays($stagnantThresholdDays));
+        });
+
+        // 2. Analisis Tugas Terlambat Kritis
+        $terlambatKritis = $semuaTugas->filter(function ($tugas) use ($overdueThresholdDays) {
+            $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
+            $dueDate = optional($tugas->kalender->first())->due_date;
+            return !$isCompleted && $dueDate && Carbon::parse($dueDate)->lessThan(now()->subDays($overdueThresholdDays));
+        });
+
+        $dataPenghambat = [
+            'mengendap' => [
+                'jumlah' => $tugasMengendap->count(),
+                'threshold_hari' => $stagnantThresholdDays,
+                'tugas_terlama' => $tugasMengendap->sortBy('updated_at')->first(),
+            ],
+            'terlambat_kritis' => [
+                'jumlah' => $terlambatKritis->count(),
+                'threshold_hari' => $overdueThresholdDays,
+                'tugas_paling_terlambat' => $terlambatKritis->sortBy('kalender.0.due_date')->first(),
+            ]
+        ];
+        // --- AKHIR LOGIKA POTENSI PENGHAMBAT ---
+
 
         return Inertia::render('pageProyek/Laporan', [
             'dashboardId' => $id,
@@ -165,7 +204,8 @@ class LaporanController extends Controller
             'tim' => $tim,
             'anggotaTim' => $formattedAnggota,
             'tugasPerTabs' => $tugasPerTab,
-            'id_board' => $id_board
+            'id_board' => $id_board,
+            'penghambat' => $dataPenghambat,
         ]);
     }
 }
