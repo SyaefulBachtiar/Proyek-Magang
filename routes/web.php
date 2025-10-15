@@ -38,6 +38,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.with.id');
 
     // Halaman Proyek
+    Route::delete('/proyek/list/{id_list}', [ProyekController::class, 'destroyList'])->name('proyek.list.destroy');
     Route::get('/proyek/{id_tim}/board/{id_board}', [ProyekController::class, 'index'])->name('proyek');
     Route::get('/proyek/{id_tim}/ringkas', [RingkasController::class, 'index'])->name('proyek.ringkas');
     Route::get('/proyek/{id_tim}/laporan', [LaporanController::class, 'laporan'])->name('proyek.laporan');
@@ -142,6 +143,9 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::delete('delete/pesan/{id_pesan}', [ChatGrupController::class, 'delete_pesan'])->name('delete.pesan');
     // EDIT PESAN
     Route::put('edit/pesan/{id_pesan}', [ChatGrupController::class, 'edit_pesan'])->name('edit.pesan');
+
+
+    
 
 });
 

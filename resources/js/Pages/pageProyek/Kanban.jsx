@@ -1,7 +1,5 @@
 import { Head, router, usePage } from "@inertiajs/react";
 import {
-    Archive,
-    Check,
     Clock,
     Ellipsis,
     Pencil,
@@ -15,7 +13,7 @@ import Proyek from "../Proyek";
 import TambahCard from "@/modal/Proyek/TambahCard";
 import TambahList from "@/modal/Proyek/TambahList";
 import TooltipAnggotaCard from "@/Components/TooltipAnggotaCard";
-import Notification from "@/Components/Notification"; // Import komponen notifikasi kustom
+import Notification from "@/Components/Notification";
 
 // Helper function untuk memetakan data dari backend ke state frontend
 const mapBoardData = (boardData) => {
@@ -62,20 +60,21 @@ const mapBoardData = (boardData) => {
 };
 
 
-export default function Kanban({ children, dashboardId, activePage, tim, dataBoard, id_tim }) {
+export default function Kanban({ children, dashboardId, activePage, tim, dataBoard, id_tim, currentUserRole }) {
 
     const user = usePage().props.auth.user;
     const {id_board} = usePage().props;
 
     const [tambahCard, setTambahCard] = useState("");
     const [tambahList, setTambahList] = useState(false);
-
+    const [lists, setLists] = useState([]);
+    const [editingListId, setEditingListId] = useState(null);
+    const memberRef = useRef({});
+    
+    // State dan Ref yang berhubungan dengan notifikasi dan tooltip
     const [hoveredAnggota, setHoverdAnggota] = useState(null);
     const hoveredAnggotaRef = useRef(null);
-    const [lists, setLists] = useState([]);
-    const notificationTimer = useRef(null); // Ref untuk timer notifikasi
-
-    // State untuk mengelola notifikasi
+    const notificationTimer = useRef(null);
     const [notification, setNotification] = useState({
         show: false,
         message: "",
@@ -102,32 +101,48 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
         }
     }, [id_board]);
 
-    const [editingListId, setEditingListId] = useState(null);
-    const [openElipsis, setOpenElipsis] = useState(null);
-    const elipsisRef = useRef({});
-    const memberRef = useRef({});
-
     const handleDragEnd = async (result) => {
         const { source, destination, type } = result;
         if (!destination) return;
+    
+        if (type === "card" && currentUserRole === 'Member') {
+            const sourceList = lists.find(list => list.id === source.droppableId);
+            const destList = lists.find(list => list.id === destination.droppableId);
+    
+            if (sourceList.title === 'Verifikasi Katim') {
+                alert('Anda tidak diizinkan memindahkan tugas dari list verifikasi.');
+                return;
+            }
 
+            if (sourceList.title === 'Anngeus') {
+                alert('Anda tidak dapat memindahkan tugas yang sudah selesai.');
+                return;
+            }
+    
+            if (destList.title === 'Anngeus') {
+                alert('Hanya ketua tim yang dapat menyelesaikan tugas.');
+                return;
+            }
+        }
+    
         if (type === "list") {
             const reorderedLists = Array.from(lists);
             const [removed] = reorderedLists.splice(source.index, 1);
             reorderedLists.splice(destination.index, 0, removed);
             setLists(reorderedLists);
-
+    
             const updatedLists = reorderedLists.map((list, index) => ({
                 id: list.id,
                 urutan_posisi: index + 1,
             }));
-
+    
             try {
                 await router.post(
                     route("proyek.update-list-order", {id: user.id}),
                     {
                         lists: updatedLists,
-                        id_board: id_board
+                        id_board: id_board,
+                        id_tim: id_tim,
                     },
                     {
                         preserveState: true,
@@ -139,7 +154,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                 console.error("Error updating list order:", error);
             }
         }
-
+    
         if (type === "card") {
             const sourceListIndex = lists.findIndex(
                 (list) => list.id === source.droppableId
@@ -147,54 +162,53 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
             const destListIndex = lists.findIndex(
                 (list) => list.id === destination.droppableId
             );
-
+    
             const sourceCards = Array.from(lists[sourceListIndex].cards);
             const destCards = Array.from(lists[destListIndex].cards);
             const [movedCard] = sourceCards.splice(source.index, 1);
-
+    
             let updatedCards = [];
-
+    
             if (sourceListIndex === destListIndex) {
-                // Pindah dalam list yang sama
                 sourceCards.splice(destination.index, 0, movedCard);
                 const newLists = [...lists];
                 newLists[sourceListIndex].cards = sourceCards;
                 setLists(newLists);
-
+    
                 updatedCards = sourceCards.map((card, index) => ({
                     id: card.id,
                     urutan: index + 1,
                     id_list: source.droppableId,
                 }));
             } else {
-                // Pindah ke list berbeda
                 destCards.splice(destination.index, 0, movedCard);
                 const newLists = [...lists];
                 newLists[sourceListIndex].cards = sourceCards;
                 newLists[destListIndex].cards = destCards;
                 setLists(newLists);
-
+    
                 const sourceUpdates = sourceCards.map((card, index) => ({
                     id: card.id,
                     urutan: index + 1,
                     id_list: source.droppableId,
                 }));
-
+    
                 const destUpdates = destCards.map((card, index) => ({
                     id: card.id,
                     urutan: index + 1,
                     id_list: destination.droppableId,
                 }));
-
+    
                 updatedCards = [...sourceUpdates, ...destUpdates];
             }
-
+    
             try {
                 await router.post(
                     route("proyek.update-card-order", { id: user.id }),
                     {
                         cards: updatedCards,
-                        id_board: id_board
+                        id_board: id_board,
+                        id_tim: id_tim,
                     },
                     {
                         preserveState: true,
@@ -203,12 +217,6 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                         progress: false
                     }
                 );
-                router.reload({
-                    only: ["dataBoard"],
-                    onSuccess: (page) => {
-                        setLists(mapBoardData(page.props.dataBoard));
-                    },
-                });
             } catch (error) {
                 console.error("Error updating card order:", error);
             }
@@ -246,22 +254,16 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
         );
     };
 
-    const handleElipsis = (listId) => {
-        setOpenElipsis((prev) => (prev === listId ? null : listId));
+    const handleDeleteList = (listId) => {
+        if (window.confirm('Apakah Anda yakin ingin menghapus list ini? Semua tugas di dalamnya juga akan terhapus secara permanen.')) {
+            // Benar: Gunakan 'dashboardId' yang diterima dari props, 
+            // karena ini yang merepresentasikan parameter '{id}' di URL.
+            router.delete(route('proyek.list.destroy', { id: dashboardId, id_list: listId }), {
+                data: { id_tim: id_tim },
+                preserveScroll: true,
+            });
+        }
     };
-
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            const clickedOutsideAll = Object.values(elipsisRef.current).every(
-                (ref) => ref && !ref.contains(e.target)
-            );
-            if (clickedOutsideAll) setOpenElipsis(null);
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
 
     const handleLihatCard = (cardId) => {
         router.visit(
@@ -320,16 +322,13 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                             draggableId={list.id}
                                             index={listIndex}
                                             key={list.id}
+                                            isDragDisabled={currentUserRole !== 'Ketua tim'}
                                         >
                                             {(provided) => (
                                                 <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
-                                                    className={`w-[280px] flex-shrink-0 bg-white/40 px-4 pb-4 rounded-lg ${
-                                                        openElipsis === list.id
-                                                            ? "z-10"
-                                                            : "z-0"
-                                                    }`}
+                                                    className="w-[280px] flex-shrink-0 bg-white/40 px-4 pb-4 rounded-lg"
                                                 >
                                                     <div
                                                         className="w-full flex justify-between items-center my-3"
@@ -372,51 +371,17 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                 {list.title}
                                                             </h1>
                                                         )}
-                                                        <div
-                                                            ref={(el) =>
-                                                                (elipsisRef.current[
-                                                                    list.id
-                                                                ] = el)
-                                                            }
-                                                            className="relative"
-                                                        >
-                                                            <div
-                                                                onClick={() =>
-                                                                    handleElipsis(
-                                                                        list.id
-                                                                    )
-                                                                }
+                                                        
+                                                        {currentUserRole === 'Ketua tim' && (
+                                                            <div 
+                                                                onClick={() => handleDeleteList(list.id)} 
                                                                 className="p-1 rounded-md hover:bg-gray-300 cursor-pointer"
                                                             >
-                                                                <Ellipsis
-                                                                    size={18}
-                                                                />
+                                                                <Trash size={16} className="text-gray-600 hover:text-red-500 transition-colors" />
                                                             </div>
-                                                            {openElipsis ===
-                                                                list.id && (
-                                                                    <div className="bg-white w-72 p-2 absolute -right-[300px] z-50 top-0 rounded-md shadow-lg">
-                                                                        <ul className="w-full">
-                                                                            <li className="w-full flex gap-3 items-center hover:bg-gray-200 px-2 py-1 rounded-md cursor-pointer">
-                                                                                Arsip
-                                                                                <Archive className="w-4 h-4" />
-                                                                            </li>
-                                                                            <li className="w-full flex gap-3 items-center hover:bg-gray-200 px-2 py-1 rounded-md cursor-pointer text-red-600">
-                                                                                Hapus
-                                                                                <Trash className="w-4 h-4" />
-                                                                            </li>
-                                                                            <li className="w-full flex gap-3 items-center hover:bg-gray-200 px-2 py-1 rounded-md cursor-pointer">
-                                                                                <p>Tandai sudah selesai</p>
-                                                                                <div className="p-1 bg-green-400 rounded-md">
-                                                                                    <Check className="w-4 h-4 text-white" />
-                                                                                </div>
-                                                                            </li>
-                                                                        </ul>
-                                                                    </div>
-                                                            )}
-                                                        </div>
+                                                        )}
                                                     </div>
 
-                                                    {/* Cards */}
                                                     <Droppable
                                                         droppableId={list.id}
                                                         type="card"

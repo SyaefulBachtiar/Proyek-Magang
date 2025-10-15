@@ -1624,7 +1624,6 @@ export default function Card_kanban() {
                                 />
                             )}
 
-                            {/* Example Comment */}
                             <KomponenKomentar
                                 komentar={komentar}
                                 id_board={id_board}

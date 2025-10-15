@@ -37,6 +37,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('label_card');
-        Schema::dropIfExists('lable_tim');
+        Schema::dropIfExists('label_tim');
     }
 };

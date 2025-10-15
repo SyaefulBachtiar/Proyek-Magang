@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
 
@@ -54,6 +55,11 @@ class ProyekController extends Controller
         
         $user = Auth::user();
         
+        // Ambil role pengguna saat ini untuk tim yang sedang dibuka
+        $currentUserRole = Anggota_tim::where('id_tim_perusahaan', $id_tim)
+                                   ->where('id_users', $user->id)
+                                   ->value('role_anggota');
+
         $nama_perusahaan = $user->anggotaPerusahaan?->perusahaan?->nama_perusahaan;
 
         return Inertia::render('pageProyek/Kanban', [
@@ -63,105 +69,101 @@ class ProyekController extends Controller
             'activePage' => 'tugasPage',
             'tim' => $tim,
             'dataBoard' => $board_data,
+            'currentUserRole' => $currentUserRole, // Kirim role ke frontend
         ]);
     }
 
     // card store
     public function storeCard(Request $request, $id, $id_tim, $id_board){
-      $user = Auth::user();
+        $user = Auth::user();
         if(!$user){
             return response()->json(['error' => 'user tidak terkait dengan perusahaan'], 403);
         }
-    // Validasi input
-    $request->validate([
-        'nama_tugas' => 'required|string|max:50',
-        'id_list' => 'required|string|max:36|exists:list_board,id',
-        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-    ]);
+        // Validasi input
+        $request->validate([
+            'nama_tugas' => 'required|string|max:50',
+            'id_list' => 'required|string|max:36|exists:list_board,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
 
-    try {
+        try {
 
-       $anggota_tim = $user->anggota_tim
-        ->where('id_tim_perusahaan', $id_tim)
-        ->first();
+            $anggota_tim = $user->anggota_tim
+            ->where('id_tim_perusahaan', $id_tim)
+            ->first();
 
-        // Hitung urutan card selanjutnya dalam list
-        $maxUrutan = Card_listModel::where('id_list', $request->id_list)->max('urutan');
-        $urutan = $maxUrutan ? $maxUrutan + 1 : 1;
+            // Hitung urutan card selanjutnya dalam list
+            $maxUrutan = Card_listModel::where('id_list', $request->id_list)->max('urutan');
+            $urutan = $maxUrutan ? $maxUrutan + 1 : 1;
 
-        // Handle upload gambar jika ada
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('card-images', 'public');
+            // Handle upload gambar jika ada
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('card-images', 'public');
+            }
+
+            // Insert card baru
+            $card = Card_listModel::create([
+                'id' => (string) Str::uuid(),
+                'nama_card' => $request->nama_tugas,
+                'pembuat' => $user->name,
+                'image' => $imagePath,
+                'id_list' => $request->id_list,
+                'urutan' => $urutan,
+            ]);
+
+            $card->anggota_card_list()->create([
+                'id' => (string) Str::uuid(),
+                'id_user' => $user->id,
+                'id_card' => $card->id,
+                'id_anggota_tim' => $anggota_tim->id,
+            ]);
+
+            $this->broadcastBoardUpdate($id_board);
+
+            return back()->with('success', 'Berhasil Menambahkan Card');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('gagal', 'Gagal Menambahkan Card: '. $e);
         }
-
-        // Insert card baru
-        $card = Card_listModel::create([
-            'id' => (string) Str::uuid(),
-            'nama_card' => $request->nama_tugas,
-            'pembuat' => $user->name,
-            'image' => $imagePath,
-            'id_list' => $request->id_list,
-            'urutan' => $urutan,
-        ]);
-
-        $card->anggota_card_list()->create([
-            'id' => (string) Str::uuid(),
-            'id_user' => $user->id,
-            'id_card' => $card->id,
-            'id_anggota_tim' => $anggota_tim->id,
-        ]);
-
-        $this->broadcastBoardUpdate($id_board);
-
-        return back()->with('success', 'Berhasil Menambahkan Card');
-
-    } catch (\Exception $e) {
-        return redirect()->back()->with('gagal', 'Gagal Menambahkan Card: '. $e);
-
     }
-}
 
      // list store
     public function storeList (Request $request, $id, $id_board) {
 
-    $request->validate([
-    'nama_list' => 'required|string|max:50',
-    'id_board' => 'required|string|max:36|exists:board_tim,id',
-    ]);
-
-    try{
-        $maxUrutan = List_boardModel::where('id_board', $request->id_board)->max('urutan_posisi');
-        $urutan = $maxUrutan ? $maxUrutan + 1 : 1 + 1;
-
-        List_boardModel::create([
-            'id' => (string) Str::uuid(),
-            'urutan_posisi' => $urutan,
-            'judul' => $request->nama_list,
-            'id_board' => $request->id_board,
+        $request->validate([
+        'nama_list' => 'required|string|max:50',
+        'id_board' => 'required|string|max:36|exists:board_tim,id',
         ]);
 
-        $this->broadcastBoardUpdate($id_board);
+        try{
+            $maxUrutan = List_boardModel::where('id_board', $request->id_board)->max('urutan_posisi');
+            $urutan = $maxUrutan ? $maxUrutan + 1 : 1 + 1;
 
-        return back()->with('success', 'Berhasil tambah list');
-    }catch(\Exception $e){
-        return redirect()->back()->with('gagal', 'Gagal Menambahkan list: '. $e);
-    }
+            List_boardModel::create([
+                'id' => (string) Str::uuid(),
+                'urutan_posisi' => $urutan,
+                'judul' => $request->nama_list,
+                'id_board' => $request->id_board,
+            ]);
+
+            $this->broadcastBoardUpdate($id_board);
+
+            return back()->with('success', 'Berhasil tambah list');
+        }catch(\Exception $e){
+            return redirect()->back()->with('gagal', 'Gagal Menambahkan list: '. $e);
+        }
     }
 
     public function showCard($id, $id_tim,  $cardId ) {
-        // =================== KODE PERBAIKAN (WAJIB) ===================
-        // Cek otorisasi: pastikan user yang login adalah anggota card ini
         $userId = Auth::id();
         $isMember = Anggota_card::where('id_card', $cardId)
                                 ->where('id_user', $userId)
                                 ->exists();
 
-        // Jika bukan anggota, hentikan proses dan kirim response 403 (Forbidden)
         if (!$isMember) {
             abort(403, 'Anda tidak memiliki akses untuk melihat detail tugas ini.');
         }
-        // =================== AKHIR DARI KODE PERBAIKAN ===================
 
         $kalender = Kalender::where('id_card', $cardId)->first();
         $label_tim = Label_tim::where('id_tim_perusahaan', $id_tim)->get();
@@ -196,7 +198,7 @@ class ProyekController extends Controller
         $user = Auth::user();
 
 
-         $perusahaan_id = $user->anggotaPerusahaan->perusahaan_id;
+        $perusahaan_id = $user->anggotaPerusahaan->perusahaan_id;
 
         $tim = User::with('anggotaPerusahaan')
         ->whereHas('anggotaPerusahaan', function ($query) use ($perusahaan_id){
@@ -292,42 +294,88 @@ class ProyekController extends Controller
     }
 
     private function broadcastBoardUpdate ($id_board) {
-        // Siarkan ke semua event client
         broadcast(new BoardUpdated($id_board));
     }
 
     public function updateListOrder(Request $request, $id) {
         $request->validate([
-        'id_board' => 'required',
-        'lists' => 'required|array',
-        'lists.*.id' => 'required|string',
-        'lists.*.urutan_posisi' =>'required|integer'
-    ]);
+            'id_board' => 'required|string|exists:board_tim,id',
+            'id_tim' => 'required|string|exists:tim_perusahaan,id',
+            'lists' => 'required|array',
+            'lists.*.id' => 'required|string',
+            'lists.*.urutan_posisi' =>'required|integer'
+        ]);
+    
+        // Ambil role pengguna saat ini
+        $anggota = Anggota_tim::where('id_tim_perusahaan', $request->id_tim)
+                             ->where('id_users', Auth::id())
+                             ->first();
+    
+        // Validasi role: Hanya Ketua tim yang boleh memindahkan list
+        if (!$anggota || $anggota->role_anggota !== 'Ketua tim') {
+            return response()->json(['message' => 'Hanya ketua tim yang dapat memindahkan list.'], 403);
+        }
+    
         foreach ($request->lists as $list) {
             List_boardModel::where('id', $list['id'])->update(['urutan_posisi' => $list['urutan_posisi']]);
         }
-
-        // Panggil dari boradcast
+    
         $this->broadcastBoardUpdate($request->id_board);
-
+    
         return redirect()->back()->with('success', 'List berhasil di pindahkan');
     }
-
+    
     public function updateCardOrder(Request $request, $id) {
         $request->validate([
-            'id_board' => 'required',
+            'id_board' => 'required|string|exists:board_tim,id',
+            'id_tim' => 'required|string|exists:tim_perusahaan,id',
             'cards' => 'required|array', 
             'cards.*.id' => 'required|string', 
             'cards.*.urutan' => 'required|integer', 
             'cards.*.id_list' => 'required|string'
         ]);
+    
+        // Ambil role pengguna saat ini
+        $anggota = Anggota_tim::where('id_tim_perusahaan', $request->id_tim)
+                             ->where('id_users', Auth::id())
+                             ->first();
+    
+        // Jika user adalah Member, lakukan pengecekan ketat
+        if ($anggota && $anggota->role_anggota === 'Member') {
+            // Ambil ID list yang dilindungi
+            $listVerifikasiId = List_boardModel::where('id_board', $request->id_board)
+                ->where('judul', 'Verifikasi Katim')->value('id');
+    
+            $listSelesaiId = List_boardModel::where('id_board', $request->id_board)
+                ->where('judul', 'Anngeus')->value('id');
+    
+            foreach ($request->cards as $cardData) {
+                $card = Card_listModel::find($cardData['id']);
+    
+                // Aturan 1: Member tidak boleh memindahkan card DARI list verifikasi
+                if ($card->id_list == $listVerifikasiId && $cardData['id_list'] != $listVerifikasiId) {
+                    return response()->json(['message' => 'Anda tidak diizinkan memindahkan tugas dari list verifikasi.'], 403);
+                }
+
+                // Aturan 2: Member tidak boleh memindahkan card DARI list "Anngeus" (selesai)
+                if ($card->id_list == $listSelesaiId) {
+                    return response()->json(['message' => 'Anda tidak dapat memindahkan tugas yang sudah selesai.'], 403);
+                }
+    
+                // Aturan 3: Member tidak boleh memindahkan card KE list selesai ("Anngeus")
+                if ($cardData['id_list'] == $listSelesaiId) {
+                    return response()->json(['message' => 'Hanya ketua tim yang dapat menyelesaikan tugas.'], 403);
+                }
+            }
+        }
+    
+        // Jika lolos validasi (atau jika user adalah Ketua tim), proses pemindahan
         foreach ($request->cards as $card) {
             Card_listModel::where('id', $card['id'])->update(['urutan' => $card['urutan'], 'id_list' => $card['id_list']]);
         }
-
-        // Panggil dari boradcast
+    
         $this->broadcastBoardUpdate($request->id_board);
-
+    
         return redirect()->back()->with('success', 'Card berhasil di pindahkan');
     }
 
@@ -990,4 +1038,48 @@ public function destroy_lampiran($id, $lampiran_id)
         return back()->with('gagal', 'Gagal menghapus lampiran.');
     }
 }
+
+
+public function destroyList(Request $request, $id, $id_list)
+{
+    // Validasi bahwa id_tim dikirim dari frontend
+    $request->validate([
+        'id_tim' => 'required|string|exists:tim_perusahaan,id',
+    ]);
+
+    // Ambil role pengguna saat ini untuk validasi
+    $anggota = Anggota_tim::where('id_tim_perusahaan', $request->id_tim)
+                         ->where('id_users', Auth::id())
+                         ->first();
+
+    // Otorisasi: Hanya Ketua tim yang boleh menghapus list
+    if (!$anggota || $anggota->role_anggota !== 'Ketua tim') {
+        // BENAR: Gunakan redirect dengan flash message untuk menampilkan notifikasi 'gagal'
+        return redirect()->back()->with('gagal', 'Hanya ketua tim yang dapat menghapus list.');
+    }
+
+    try {
+        $list = List_boardModel::findOrFail($id_list);
+        
+        // Simpan id_board sebelum list dihapus untuk keperluan broadcast
+        $id_board = $list->id_board;
+
+        // Hapus list. Kartu di dalamnya akan otomatis terhapus karena
+        // ada 'onDelete(cascade)' di file migrasi database.
+        $list->delete();
+
+        // Siarkan pembaruan ke semua klien yang sedang melihat board ini
+        $this->broadcastBoardUpdate($id_board);
+
+        // Kembalikan dengan pesan sukses
+        return redirect()->back()->with('success', 'List berhasil dihapus.');
+
+    } catch (\Exception $e) {
+        Log::error('Gagal menghapus list: ' . $e->getMessage());
+        return redirect()->back()->with('gagal', 'Terjadi kesalahan saat menghapus list.');
+    }
 }
+}
+
+
+

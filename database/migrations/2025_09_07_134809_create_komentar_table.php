@@ -10,22 +10,30 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('komentar', function (Blueprint $table) {
-            $table->string('id', 36)->primary();
-            $table->foreign('parent_id')->references('id')->on('komentar')->onDelete('cascade');
-            $table->string('parent_id', 36)->nullable();
-            $table->string('mention')->nullable();
-            $table->text('komentar');
-            $table->string('lampiran_id')->nullable();
-            $table->foreign('lampiran_id')->references('id')->on('lampiran')->onDelete('cascade');
-            $table->string('id_user', 36);
-            $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
-            $table->string('id_card', 36);
-            $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
-            $table->timestamps();
-        });
-    }
+{
+    Schema::create('komentar', function (Blueprint $table) {
+        $table->string('id', 36)->primary();
+
+        // DIPERBAIKI: Definisi kolom dipindahkan ke sebelum foreign key
+        $table->string('parent_id', 36)->nullable();
+        $table->foreign('parent_id')->references('id')->on('komentar')->onDelete('cascade');
+        
+        $table->string('mention')->nullable();
+        $table->text('komentar');
+        
+        $table->string('lampiran_id')->nullable();
+        $table->foreign('lampiran_id')->references('id')->on('lampiran')->onDelete('set null'); // Saran: pakai 'set null' agar komentar tidak hilang jika lampiran dihapus
+        
+        $table->string('id_user', 36);
+        $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
+        
+        $table->string('id_card', 36);
+        // DIPERBAIKI: Ditambahkan ->onDelete('cascade')
+        $table->foreign('id_card')->references('id')->on('card_list')->onDelete('cascade');
+        
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.
