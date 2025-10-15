@@ -118,6 +118,22 @@ class ProyekController extends Controller
                 'id_card' => $card->id,
                 'id_anggota_tim' => $anggota_tim->id,
             ]);
+            
+            // 2. Cari Ketua Tim dari tim terkait
+            $ketuaTim = Anggota_tim::where('id_tim_perusahaan', $id_tim)
+                                   ->where('role_anggota', 'Ketua tim')
+                                   ->first();
+            
+            // 3. Cek jika Ketua Tim ada dan BUKAN orang yang sama dengan pembuat kartu
+            if ($ketuaTim && $ketuaTim->id_users != $user->id) {
+                // 4. Jika berbeda, tambahkan Ketua Tim ke kartu
+                $card->anggota_card_list()->create([
+                    'id' => (string) Str::uuid(),
+                    'id_user' => $ketuaTim->id_users, // ID user dari Ketua Tim
+                    'id_card' => $card->id,
+                    'id_anggota_tim' => $ketuaTim->id, // ID record keanggotaan Ketua Tim
+                ]);
+            }
 
             $this->broadcastBoardUpdate($id_board);
 
@@ -1079,7 +1095,10 @@ public function destroyList(Request $request, $id, $id_list)
         return redirect()->back()->with('gagal', 'Terjadi kesalahan saat menghapus list.');
     }
 }
+
 }
+
+
 
 
 

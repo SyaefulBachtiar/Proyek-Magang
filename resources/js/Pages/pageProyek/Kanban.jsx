@@ -15,7 +15,6 @@ import TambahList from "@/modal/Proyek/TambahList";
 import TooltipAnggotaCard from "@/Components/TooltipAnggotaCard";
 import Notification from "@/Components/Notification";
 
-// Helper function untuk memetakan data dari backend ke state frontend
 const mapBoardData = (boardData) => {
     if (!boardData) return [];
     return boardData.map((list) => ({
@@ -256,8 +255,6 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
 
     const handleDeleteList = (listId) => {
         if (window.confirm('Apakah Anda yakin ingin menghapus list ini? Semua tugas di dalamnya juga akan terhapus secara permanen.')) {
-            // Benar: Gunakan 'dashboardId' yang diterima dari props, 
-            // karena ini yang merepresentasikan parameter '{id}' di URL.
             router.delete(route('proyek.list.destroy', { id: dashboardId, id_list: listId }), {
                 data: { id_tim: id_tim },
                 preserveScroll: true,
@@ -529,13 +526,20 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                         )}
                                                     </Droppable>
 
-                                                    <div
-                                                        onClick={() => handleAddCard(list.id)}
-                                                        className="flex mt-4 gap-2 items-center text-sm text-gray-700 cursor-pointer hover:opacity-80"
-                                                    >
-                                                        <Plus size={16} />
-                                                        <p>Tambah</p>
-                                                    </div>
+                                                    {(() => {
+                                                    const isProtectedList = list.title === 'Verifikasi Katim' || list.title === 'Selesai';
+                                                    const shouldShowButton = currentUserRole === 'Ketua tim' || !isProtectedList;
+
+                                                    return shouldShowButton && (
+                                                        <div
+                                                            onClick={() => handleAddCard(list.id)}
+                                                            className="flex mt-4 gap-2 items-center text-sm text-gray-700 cursor-pointer hover:opacity-80"
+                                                        >
+                                                            <Plus size={16} />
+                                                            <p>Tambah</p>
+                                                        </div>
+                                                    );
+                                                })()}
                                                 </div>
                                             )}
                                         </Draggable>
