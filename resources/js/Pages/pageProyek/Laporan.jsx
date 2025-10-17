@@ -1,35 +1,24 @@
 import { Head, router } from "@inertiajs/react";
 import Proyek from "../Proyek";
 import { useState, useMemo, useEffect, useRef } from "react";
-
-// Import untuk Date Picker
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-
-// Impor dari Chart.js
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-
-// Impor Ikon dari Lucide React
 import {
     AlertTriangle, Calendar, CheckCircle2, ChevronDown, ClipboardList, Coffee, Hourglass, Lightbulb, ListTodo,
     Rocket, Search, ShieldAlert, Sparkles, Star, ThumbsUp, UserX, Users, Wrench
 } from "lucide-react";
 
-// Daftarkan komponen Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-// Map untuk mencocokkan nama ikon (string) dari backend ke komponen Ikon React
 const iconMap = {
     Rocket, ThumbsUp, Lightbulb, Wrench, ShieldAlert, Sparkles, Coffee
 };
 
-// --- Komponen Ikon Kustom ---
 const StarIcon = ({ filled }) => (
   <Star className={`w-5 h-5 ${filled ? 'text-yellow-400' : 'text-gray-300'}`} fill={filled ? 'currentColor' : 'none'} />
 );
-
-// --- Komponen Kartu ---
 
 const KinerjaCard = ({ user, startDate, endDate }) => {
     const getRatingColorClasses = (label) => {

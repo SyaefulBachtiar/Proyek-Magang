@@ -24,21 +24,16 @@ class LaporanController extends Controller
 
         $anggotaIds = $anggota->pluck('user.id')->filter()->toArray();
 
-        // Memulai query untuk semua tugas
         $querySemuaTugas = Card_listModel::whereHas('anggota_card_list', function ($query) use ($anggotaIds) {
             $query->whereIn('id_user', $anggotaIds);
         });
 
-        // Menerapkan filter tanggal jika ada di request dari frontend
         if ($request->has('start_date') && $request->has('end_date')) {
             $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
             $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
-
-            // Filter tugas yang 'created_at'-nya (tanggal pembuatan tugas) berada dalam rentang tanggal yang dipilih
             $querySemuaTugas->whereBetween('created_at', [$startDate, $endDate]);
         }
         
-        // Mengeksekusi query setelah filter diterapkan
         $semuaTugas = $querySemuaTugas->with('kalender', 'anggota_card_list.user')
             ->withMax('checklist_card', 'updated_at')
             ->withCount([
@@ -64,7 +59,7 @@ class LaporanController extends Controller
 
             foreach ($tugasUser as $tugas) {
                 $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
-                $dueDate = optional($tugas->kalender->first())->due_date;
+                $dueDate = optional($tugas->kalender)->due_date;
                 $completionDate = $tugas->checklist_card_max_updated_at;
 
                 if ($isCompleted) {
@@ -126,7 +121,7 @@ class LaporanController extends Controller
                     $saranIkon = 'ShieldAlert';
                     $saranWarna = 'red';
                     break;
-                default: // case 0
+                default: 
                     $saranTeks = 'Selamat datang! Ambil tugas pertama Anda dan tunjukkan kontribusi terbaik untuk kemajuan tim.';
                     $saranIkon = 'Sparkles';
                     $saranWarna = 'sky';
@@ -147,7 +142,7 @@ class LaporanController extends Controller
         })->filter()->values();
 
         $groupedTugas = $semuaTugas->groupBy(function ($item) {
-            $jadwal = $item->kalender->first();
+            $jadwal = $item->kalender; 
             $isTaskCompleted = $item->checklist_card_count > 0 && $item->completed_checklist_count === $item->checklist_card_count;
             $completionDate = $item->checklist_card_max_updated_at;
             $isOverdue = $jadwal && $jadwal->due_date < ($isTaskCompleted ? $completionDate : now());
@@ -166,20 +161,17 @@ class LaporanController extends Controller
             ['id' => 'terlambat', 'judul' => 'Terlambat', 'cards' => $groupedTugas->get('terlambat', collect())->values()],
         ];
 
-        // --- AWAL LOGIKA POTENSI PENGHAMBAT ---
-        $stagnantThresholdDays = 7; // Batas hari untuk tugas dianggap mengendap
-        $overdueThresholdDays = 3;  // Batas hari untuk tugas dianggap terlambat kritis
+        $stagnantThresholdDays = 7;
+        $overdueThresholdDays = 3;
 
-        // 1. Analisis Tugas Mengendap
         $tugasMengendap = $semuaTugas->filter(function ($tugas) use ($stagnantThresholdDays) {
             $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
             return !$isCompleted && Carbon::parse($tugas->updated_at)->lessThan(now()->subDays($stagnantThresholdDays));
         });
 
-        // 2. Analisis Tugas Terlambat Kritis
         $terlambatKritis = $semuaTugas->filter(function ($tugas) use ($overdueThresholdDays) {
             $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
-            $dueDate = optional($tugas->kalender->first())->due_date;
+            $dueDate = optional($tugas->kalender)->due_date;
             return !$isCompleted && $dueDate && Carbon::parse($dueDate)->lessThan(now()->subDays($overdueThresholdDays));
         });
 
@@ -192,11 +184,9 @@ class LaporanController extends Controller
             'terlambat_kritis' => [
                 'jumlah' => $terlambatKritis->count(),
                 'threshold_hari' => $overdueThresholdDays,
-                'tugas_paling_terlambat' => $terlambatKritis->sortBy('kalender.0.due_date')->first(),
+                'tugas_paling_terlambat' => $terlambatKritis->sortBy('kalender.due_date')->first(),
             ]
         ];
-        // --- AKHIR LOGIKA POTENSI PENGHAMBAT ---
-
 
         return Inertia::render('pageProyek/Laporan', [
             'dashboardId' => $id,

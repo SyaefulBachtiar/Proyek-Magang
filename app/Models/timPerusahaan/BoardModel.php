@@ -8,7 +8,7 @@ class BoardModel extends Model
 {
     protected $table = 'board_tim';
     protected $primaryKey = 'id'; 
-    public $incrementing = false; // kalau pakai UUID
+    public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [

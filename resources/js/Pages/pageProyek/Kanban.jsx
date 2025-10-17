@@ -1,4 +1,4 @@
-import { Head, router, usePage } from "@inertiajs/react";
+import { Head, router, usePage, Link } from "@inertiajs/react";
 import {
     Clock,
     Ellipsis,
@@ -6,6 +6,7 @@ import {
     Plus,
     SquareCheckBig,
     Trash,
+    Archive,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -46,31 +47,24 @@ const mapBoardData = (boardData) => {
                     title: lab.title,
                     warna: lab.warna,
                 })) || [],
-            kalender:
-                card.kalender?.map((kal) => ({
-                    id: kal.id,
-                    start_date: kal.start_date,
-                    due_date: kal.due_date,
-                    due_time: kal.due_time,
-                    reminder: kal.reminder,
-                })) || [],
+                kalender: card.kalender ? [card.kalender] : [],
         })),
     }));
 };
 
-
 export default function Kanban({ children, dashboardId, activePage, tim, dataBoard, id_tim, currentUserRole }) {
-
     const user = usePage().props.auth.user;
-    const {id_board} = usePage().props;
+    const { id_board } = usePage().props;
 
     const [tambahCard, setTambahCard] = useState("");
     const [tambahList, setTambahList] = useState(false);
     const [lists, setLists] = useState([]);
     const [editingListId, setEditingListId] = useState(null);
     const memberRef = useRef({});
-    
-    // State dan Ref yang berhubungan dengan notifikasi dan tooltip
+
+    const [activeMenuCardId, setActiveMenuCardId] = useState(null);
+    const menuRef = useRef(null);
+
     const [hoveredAnggota, setHoverdAnggota] = useState(null);
     const hoveredAnggotaRef = useRef(null);
     const notificationTimer = useRef(null);
@@ -85,29 +79,41 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
     }, [dataBoard]);
 
     useEffect(() => {
-        if(id_board){
+        if (id_board) {
             const channel = window.Echo.private(`board.${id_board}`);
 
             channel.listen('.board.updated', (event) => {
                 router.reload({
                     only: ["dataBoard"]
-                })
+                });
             });
 
             return () => {
                 window.Echo.leave(`board.${id_board}`);
-            }
+            };
         }
     }, [id_board]);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setActiveMenuCardId(null);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [menuRef]);
 
     const handleDragEnd = async (result) => {
         const { source, destination, type } = result;
         if (!destination) return;
-    
+
         if (type === "card" && currentUserRole === 'Member') {
             const sourceList = lists.find(list => list.id === source.droppableId);
             const destList = lists.find(list => list.id === destination.droppableId);
-    
+
             if (sourceList.title === 'Verifikasi Katim') {
                 alert('Anda tidak diizinkan memindahkan tugas dari list verifikasi.');
                 return;
@@ -117,27 +123,27 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                 alert('Anda tidak dapat memindahkan tugas yang sudah selesai.');
                 return;
             }
-    
+
             if (destList.title === 'Anngeus') {
                 alert('Hanya ketua tim yang dapat menyelesaikan tugas.');
                 return;
             }
         }
-    
+
         if (type === "list") {
             const reorderedLists = Array.from(lists);
             const [removed] = reorderedLists.splice(source.index, 1);
             reorderedLists.splice(destination.index, 0, removed);
             setLists(reorderedLists);
-    
+
             const updatedLists = reorderedLists.map((list, index) => ({
                 id: list.id,
                 urutan_posisi: index + 1,
             }));
-    
+
             try {
                 await router.post(
-                    route("proyek.update-list-order", {id: user.id}),
+                    route("proyek.update-list-order", { id: user.id }),
                     {
                         lists: updatedLists,
                         id_board: id_board,
@@ -153,7 +159,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                 console.error("Error updating list order:", error);
             }
         }
-    
+
         if (type === "card") {
             const sourceListIndex = lists.findIndex(
                 (list) => list.id === source.droppableId
@@ -161,19 +167,19 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
             const destListIndex = lists.findIndex(
                 (list) => list.id === destination.droppableId
             );
-    
+
             const sourceCards = Array.from(lists[sourceListIndex].cards);
             const destCards = Array.from(lists[destListIndex].cards);
             const [movedCard] = sourceCards.splice(source.index, 1);
-    
+
             let updatedCards = [];
-    
+
             if (sourceListIndex === destListIndex) {
                 sourceCards.splice(destination.index, 0, movedCard);
                 const newLists = [...lists];
                 newLists[sourceListIndex].cards = sourceCards;
                 setLists(newLists);
-    
+
                 updatedCards = sourceCards.map((card, index) => ({
                     id: card.id,
                     urutan: index + 1,
@@ -185,22 +191,22 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                 newLists[sourceListIndex].cards = sourceCards;
                 newLists[destListIndex].cards = destCards;
                 setLists(newLists);
-    
+
                 const sourceUpdates = sourceCards.map((card, index) => ({
                     id: card.id,
                     urutan: index + 1,
                     id_list: source.droppableId,
                 }));
-    
+
                 const destUpdates = destCards.map((card, index) => ({
                     id: card.id,
                     urutan: index + 1,
                     id_list: destination.droppableId,
                 }));
-    
+
                 updatedCards = [...sourceUpdates, ...destUpdates];
             }
-    
+
             try {
                 await router.post(
                     route("proyek.update-card-order", { id: user.id }),
@@ -297,11 +303,27 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
         }
     };
 
+    const handleArchiveCard = (cardId) => {
+        router.put(route('proyek.card.archive', { id: user.id, cardId }), {}, {
+            preserveScroll: true,
+            onSuccess: () => setActiveMenuCardId(null),
+        });
+    };
+
+    const handleDeleteCard = (cardId) => {
+        if (confirm("Anda yakin ingin menghapus tugas ini secara permanen?")) {
+            router.delete(route('proyek.card.delete', { id: user.id, cardId }), {
+                preserveScroll: true,
+                onSuccess: () => setActiveMenuCardId(null),
+            });
+        }
+    };
+
     return (
         <>
             <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
                 <Head title="Board Proyek" />
-                <div className="h-full w-full bg-slate-300 rounded-lg overflow-x-auto">
+                <div className="h-full w-full bg-slate-300 rounded-lg overflow-x-auto relative">
                     <DragDropContext onDragEnd={handleDragEnd}>
                         <Droppable
                             droppableId="all-lists"
@@ -332,7 +354,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                         {...provided.dragHandleProps}
                                                     >
                                                         {editingListId ===
-                                                        list.id ? (
+                                                            list.id ? (
                                                             <input
                                                                 autoFocus
                                                                 defaultValue={
@@ -342,7 +364,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                     handleUpdateListTitle(
                                                                         list.id,
                                                                         e.target.value.trim() ||
-                                                                            list.title
+                                                                        list.title
                                                                     )
                                                                 }
                                                                 onKeyDown={(
@@ -368,10 +390,10 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                 {list.title}
                                                             </h1>
                                                         )}
-                                                        
+
                                                         {currentUserRole === 'Ketua tim' && (
-                                                            <div 
-                                                                onClick={() => handleDeleteList(list.id)} 
+                                                            <div
+                                                                onClick={() => handleDeleteList(list.id)}
                                                                 className="p-1 rounded-md hover:bg-gray-300 cursor-pointer"
                                                             >
                                                                 <Trash size={16} className="text-gray-600 hover:text-red-500 transition-colors" />
@@ -394,26 +416,45 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                     {list.cards.map(
                                                                         (card, cardIndex) => {
                                                                             const isMember = card.anggota.some(ang => ang.user && ang.user.id === user.id);
-                                                                            
+
                                                                             return (
                                                                                 <Draggable draggableId={card.id} index={cardIndex} key={card.id}>
                                                                                     {(provided, snapshot) => (
                                                                                         <div>
                                                                                             <div
-                                                                                                className={`bg-white p-2 group/elipsis rounded-md hover:shadow-md transition-shadow border-l-4 relative flex flex-col items-start space-x-1 cursor-pointer ${
-                                                                                                    snapshot.isDragging ? "shadow-lg border-blue-600" : "border-blue-500"
-                                                                                                } ${
-                                                                                                    !isMember && 'opacity-90' 
-                                                                                                }`}
+                                                                                                className={`bg-white p-2 group/elipsis rounded-md hover:shadow-md transition-shadow border-l-4 relative flex flex-col items-start space-x-1 cursor-pointer ${snapshot.isDragging ? "shadow-lg border-blue-600" : "border-blue-500"
+                                                                                                    } ${!isMember && 'opacity-90'
+                                                                                                    }`}
                                                                                                 ref={provided.innerRef}
                                                                                                 {...provided.draggableProps}
                                                                                                 {...provided.dragHandleProps}
                                                                                                 onClick={() => handleCardClick(card)}
                                                                                             >
-                                                                                                <Ellipsis
-                                                                                                    className="absolute top-0 right-0 mt-3 mr-2 hidden group-hover/elipsis:flex cursor-pointer"
-                                                                                                    size={18}
-                                                                                                />
+                                                                                                <div className="absolute top-1 right-1 z-10">
+                                                                                                    <button
+                                                                                                        onClick={(e) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            setActiveMenuCardId(card.id === activeMenuCardId ? null : card.id);
+                                                                                                        }}
+                                                                                                        className="p-1 rounded hover:bg-gray-200"
+                                                                                                    >
+                                                                                                        <Ellipsis size={18} />
+                                                                                                    </button>
+
+                                                                                                    {activeMenuCardId === card.id && (
+                                                                                                        <div ref={menuRef} className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-20">
+                                                                                                            <ul className="py-1 text-sm">
+                                                                                                                <li onClick={(e) => { e.stopPropagation(); handleArchiveCard(card.id); }} className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2">
+                                                                                                                    <Archive size={14} /> Arsipkan
+                                                                                                                </li>
+                                                                                                                <li onClick={(e) => { e.stopPropagation(); handleDeleteCard(card.id); }} className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-600 flex items-center gap-2">
+                                                                                                                    <Trash size={14} /> Hapus
+                                                                                                                </li>
+                                                                                                            </ul>
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                                
                                                                                                 {card.image ? (
                                                                                                     <img
                                                                                                         src={`/storage/${card.image || ""}`}
@@ -448,7 +489,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                                                         const bulan = dueDate.toLocaleString('id-ID', { month: 'long' }).slice(0, 4);
                                                                                                                         return (
                                                                                                                             <div key={kal.id} className="text-xs flex items-center gap-1 pt-1 text-gray-600">
-                                                                                                                                <Clock size={16}/>
+                                                                                                                                <Clock size={16} />
                                                                                                                                 <p>{bulan}{" "}{tgl}</p>
                                                                                                                             </div>
                                                                                                                         );
@@ -456,7 +497,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                                                 </div>
                                                                                                                 {card.jumlah_checklist > 0 && (
                                                                                                                     <div className="flex items-center gap-2 text-gray-600 text-xs">
-                                                                                                                        <SquareCheckBig size={15}/>
+                                                                                                                        <SquareCheckBig size={15} />
                                                                                                                         <div>{card.checklist_selesai}/{card.jumlah_checklist}</div>
                                                                                                                     </div>
                                                                                                                 )}
@@ -467,14 +508,14 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                                                 <div
                                                                                                                     ref={(el) => {
                                                                                                                         const key = `${card.id}-${ang.id}`;
-                                                                                                                        if(el) { memberRef.current[key] = el; }
+                                                                                                                        if (el) { memberRef.current[key] = el; }
                                                                                                                         else { delete memberRef.current[key]; }
                                                                                                                     }}
                                                                                                                     key={ang.id}
                                                                                                                     onMouseEnter={() => {
                                                                                                                         const key = `${card.id}-${ang.id}`;
                                                                                                                         const targetRef = memberRef.current[key];
-                                                                                                                        if(targetRef){
+                                                                                                                        if (targetRef) {
                                                                                                                             hoveredAnggotaRef.current = targetRef;
                                                                                                                             setHoverdAnggota(ang);
                                                                                                                         }
@@ -527,25 +568,25 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                     </Droppable>
 
                                                     {(() => {
-                                                    const isProtectedList = list.title === 'Verifikasi Katim' || list.title === 'Selesai';
-                                                    const shouldShowButton = currentUserRole === 'Ketua tim' || !isProtectedList;
+                                                        const isProtectedList = list.title === 'Verifikasi Katim' || list.title === 'Selesai';
+                                                        const shouldShowButton = currentUserRole === 'Ketua tim' || !isProtectedList;
 
-                                                    return shouldShowButton && (
-                                                        <div
-                                                            onClick={() => handleAddCard(list.id)}
-                                                            className="flex mt-4 gap-2 items-center text-sm text-gray-700 cursor-pointer hover:opacity-80"
-                                                        >
-                                                            <Plus size={16} />
-                                                            <p>Tambah</p>
-                                                        </div>
-                                                    );
-                                                })()}
+                                                        return shouldShowButton && (
+                                                            <div
+                                                                onClick={() => handleAddCard(list.id)}
+                                                                className="flex mt-4 gap-2 items-center text-sm text-gray-700 cursor-pointer hover:opacity-80"
+                                                            >
+                                                                <Plus size={16} />
+                                                                <p>Tambah</p>
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
                                             )}
                                         </Draggable>
                                     ))}
                                     {provided.placeholder}
-                                    
+
                                     <div
                                         onClick={() => setTambahList(true)}
                                         className="w-[280px] flex-shrink-0 bg-white/40 px-4 py-4 rounded-lg cursor-pointer hover:bg-white/60"
@@ -559,6 +600,14 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                             )}
                         </Droppable>
                     </DragDropContext>
+
+                    <Link
+                        href={route('proyek.arsip', { id: dashboardId, id_tim: id_tim })}
+                        className="absolute bottom-5 right-5 bg-gray-700 text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors"
+                        title="Lihat Arsip"
+                    >
+                        <Archive size={24} />
+                    </Link>
                 </div>
                 {children}
             </Proyek>
@@ -570,7 +619,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                     onClose={() => setNotification({ show: false, message: "", type: "" })}
                 />
             )}
-            
+
             {tambahList && (
                 <TambahList
                     id={user.id}

@@ -144,6 +144,12 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // EDIT PESAN
     Route::put('edit/pesan/{id_pesan}', [ChatGrupController::class, 'edit_pesan'])->name('edit.pesan');
 
+
+    // Arsip
+    Route::put('/proyek/card/{cardId}/archive', [ProyekController::class, 'archiveCard'])->name('proyek.card.archive');
+    Route::delete('/proyek/card/{cardId}/delete', [ProyekController::class, 'destroyCard'])->name('proyek.card.delete');
+    Route::put('/proyek/card/{cardId}/restore', [ProyekController::class, 'restoreCard'])->name('proyek.card.restore');
+    Route::get('/proyek/{id_tim}/arsip', [ProyekController::class, 'showArchived'])->name('proyek.arsip');
 });
 
 Route::middleware('auth')->group(function () {

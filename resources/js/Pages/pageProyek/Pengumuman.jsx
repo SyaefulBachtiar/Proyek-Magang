@@ -135,8 +135,6 @@ export default function Pengumuman({ dashboardId, activePage, tim, listPengumuma
                     </div>
                 )}
             </div>
-
-            {/* Modal untuk MEMBUAT Pengumuman Baru */}
             <Transition show={isCreateModalOpen} as="div" className="fixed inset-0 z-50 overflow-y-auto" onClose={() => setIsCreateModalOpen(false)}>
                 <div className="min-h-screen px-4 text-center">
                     <Transition.Child as="div" enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
