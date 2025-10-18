@@ -398,10 +398,9 @@ class ProyekController extends Controller
     // Tambah Anggota Tim
     public function tambahAnggota(Request $request, $id, $id_tim)
     {
-
         $tim = TimPerusahaan::find($id_tim);
         if (!$tim) {
-            return response()->json(['message' => 'Tim perusahaan dengan ID yang diberikan tidak ditemukan.'], 404);
+            return redirect()->back()->with('gagal', 'Tim perusahaan tidak ditemukan.');
         }
 
         $request->validate([
@@ -413,8 +412,9 @@ class ProyekController extends Controller
             $isExist = Anggota_tim::where('id_users', $request->id_users)
                 ->where('id_tim_perusahaan', $id_tim)
                 ->exists();
+
             if ($isExist) {
-                return response()->json(['message' => 'Anggota sudah terdaftar di tim ini.'], 422);
+                return redirect()->back()->with('gagal', 'Anggota sudah terdaftar di tim ini.');
             }
 
             Anggota_tim::create([
@@ -423,6 +423,7 @@ class ProyekController extends Controller
                 'role_anggota' => $request->role_anggota,
                 'id_tim_perusahaan' => $id_tim,
             ]);
+
             $userYangMenambahkan = $request->user();
             Notifikasi::create([
                 'id' => (string) Str::uuid(),
@@ -433,11 +434,10 @@ class ProyekController extends Controller
 
             broadcast(new NotifikasiEvent($request->id_users));
 
-            return response()->json([
-                'message' => 'Anggota tim berhasil ditambahkan.'
-            ], 201);
+            return redirect()->back()->with('success', 'User berhasil ditambahkan ke dalam tim.');
+
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
+            return redirect()->back()->with('gagal', 'Terjadi kesalahan server: ' . $e->getMessage());
         }
     }
 
@@ -450,18 +450,24 @@ class ProyekController extends Controller
                 ->first();
 
             if (!$anggota) {
-                return response()->json(['message' => 'Anggota tidak ditemukan di tim ini.'], 404);
+                // Mengembalikan pesan gagal jika anggota tidak ditemukan
+                return redirect()->back()->with('gagal', 'Anggota tidak ditemukan di tim ini.');
             }
 
+            // Hapus anggota dari semua card terlebih dahulu
             Anggota_card::where('id_user', $anggota->id_users)->delete();
 
+            // Hapus anggota dari tim
             $anggota->delete();
 
             broadcast(new NotifikasiEvent($id_user));
 
-            return response()->json(['message' => 'Anggota tim berhasil dihapus.'], 200);
+            // Mengembalikan redirect dengan flash message 'success'
+            return redirect()->back()->with('success', 'Anggota tim berhasil dihapus.');
+
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
+            // Mengembalikan redirect dengan flash message 'gagal' jika ada error
+            return redirect()->back()->with('gagal', 'Terjadi kesalahan server: ' . $e->getMessage());
         }
     }
 

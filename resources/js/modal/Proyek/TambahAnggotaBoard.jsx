@@ -61,9 +61,9 @@ export default function TambahAnggotaBoard({ close }) {
 
     // Handle tambah anggota ke board
     const handleTambahAnggota = useCallback(
-        async (anggota) => {
+        (anggota) => {
             if (anggota.isInBoard) {
-                alert("Anggota sudah ada di board");
+                alert("Anggota ini sudah ada di dalam tim.");
                 return;
             }
 
@@ -74,41 +74,44 @@ export default function TambahAnggotaBoard({ close }) {
             }
 
             setIsAdding(true);
-            try {
-                const response = await fetch(route("proyek.anggota.store", {id: auth.user.id, id_tim: tim.id}), {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": document
-                            .querySelector('meta[name="csrf-token"]')
-                            .getAttribute("content"),
-                    },
-                    body: JSON.stringify({
-                        id_users: anggota.id,
-                        role_anggota: selectedRole,
-                    }),
-                });
 
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    const errorData = await response.json();
-                    alert(errorData.message || "Gagal menambahkan anggota");
-                    console.error("Gagal menambahkan anggota:", errorData);
+            router.post(
+                route("proyek.anggota.store", {
+                    id: auth.user.id,
+                    id_tim: tim.id,
+                }),
+                {
+                    // Data yang dikirim ke controller
+                    id_users: anggota.id,
+                    role_anggota: selectedRole,
+                },
+                {
+                    // Opsi Inertia
+                    preserveScroll: true,
+                    onSuccess: () => {
+                    },
+                    onError: (errors) => {
+                        // Ambil pesan error pertama jika ada untuk ditampilkan
+                        const firstError = Object.values(errors)[0];
+                        alert(
+                            firstError ||
+                                "Terjadi kesalahan saat menambahkan anggota."
+                        );
+                        console.error("Gagal menambahkan anggota:", errors);
+                    },
+                    onFinish: () => {
+                        // Hentikan state loading setelah permintaan selesai (baik sukses maupun gagal)
+                        setIsAdding(false);
+                    },
                 }
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Terjadi kesalahan saat menambahkan anggota.");
-            } finally {
-                setIsAdding(false);
-            }
+            );
         },
-        [selectedRole, tim, auth]
+        [selectedRole, tim, auth] // Dependencies untuk useCallback
     );
 
     // Handle hapus anggota dari board
-    const handleHapusAnggota = useCallback(async (anggotaId) => {
-        const confirmation = window.confirm("Apakah Anda yakin ingin menghapus anggota ini?");
+    const handleHapusAnggota = useCallback((anggotaId) => {
+        const confirmation = window.confirm("Apakah Anda yakin ingin menghapus anggota ini dari tim?");
         if (!confirmation) {
             return;
         }
@@ -119,27 +122,25 @@ export default function TambahAnggotaBoard({ close }) {
             return;
         }
 
-        try {
-            const response = await fetch(`/dashboard/${auth.user.id}/proyek/${tim.id}/anggota/${anggotaId}`, {
-                method: "DELETE",
-                headers: {
-                    "X-CSRF-TOKEN": document
-                        .querySelector('meta[name="csrf-token"]')
-                        .getAttribute("content"),
+        router.delete(
+            route("proyek.anggota.destroy", {
+                id: auth.user.id,
+                id_tim: tim.id,
+                id_user: anggotaId,
+            }),
+            {
+                // Opsi Inertia
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Notifikasi akan muncul secara otomatis dari flash message.
                 },
-            });
-
-            if (response.ok) {
-                alert("Anggota berhasil dihapus.");
-                window.location.reload();
-            } else {
-                alert("Gagal menghapus anggota.");
-                console.error("Gagal menghapus anggota");
+                onError: (errors) => {
+                    const firstError = Object.values(errors)[0];
+                    alert(firstError || "Gagal menghapus anggota.");
+                    console.error("Gagal menghapus anggota:", errors);
+                },
             }
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Terjadi kesalahan saat menghapus anggota.");
-        }
+        );
     }, [tim, auth]);
 
     return (

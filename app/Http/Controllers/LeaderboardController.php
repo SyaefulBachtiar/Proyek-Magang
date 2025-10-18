@@ -74,7 +74,6 @@ class LeaderboardController extends Controller
                 'tasks' => $tepatWaktu,
             ];
         }
-        
         $sortedLeaderboard = collect($leaderboardData)->sortByDesc('tasks')->values()->all();
 
         return Inertia::render('pageDashboard/ContentLeaderboard', [
