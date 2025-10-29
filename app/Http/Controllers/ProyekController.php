@@ -840,33 +840,35 @@ class ProyekController extends Controller
         return redirect()->back()->with('success', 'Berhasil menghapus Image checklist');
     }
 
-    public function upload_checklist_photo(Request $request, $id, $checklist_id)
-    {
-        $request->validate([
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB
-        ]);
+    public function upload_checklist_file(Request $request, $id, $checklist_id)
+{
+    $request->validate([
+        // Ubah nama field dan aturan validasi untuk menerima tipe file baru
+        'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,pdf,doc,docx,xls,xlsx,csv|max:5120', // Maks 5MB
+    ]);
 
-        $checklist = Checklist_card::findOrFail($checklist_id);
+    $checklist = Checklist_card::findOrFail($checklist_id);
 
-        if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($checklist->image) {
-                Storage::disk('public')->delete($checklist->image);
-            }
-
-            $photoPath = $request->file('photo')->store('checklist-photos', 'public');
-            $checklist->update(['image' => $photoPath]);
+    if ($request->hasFile('file')) {
+        // Hapus file lama jika ada
+        if ($checklist->image) {
+            Storage::disk('public')->delete($checklist->image);
         }
 
-        $id_board = $checklist->card->listBoard->id_board;
-
-        $this->broadcastBoardUpdate($id_board);
-
-        return response()->json([
-            'message' => 'Foto berhasil diupload',
-            'photo_url' => $checklist->photo_url
-        ]);
+        // Simpan file baru di direktori yang lebih generik
+        $filePath = $request->file('file')->store('checklist-files', 'public');
+        $checklist->update(['image' => $filePath]);
     }
+
+    $id_board = $checklist->card->listBoard->id_board;
+
+    $this->broadcastBoardUpdate($id_board);
+
+    return response()->json([
+        'message' => 'File berhasil diupload',
+        'file_url' => Storage::url($checklist->image) // Menggunakan Storage::url() untuk path yang benar
+    ]);
+}
 
     // update
     public function updateListTitle(Request $request, $id, $id_list)
