@@ -60,7 +60,11 @@ class LeaderboardController extends Controller
                 $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
 
                 if ($isCompleted) {
-                    $dueDate = optional($tugas->kalender->first())->due_date;
+                    // --- PERBAIKAN DI SINI ---
+                    // Relasi 'kalender' adalah hasOne, bukan hasMany. Tidak perlu ->first().
+                    $dueDate = optional($tugas->kalender)->due_date;
+                    // --- AKHIR PERBAIKAN ---
+
                     $completionDate = $tugas->checklist_card_max_updated_at;
 
                     if (!$dueDate || Carbon::parse($completionDate)->lessThanOrEqualTo(Carbon::parse($dueDate))) {

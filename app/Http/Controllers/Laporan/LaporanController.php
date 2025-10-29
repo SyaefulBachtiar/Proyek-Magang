@@ -34,7 +34,7 @@ class LaporanController extends Controller
             $querySemuaTugas->whereBetween('created_at', [$startDate, $endDate]);
         }
         
-        $semuaTugas = $querySemuaTugas->with('kalender', 'anggota_card_list.user')
+        $semuaTugas = $querySemuaTugas->with('kalender', 'anggota_card_list.user', 'listBoard') // Pastikan 'listBoard' tetap ada
             ->withMax('checklist_card', 'updated_at')
             ->withCount([
                 'checklist_card',
@@ -58,21 +58,29 @@ class LaporanController extends Controller
             $terlambatBelumSelesai = 0;
 
             foreach ($tugasUser as $tugas) {
-                $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
+                
+                // --- MODIFIKASI 1: Logika Peringkat Kinerja ---
+                // Hanya peduli pada status checklist (tindakan user)
+                $isChecklistComplete = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
+                
                 $dueDate = optional($tugas->kalender)->due_date;
                 $completionDate = $tugas->checklist_card_max_updated_at;
 
-                if ($isCompleted) {
+                // Cek status berdasarkan $isChecklistComplete, BUKAN $isInDoneList
+                if ($isChecklistComplete) {
+                    // User sudah menyelesaikan checklist. Cek apakah tepat waktu.
                     if (!$dueDate || Carbon::parse($completionDate)->lessThanOrEqualTo(Carbon::parse($dueDate))) {
-                        $tepatWaktu++;
+                        $tepatWaktu++; // Skenario 1: Selesai checklist tepat waktu (dapat skor)
                     } else {
-                        $selesaiTerlambat++;
+                        $selesaiTerlambat++; // Skenario 2: Selesai checklist terlambat (dapat skor)
                     }
                 } else {
+                    // User belum menyelesaikan checklist.
                     if ($dueDate && Carbon::parse($dueDate)->isPast()) {
-                        $terlambatBelumSelesai++;
+                        $terlambatBelumSelesai++; // Tugas terlambat DAN belum selesai checklist
                     }
                 }
+                // --- Akhir Modifikasi 1 ---
             }
 
             $totalTugasRelevan = $tepatWaktu + $selesaiTerlambat + $terlambatBelumSelesai;
@@ -142,16 +150,44 @@ class LaporanController extends Controller
         })->filter()->values();
 
         $groupedTugas = $semuaTugas->groupBy(function ($item) {
-            $jadwal = $item->kalender; 
-            $isTaskCompleted = $item->checklist_card_count > 0 && $item->completed_checklist_count === $item->checklist_card_count;
+            
+            // --- MODIFIKASI 2: Logika Pengelompokan Tab ---
+            $isChecklistComplete = $item->checklist_card_count > 0 && $item->completed_checklist_count === $item->checklist_card_count;
+            $isInDoneList = $item->listBoard && $item->listBoard->judul === 'Selesai';
             $completionDate = $item->checklist_card_max_updated_at;
-            $isOverdue = $jadwal && $jadwal->due_date < ($isTaskCompleted ? $completionDate : now());
+            $dueDate = optional($item->kalender)->due_date;
 
-            if ($isTaskCompleted && $isOverdue) { return 'terlambat'; }
-            if ($isTaskCompleted) { return 'selesai'; }
-            if ($item->completed_checklist_count > 0) { return 'progress'; }
-            if (!$isTaskCompleted && $jadwal && $jadwal->due_date < now()) { return 'terlambat'; }
-            return 'start';
+            // Cek apakah user menyelesaikan checklist terlambat
+            $isFinishedLate = $isChecklistComplete && $dueDate && Carbon::parse($completionDate)->isAfter(Carbon::parse($dueDate));
+            
+            // Cek apakah tugas *saat ini* terlambat (belum selesai checklist & lewat due date)
+            $isCurrentlyLate = !$isChecklistComplete && $dueDate && Carbon::parse($dueDate)->isPast();
+
+            // Pengelompokan utama didasarkan pada $isInDoneList (tindakan manajer)
+            if ($isInDoneList) {
+                // Manajer sudah memindahkan ke "Selesai".
+                // Sekarang cek, apakah user menyelesaikannya terlambat?
+                if ($isFinishedLate) {
+                    return 'terlambat'; // Masuk tab Terlambat (Skenario 2)
+                } else {
+                    return 'selesai'; // Masuk tab Selesai (Skenario 1)
+                }
+            } else {
+                // Manajer BELUM memindahkan ke "Selesai".
+                // Cek apakah tugas ini sudah telat (user belum selesai & lewat due date)
+                if ($isCurrentlyLate) {
+                    return 'terlambat'; // Masuk tab Terlambat
+                }
+                
+                // Cek apakah sedang dikerjakan (checklist > 0)
+                if ($item->completed_checklist_count > 0) {
+                    return 'progress';
+                }
+                
+                // Jika tidak, berarti belum dikerjakan
+                return 'start';
+            }
+            // --- Akhir Modifikasi 2 ---
         });
 
         $tugasPerTab = [
@@ -164,16 +200,25 @@ class LaporanController extends Controller
         $stagnantThresholdDays = 7;
         $overdueThresholdDays = 3;
 
+        // --- MODIFIKASI 3: Logika Penghambat ---
+        // Penghambat hanya dihitung jika TUGAS BELUM MASUK LIST "SELESAI"
         $tugasMengendap = $semuaTugas->filter(function ($tugas) use ($stagnantThresholdDays) {
-            $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
-            return !$isCompleted && Carbon::parse($tugas->updated_at)->lessThan(now()->subDays($stagnantThresholdDays));
+            // A task is only "mengendap" if it's NOT in the "Selesai" list.
+            $isInDoneList = $tugas->listBoard && $tugas->listBoard->judul === 'Selesai';
+            $isTaskCompleted = $isInDoneList; // <-- Hanya peduli tindakan manajer
+            
+            return !$isTaskCompleted && Carbon::parse($tugas->updated_at)->lessThan(now()->subDays($stagnantThresholdDays));
         });
 
         $terlambatKritis = $semuaTugas->filter(function ($tugas) use ($overdueThresholdDays) {
-            $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
+            // A task is only "kritis" if it's NOT in the "Selesai" list.
+            $isInDoneList = $tugas->listBoard && $tugas->listBoard->judul === 'Selesai';
+            $isTaskCompleted = $isInDoneList; // <-- Hanya peduli tindakan manajer
+
             $dueDate = optional($tugas->kalender)->due_date;
-            return !$isCompleted && $dueDate && Carbon::parse($dueDate)->lessThan(now()->subDays($overdueThresholdDays));
+            return !$isTaskCompleted && $dueDate && Carbon::parse($dueDate)->lessThan(now()->subDays($overdueThresholdDays));
         });
+        // --- Akhir Modifikasi 3 ---
 
         $dataPenghambat = [
             'mengendap' => [
