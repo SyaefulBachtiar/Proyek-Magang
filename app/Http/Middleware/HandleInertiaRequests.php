@@ -65,6 +65,13 @@ class HandleInertiaRequests extends Middleware
                 return $user->anggotaPerusahaan?->perusahaan?->nama_perusahaan ?? null;
 
                 },
+                'perusahaan_id' => function () use ($request) {
+                    $user = $request->user();
+                    if (!$user) {
+                        return null;
+                    }
+                    return $user->anggotaPerusahaan?->perusahaan_id ?? null;
+                },
                 'nama_board' => function () use ($request) {
                     $id_tim = $request->route('id_tim');
                     $nama_tim = TimPerusahaan::where('id', $id_tim)->value('nama_tim');

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Broadcast;
 //     return (int) $user->id === (int) $id;
 // });
 
-Broadcast::channel('board.{id_board}', function ($user, $id_board) { 
+Broadcast::channel('board.{id_board}', function ($user, $id_board) {
     $board = BoardModel::find($id_board);
 
     $tim = TimPerusahaan::find($board->id_team);
@@ -37,3 +37,19 @@ Broadcast::channel('user.{id_user}', function ($user, $id_user) {
     // return $user->id ===  $id_user;
 });
 
+// KODE BARU DITAMBAHKAN DI SINI
+Broadcast::channel('company.presence.{companyId}', function ($user, $companyId) {
+    // 1. Otorisasi: Pastikan pengguna adalah anggota perusahaan ini.
+    if ($user->anggotaPerusahaan && $user->anggotaPerusahaan->perusahaan_id === $companyId) {
+        // 2. Jika ya, kembalikan data pengguna untuk dibagikan dengan anggota lain.
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'poto_profile_user' => $user->poto_profile_user,
+            'jabatan' => $user->anggotaPerusahaan->jabatan,
+            'role' => $user->anggotaPerusahaan->role,
+        ];
+    }
+    // Jika tidak, tolak akses.
+    return false;
+});

@@ -39,9 +39,10 @@ class AuthenticatedSessionController extends Controller
 
         $id = $user->id;
 
-
-        return redirect()->intended(route('dashboard.with.id', ['id' => $id]));
-
+        // --- PERUBAHAN DI SINI ---
+        // Hapus `intended()` dan gunakan `route()` secara langsung untuk memastikan
+        // pengguna selalu diarahkan ke dasbor mereka sendiri.
+        return redirect()->route('dashboard.with.id', ['id' => $id]);
     }
 
     /**
@@ -49,6 +50,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Kode ini sudah benar, tidak perlu diubah.
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

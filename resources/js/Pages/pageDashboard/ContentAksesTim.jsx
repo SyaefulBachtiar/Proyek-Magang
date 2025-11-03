@@ -15,16 +15,16 @@ export default function ContentAksesTim() {
 function AksesTim() {
     const { props } = usePage();
     // Pastikan 'auth' diambil dari props
-    const { activePage, tim, auth } = props; 
+    const { activePage, tim, auth } = props;
 
     const { setActivePage } = DashboardState();
 
     const [menuOpen, setMenuOpen] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
-    
+
     const [editIndex, setEditIndex] = useState(null);
     const [selectedRole, setSelectedRole] = useState("");
-    
+
     const menuRefs = useRef([]);
 
     useEffect(() => {
@@ -78,10 +78,9 @@ function AksesTim() {
 
     const handleSaveRole = (member) => {
         router.put(
-            // ✅ PERBAIKAN: Tambahkan parameter 'id' yang berasal dari user yang login
             route("aksestim.updateRole", {
                 id: auth.user.id, // ID dari user yang sedang login
-                user: member.id,   // ID dari user yang akan diubah rolenya
+                user: member.id, // ID dari user yang akan diubah rolenya
             }),
             { role: selectedRole },
             {
@@ -94,18 +93,22 @@ function AksesTim() {
     };
 
     const handleDelete = (member) => {
-        const confirmDelete = window.confirm(`Apakah Anda yakin ingin menghapus ${member.name}? Tindakan ini tidak dapat diurungkan.`);
+        const confirmDelete = window.confirm(
+            `Apakah Anda yakin ingin menghapus ${member.name}? Tindakan ini tidak dapat diurungkan.`
+        );
         if (confirmDelete) {
-            // Mengirim request hapus ke server
-            router.delete(route('aksestim.destroy', {
-                id: auth.user.id, // ID dari user yang login untuk parameter {id} di URL
-                user: member.id,  // ID dari user yang akan dihapus untuk parameter {user}
-            }), {
-                preserveScroll: true, // Agar halaman tidak scroll ke atas setelah aksi
-                onSuccess: () => {
-                    setMenuOpen(null); // Menutup menu setelah berhasil
+            router.delete(
+                route("aksestim.destroy", {
+                    id: auth.user.id, // ID dari user yang login
+                    user: member.id, // ID dari user yang akan dihapus
+                }),
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setMenuOpen(null);
+                    },
                 }
-            });
+            );
         }
     };
 
@@ -146,19 +149,28 @@ function AksesTim() {
                                     {member.name}
                                 </span>
 
+                                {/* INI ADALAH BARIS KODE YANG DITAMBAHKAN */}
+                                <span className="text-sm text-gray-500">
+                                    {member.email}
+                                </span>
+                                {/* SELESAI */}
+
                                 {editIndex === index ? (
                                     <select
                                         value={selectedRole}
-                                        onChange={(e) => setSelectedRole(e.target.value)}
-                                        className="mt-1 border rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        onChange={(e) =>
+                                            setSelectedRole(e.target.value)
+                                        }
+                                        className="mt-2 border rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="Admin">Admin</option>
                                         <option value="Member">Member</option>
                                     </select>
                                 ) : (
                                     <span
-                                        className={`text-white text-xs px-3 py-1 rounded-md w-fit ${
-                                            roleColor[member.role] || roleColor.default
+                                        className={`text-white text-xs px-3 py-1 rounded-md w-fit mt-2 ${
+                                            roleColor[member.role] ||
+                                            roleColor.default
                                         }`}
                                     >
                                         {member.role}
@@ -168,18 +180,26 @@ function AksesTim() {
                         </div>
 
                         {member.role !== "Super User" && (
-                             <div className="relative" ref={(el) => (menuRefs.current[index] = el)}>
+                            <div
+                                className="relative"
+                                ref={(el) => (menuRefs.current[index] = el)}
+                            >
                                 {editIndex === index ? (
                                     <div className="flex items-center gap-2">
                                         <button
-                                            onClick={() => handleSaveRole(member)}
+                                            onClick={() =>
+                                                handleSaveRole(member)
+                                            }
                                             className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 text-sm transition-colors"
                                         >
                                             <Save className="w-4 h-4" />
                                             Simpan
                                         </button>
-                                        <button onClick={handleCancelEdit} className="p-1 text-gray-500 hover:text-gray-800">
-                                            <X className="w-5 h-5"/>
+                                        <button
+                                            onClick={handleCancelEdit}
+                                            className="p-1 text-gray-500 hover:text-gray-800"
+                                        >
+                                            <X className="w-5 h-5" />
                                         </button>
                                     </div>
                                 ) : (
@@ -188,22 +208,36 @@ function AksesTim() {
                                             onClick={() => toggleMenu(index)}
                                             className="text-gray-600 text-xl cursor-pointer hover:text-gray-800"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                                <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="w-6 h-6"
+                                                fill="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle cx="5" cy="12" r="2" />
+                                                <circle cx="12" cy="12" r="2" />
+                                                <circle cx="19" cy="12" r="2" />
                                             </svg>
                                         </div>
 
                                         {menuOpen === index && (
                                             <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10">
                                                 <button
-                                                    onClick={() => handleEditClick(member, index)}
+                                                    onClick={() =>
+                                                        handleEditClick(
+                                                            member,
+                                                            index
+                                                        )
+                                                    }
                                                     className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2"
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                     Edit
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(member)}
+                                                    onClick={() =>
+                                                        handleDelete(member)
+                                                    }
                                                     className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600 flex items-center gap-2"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
