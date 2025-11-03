@@ -17,11 +17,8 @@ class UpdateLastSeen
             $user = Auth::user();
             $cacheKey = 'last_seen_at_' . $user->id;
 
-            // Hanya update database jika cache sudah expired (setiap 1 menit)
             if (!Cache::has($cacheKey)) {
                 User::where('id', $user->id)->update(['last_seen' => now()]);
-
-                // Set cache agar tidak update lagi selama 1 menit ke depan
                 Cache::put($cacheKey, true, now()->addMinute());
             }
         }

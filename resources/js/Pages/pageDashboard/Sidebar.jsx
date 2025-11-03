@@ -28,7 +28,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-    // Fungsi untuk filter berdasarkan search query
     const filteredProyekTim = proyekTim.filter((tim) =>
         tim.nama_tim.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -37,7 +36,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
         tim.nama_tim.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Fungsi untuk highlight text yang cocok dengan search
     const highlightText = (text, query) => {
         if (!query) return text;
 
@@ -83,13 +81,11 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
         setIsSearchFocused(false)
     };
 
-    // Handle search focus
     const handleSearchFocus = () => {
         setIsSearchFocused(true);
     };
 
     const handleSearchBlur = () => {
-        // Delay to allow click events on dropdown items
         setTimeout(() => {
             if (!searchQuery) {
                 setIsSearchFocused(false);

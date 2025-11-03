@@ -79,15 +79,12 @@ class HandleInertiaRequests extends Middleware
                     return $nama_tim;
                 },
                 'timLayout' => function () use ($request) {
-                    // 1. Ambil user yang sedang login beserta relasi perusahaannya
                     $currentUser = $request->user();
 
-                    // 2. Pastikan user dan relasi perusahaannya ada
                     if (!$currentUser || !$currentUser->anggotaPerusahaan) {
-                        return []; // Sudah benar, kembalikan array kosong
+                        return []; 
                     }
 
-                    // 3. Ambil nama perusahaan dari user yang login
                     $namaPerusahaan = $currentUser->anggotaPerusahaan->perusahaan->nama_perusahaan;
 
                     return User::whereHas('anggotaPerusahaan.perusahaan', function ($query) use ($namaPerusahaan){
@@ -176,10 +173,8 @@ class HandleInertiaRequests extends Middleware
                     return null;
                 }
                     
-                // Cari tim sesuai id_tim yang ada di parameter
                     $tim = $user->tim_perusahaan->firstWhere('id', $id_tim);
 
-                    // Kalau tim ditemukan, ambil nama anggotanya
                     $data = [];
                     if ($tim) {
                         $data = $tim->anggota_tim_perusahaan

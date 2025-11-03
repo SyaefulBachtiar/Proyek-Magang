@@ -843,7 +843,6 @@ class ProyekController extends Controller
     public function upload_checklist_file(Request $request, $id, $checklist_id)
 {
     $request->validate([
-        // Ubah nama field dan aturan validasi untuk menerima tipe file baru
         'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,pdf,doc,docx,xls,xlsx,csv|max:5120', // Maks 5MB
     ]);
 
@@ -855,7 +854,6 @@ class ProyekController extends Controller
             Storage::disk('public')->delete($checklist->image);
         }
 
-        // Simpan file baru di direktori yang lebih generik
         $filePath = $request->file('file')->store('checklist-files', 'public');
         $checklist->update(['image' => $filePath]);
     }
@@ -866,7 +864,7 @@ class ProyekController extends Controller
 
     return response()->json([
         'message' => 'File berhasil diupload',
-        'file_url' => Storage::url($checklist->image) // Menggunakan Storage::url() untuk path yang benar
+        'file_url' => Storage::url($checklist->image)
     ]);
 }
 
