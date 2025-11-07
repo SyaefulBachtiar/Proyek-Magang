@@ -11,28 +11,18 @@ use Illuminate\Support\Facades\Cache;
 
 class UserLoggedIn
 {
-    /**
-     * Create the event listener.
-     */
     public function __construct()
     {
         //
     }
-
-    /**
-     * Handle the event.
-     */
       public function handle(Login $event)
     {
-         // Update cache dan database
         Cache::put('user-is-online-' . $event->user->id, true, now()->addMinutes(5));
 
         User::find($event->user->id)->update([
             'is_online' => true,
             'last_seen' => now()
         ]);
-
-        // Ambil semua user dalam perusahaan yang sama
         $currentUser = $event->user;
         
         if ($currentUser && $currentUser->anggotaPerusahaan) {
@@ -41,8 +31,6 @@ class UserLoggedIn
             $companyUserIds = User::whereHas('anggotaPerusahaan.perusahaan', function ($query) use ($namaPerusahaan) {
                 $query->where('nama_perusahaan', $namaPerusahaan);
             })->pluck('id')->toArray();
-
-            // Broadcast ke semua user dalam perusahaan
             broadcast(new NotifikasiEvent($event->user->id, $companyUserIds));
         }
     }

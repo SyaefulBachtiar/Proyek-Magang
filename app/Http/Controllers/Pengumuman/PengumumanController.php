@@ -19,7 +19,7 @@ class PengumumanController extends Controller
     {
         $tim = TimPerusahaan::findOrFail($id_tim);
         $listPengumuman = Pengumuman::where('id_tim', $id_tim)
-                                ->with('pembuat') // Eager load relasi 'pembuat'
+                                ->with('pembuat') 
                                 ->orderBy('created_at', 'desc')
                                 ->get();
 
@@ -56,7 +56,6 @@ class PengumumanController extends Controller
      */
     public function update(Request $request, $id, Pengumuman $pengumuman)
     {
-        // Otorisasi: Pastikan user yang login adalah pembuat pengumuman
         if (Auth::id() !== $pengumuman->user_id) {
             abort(403, 'ANDA TIDAK MEMILIKI AKSES.');
         }
@@ -76,7 +75,6 @@ class PengumumanController extends Controller
      */
     public function destroy($id, Pengumuman $pengumuman)
     {
-        // Otorisasi: Pastikan user yang login adalah pembuat pengumuman
         if (Auth::id() !== $pengumuman->user_id) {
             abort(403, 'ANDA TIDAK MEMILIKI AKSES.');
         }

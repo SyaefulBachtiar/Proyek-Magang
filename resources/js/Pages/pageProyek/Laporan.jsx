@@ -44,7 +44,7 @@ const KinerjaCard = ({ user, startDate, endDate }) => {
             const end = endDate.toLocaleDateString('id-ID', options);
             return `${start} - ${end}`;
         }
-        return "Periode Ini"; // Teks default jika tidak ada tanggal dipilih
+        return "Periode Ini"; 
     }, [startDate, endDate]);
 
     return (
@@ -371,7 +371,6 @@ const MemberList = ({ members, selectedUser, onSelectUser }) => (
 );
 
 
-// --- Komponen Utama ---
 export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tugasPerTabs, id_board, penghambat }) {
 
     // Realtime update listener

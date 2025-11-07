@@ -1,6 +1,6 @@
 import { Head, usePage, router } from "@inertiajs/react";
-import { useState, useEffect } from "react"; // Diperbarui
-import Dashboard, { DashboardState } from "../Dashboard"; // Diperbarui
+import { useState, useEffect } from "react"; 
+import Dashboard, { DashboardState } from "../Dashboard"; 
 
 export default function ContentPengaturan() {
     return (
@@ -13,10 +13,10 @@ export default function ContentPengaturan() {
 
 function Pengaturan() {
     const { props, url } = usePage();
-    const { perusahaanData = {}, activePage } = props; // Ditambahkan activePage
-    const { setActivePage } = DashboardState(); // Ditambahkan
+    const { perusahaanData = {}, activePage } = props;
+    const { setActivePage } = DashboardState(); 
 
-    // Blok useEffect untuk memperbarui state global
+   
     useEffect(() => {
         if (activePage && setActivePage) {
             setActivePage(activePage);

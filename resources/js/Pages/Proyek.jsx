@@ -106,7 +106,7 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                     className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
                                     onClick={() =>
                                         router.visit(
-                                            route("proyek.pengumuman", { // <-- 2. Arahkan ke route baru
+                                            route("proyek.pengumuman", {
                                                 id: dashboardId,
                                                 id_tim: tim.id,
                                             })
@@ -114,12 +114,12 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                     }
                                 >
                                     <div className="flex items-center gap-2">
-                                        <Megaphone size={20} /> {/* <-- 3. Gunakan ikon baru */}
+                                        <Megaphone size={20} /> 
                                         <h1>Pengumuman</h1>
                                     </div>
                                     <div
                                         className={`bg-[#A8E038] h-1 left-0 absolute ${
-                                            activePage === "pengumumanPage" // <-- 4. Kondisi untuk underline aktif
+                                            activePage === "pengumumanPage" 
                                                 ? "w-full"
                                                 : ""
                                         }`}

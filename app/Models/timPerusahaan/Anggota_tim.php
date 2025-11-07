@@ -19,16 +19,13 @@ class Anggota_tim extends Model
         'role_anggota'
     ];
 
-     // generate id secara otomatis saat membuat model
      protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
-            // Jika belum ada ID, generate ID random
             if (empty($model->id)) {
-                $model->id = strtoupper(Str::uuid()); // contoh: A1B2C3D4E5
-                // bisa juga pakai UUID: $model->id = (string) Str::uuid();
+                $model->id = strtoupper(Str::uuid()); 
             }
         });
     }

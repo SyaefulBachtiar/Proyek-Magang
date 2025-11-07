@@ -29,16 +29,10 @@ class ProfileController extends Controller
             'user' => $user,
         ]);
     }
-
-    /**
-     * Update the user's profile information.
-     */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
          /** @var \App\Models\User $user */
         $user = Auth::user();
-
-         // DEBUG: lihat semua input
     logger($request->all());
 
         // Validasi input
@@ -79,10 +73,8 @@ class ProfileController extends Controller
             unset($validated['poto_profile_user']);
         }
 
-        // Update data user
         $user->update($validated);
 
-        // Update atau buat data perusahaan (jabatan)
         if (isset($validated['jabatan'])) {
             $user->perusahaan()->updateOrCreate(
                 ['user_id' => $user->id],
@@ -93,9 +85,7 @@ class ProfileController extends Controller
         return redirect()->back()->with('message', 'Profil berhasil diperbarui!');
     }
 
-    /**
-     * Delete the user's account.
-     */
+
     public function destroy(Request $request): RedirectResponse
     {
         $request->validate([

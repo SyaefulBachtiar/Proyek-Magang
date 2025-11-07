@@ -9,10 +9,8 @@ export default function SearchModal() {
     // search state dari AllState
     const {setSearch} = useAllState();
 
-    // search ref
     const searchModal = useRef(null);
 
-    // handle click outside
     useEffect(() => {
         function handleClickOutside(e){
             if(searchModal.current && !searchModal.current.contains(e.target)){

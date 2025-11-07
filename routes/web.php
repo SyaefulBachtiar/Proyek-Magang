@@ -67,7 +67,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::post('/proyek/update-card-order', [ProyekController::class, 'updateCardOrder'])->name('proyek.update-card-order');
     Route::post('/proyek/{id_tim}/board/{id_board}/card', [ProyekController::class, 'storeCard'])->name('proyek.card.store');
     Route::post('/proyek/list/{id_board}', [ProyekController::class, 'storeList'])->name('proyek.list.store');
-    Route::put('/proyek/list/{id_list}/update-title', [ProyekController::class, 'updateListTitle'])->name('proyek.list.update.title'); // <-- RUTE BARU
+    Route::put('/proyek/list/{id_list}/update-title', [ProyekController::class, 'updateListTitle'])->name('proyek.list.update.title'); 
     
     // Menghapus Anggota
     Route::delete('/proyek/{id_tim}/anggota/{id_user}', [ProyekController::class, 'hapusAnggota'])->name('proyek.anggota.destroy');
@@ -78,6 +78,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     // Halaman lain
     Route::get('/aksestim', [AksesTimController::class, 'index'])->name('aksestim');
     Route::put('/aksestim/{user}/update-role', [AksesTimController::class, 'updateRole'])->name('aksestim.updateRole');
+
     // RUTE BARU UNTUK HAPUS USER
     Route::delete('/aksestim/{user}', [AksesTimController::class, 'destroy'])->name('aksestim.destroy');
     
@@ -148,6 +149,7 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
 
     // DELETE PESAN
     Route::delete('delete/pesan/{id_pesan}', [ChatGrupController::class, 'delete_pesan'])->name('delete.pesan');
+
     // EDIT PESAN
     Route::put('edit/pesan/{id_pesan}', [ChatGrupController::class, 'edit_pesan'])->name('edit.pesan');
 
@@ -157,8 +159,6 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::delete('/proyek/card/{cardId}/delete', [ProyekController::class, 'destroyCard'])->name('proyek.card.delete');
     Route::put('/proyek/card/{cardId}/restore', [ProyekController::class, 'restoreCard'])->name('proyek.card.restore');
     Route::get('/proyek/{id_tim}/arsip', [ProyekController::class, 'showArchived'])->name('proyek.arsip');
-
-    
 });
 
 Route::middleware('auth')->group(function () {

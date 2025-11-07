@@ -13,7 +13,6 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
 
     const modalRef = useRef(null);
 
-    // Filter anggota card berdasarkan search query
     const filteredAnggotaCard = useMemo(() => {
         const filtered = anggota_card.filter((tim) => {
             if (searchQuery.trim()) {
@@ -26,7 +25,6 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
             return true;
         });
 
-        // Urutkan agar user yang sedang login di paling atas
         return filtered.sort((a, b) => {
             if (a.id === user.id) return -1;
             if (b.id === user.id) return 1;
@@ -34,18 +32,13 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
         });
     }, [anggota_card, searchQuery, user.id]);
 
-    // Filter anggota tim berdasarkan search query dan exclude yang sudah ada di anggota card
     const filteredAnggotaTim = useMemo(() => {
-        // Buat set ID dari anggota card untuk pencarian yang lebih efisien
         const anggotaCardIds = new Set(anggota_card.map((card) => card.id));
 
         const filtered = anggota_tim.filter((tim) => {
-            // Skip jika anggota sudah ada di anggota card
             if (anggotaCardIds.has(tim.id)) {
                 return false;
             }
-
-            // Filter berdasarkan search query
             if (searchQuery.trim()) {
                 const query = searchQuery.toLowerCase();
                 return (
@@ -55,8 +48,6 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
             }
             return true;
         });
-
-        // Urutkan agar user yang sedang login di paling atas
         return filtered.sort((a, b) => {
             if (a.id === user.id) return -1;
             if (b.id === user.id) return 1;
@@ -77,13 +68,10 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [close, refTrigger]);
-
-    // Handle search input change
     const handleSearchChange = useCallback((e) => {
         setSearchQuery(e.target.value);
     }, []);
 
-    // Handle select anggota
     const handleSelectAnggota = useCallback(
         async (anggota) => {
             setIsAdding(true);
@@ -91,7 +79,6 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
                 if (tambahAnggota) {
                     await tambahAnggota(anggota);
                 }
-                // Reset search setelah memilih
                 setSearchQuery("");
             } catch (error) {
                 console.error("Error:", error);
@@ -116,7 +103,6 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
                 />
             </div>
 
-            {/* Search Input */}
             <div className="mb-4">
                 <div className="relative">
                     <Search
@@ -133,7 +119,6 @@ export default function TambahAnggota({ close, tambahAnggota, id_tim, card_id, r
                 </div>
             </div>
 
-            {/* Anggota Card Section */}
             <div className="mb-4">
                 <h2 className="font-medium text-gray-700 mb-3 text-sm">
                     Anggota Card

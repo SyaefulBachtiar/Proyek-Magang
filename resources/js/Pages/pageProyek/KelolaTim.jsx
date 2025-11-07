@@ -3,12 +3,8 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { ShieldCheck, ShieldAlert, User, Search } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
-// ====================================================================
-// KOMPONEN BARU: UserAvatar
-// Komponen kecil untuk menampilkan foto profil atau inisial nama
-// ====================================================================
+
 function UserAvatar({ src, name }) {
-    // Ambil inisial dari nama, maks 2 huruf. '?' jika nama tidak ada.
     const initials = (name || '?')
         .split(' ')
         .map(n => n[0])
@@ -16,7 +12,6 @@ function UserAvatar({ src, name }) {
         .substring(0, 2)
         .toUpperCase();
 
-    // Asumsikan gambar disimpan di /storage/
     const avatarUrl = src ? `/storage/${src}` : null;
 
     return (
@@ -26,10 +21,9 @@ function UserAvatar({ src, name }) {
                     src={avatarUrl} 
                     alt={name} 
                     className="h-10 w-10 rounded-full object-cover" 
-                    onError={(e) => e.target.style.display = 'none'} // Sembunyikan jika error
+                    onError={(e) => e.target.style.display = 'none'} 
                 />
             ) : (
-                // Avatar default jika tidak ada gambar
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-500">
                     <span className="font-medium leading-none text-white">{initials}</span>
                 </span>
@@ -38,7 +32,6 @@ function UserAvatar({ src, name }) {
     );
 }
 
-// Komponen Badge Role (Sudah ada, sedikit disesuaikan)
 const RoleBadge = ({ role }) => {
     const isKetua = role && role.toLowerCase() === 'ketua tim';
     return (
@@ -52,16 +45,12 @@ const RoleBadge = ({ role }) => {
 };
 
 
-// ====================================================================
-// KOMPONEN UTAMA HALAMAN
-// ====================================================================
 export default function AnggotaTimPage({ dashboardId, activePage, tim, anggota_list, currentAuth, filters }) {
     
     const { errors } = usePage().props.flash || {};
     const [search, setSearch] = useState(filters.search || '');
     const debounceTimeout = useRef(null);
 
-    // Efek untuk pencarian (debouncing) - Tidak berubah
     useEffect(() => {
         if (debounceTimeout.current) {
             clearTimeout(debounceTimeout.current);
@@ -78,7 +67,6 @@ export default function AnggotaTimPage({ dashboardId, activePage, tim, anggota_l
         };
     }, [search, dashboardId, tim.id]);
 
-    // Handler untuk ganti role - Tidak berubah
     const handleRoleChange = (anggotaTimId, newRole) => {
         router.post(
             route('proyek.kelolatim.updateRole', { id: dashboardId, id_tim: tim.id }),
@@ -112,30 +100,22 @@ export default function AnggotaTimPage({ dashboardId, activePage, tim, anggota_l
                         />
                     </div>
 
-                    {/* Notifikasi Alert Error */}
                     {errors?.message && (
                         <div className="mb-4 p-4 rounded-md bg-red-50 text-red-700">
                             {errors.message}
                         </div>
                     )}
-                   
-                    {/* ==================================================== */}
-                    {/* AREA KONTEN BARU: Struktur List Modern */}
-                    {/* ==================================================== */}
                     <div className="bg-white rounded-lg shadow-sm">
-                        {/* Header List (Hanya tampil di layar medium ke atas) */}
                         <div className="hidden md:flex px-6 py-3 border-b border-gray-200 bg-gray-50">
                             <div className="w-full md:w-3/5 text-xs font-medium text-gray-500 uppercase tracking-wider">Anggota</div>
                             <div className="w-full md:w-1/5 text-xs font-medium text-gray-500 uppercase tracking-wider">Role Tim</div>
                             <div className="w-full md:w-1/5 text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</div>
                         </div>
 
-                        {/* Body List */}
                         <div className="divide-y divide-gray-200">
                             {anggota_list.length > 0 ? (
                                 anggota_list.map((anggota) => {
                                     
-                                    // Logika Perizinan (Tidak berubah)
                                     const isCurrentUser = anggota.id_users === currentAuth.id;
                                     const isUneditable = (
                                         anggota.role_anggota && anggota.role_anggota.toLowerCase() === 'ketua tim' && 
@@ -190,7 +170,6 @@ export default function AnggotaTimPage({ dashboardId, activePage, tim, anggota_l
                                     );
                                 })
                             ) : (
-                                // Pesan jika tidak ada anggota
                                 <div className="px-6 py-10 text-center text-gray-500">
                                     Tidak ada anggota yang ditemukan.
                                 </div>

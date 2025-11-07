@@ -252,7 +252,7 @@ export default function Card_kanban() {
             return;
         }
 
-        const maxSize = 5 * 1024 * 1024; // 5MB
+        const maxSize = 5 * 1024 * 1024; 
         if (file.size > maxSize) {
             dispatch({
                 type: "SET_FILE_ERROR",

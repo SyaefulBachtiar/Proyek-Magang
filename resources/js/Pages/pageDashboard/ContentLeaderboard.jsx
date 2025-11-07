@@ -5,7 +5,6 @@ import { LuMedal } from "react-icons/lu";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import Dashboard, { DashboardState } from "../Dashboard";
 
-// Komponen Wrapper (Tidak ada perubahan)
 export default function ContentLeaderboard() {
   return (
     <Dashboard>
@@ -14,18 +13,15 @@ export default function ContentLeaderboard() {
   );
 }
 
-// Helper function untuk bintang (Tidak ada perubahan)
 const getStarRating = (tasks) => {
   if (tasks >= 10) return 5;
   if (tasks >= 8) return 4;
   if (tasks >= 6) return 3;
   if (tasks >= 4) return 2;
-  // Berikan minimal 1 bintang jika ada tugas yang diselesaikan tepat waktu
   if (tasks > 0) return 1;
-  return 0; // Tidak ada bintang jika 0 tugas
+  return 0; 
 };
 
-// Helper function untuk detail podium (Tidak ada perubahan)
 const getPodiumDetails = (rank) => {
   switch (rank) {
     case 1:
@@ -66,7 +62,6 @@ const getPodiumDetails = (rank) => {
   }
 };
 
-// Komponen untuk kartu di Podium
 function PodiumCard({ user }) {
   const details = getPodiumDetails(user.rank);
   const Icon = details.icon;
@@ -79,12 +74,9 @@ function PodiumCard({ user }) {
           <Icon size={32} />
         </div>
         
-        {/* --- AWAL TAMBAHAN --- */}
-        {/* Lingkaran kecil untuk menampilkan angka peringkat */}
         <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full ${details.bg} flex items-center justify-center text-white text-base font-bold border-2 border-white shadow-md`}>
           {user.rank}
         </div>
-        {/* --- AKHIR TAMBAHAN --- */}
 
       </div>
       <h3 className="mt-4 text-xl font-bold text-gray-800 text-center truncate w-full">{user.name}</h3>
@@ -99,7 +91,6 @@ function PodiumCard({ user }) {
   );
 }
 
-// Komponen untuk baris di daftar peringkat umum (Tidak ada perubahan)
 function UserRow({ user }) {
   return (
     <div className="flex items-center p-4 bg-white border-b border-gray-200 transition-colors hover:bg-gray-50">
@@ -123,9 +114,7 @@ function UserRow({ user }) {
   );
 }
 
-// Komponen utama Leaderboard (Tidak ada perubahan)
 function Leaderboard() {
-  // Ambil 'leaderboardData' dari props yang dikirim controller
   const { activePage, leaderboardData } = usePage().props; 
   const { setActivePage } = DashboardState();
 
@@ -135,7 +124,6 @@ function Leaderboard() {
 
   const [search, setSearch] = useState("");
 
-  // Gunakan 'leaderboardData' dari props, pastikan berupa array untuk mencegah error
   const filteredData = (leaderboardData || []) 
     .map((user, index) => ({ ...user, rank: index + 1 }))
     .filter((user) =>
@@ -200,7 +188,6 @@ function Leaderboard() {
           </div>
         )}
 
-        {/* Pesan jika tidak ditemukan saat mencari */}
         {filteredData.length === 0 && search !== '' && (
           <div className="text-center text-gray-500 py-16 bg-white rounded-xl shadow-md">
             <HiOutlineUserGroup size={50} className="mx-auto text-gray-400 mb-4" />

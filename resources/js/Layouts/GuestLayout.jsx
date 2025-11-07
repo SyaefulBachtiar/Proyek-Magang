@@ -11,12 +11,10 @@ export default function GuestLayout({ children, register}) {
                         className="absolute z-50 top-[40px] left-[30px]"
                     >
                         <div className='flex gap-4 items-center'>
-                            {/* <ApplicationLogo className="h-20 w-20 fill-current text-gray-500" /> */}
                             <div className="flex items-center justify-center space-x-4 bg-white px-4 py-3 rounded-lg shadow-md w-fit mx-auto">
-  <img src="/img/kemenkes.png" alt="Logo Kemenkes" className="h-12 w-12 object-contain" />
-  <h1 className="text-2xl font-semibold text-gray-800">BBPK Ciloto</h1>
-</div>
-
+                            <img src="/img/kemenkes.png" alt="Logo Kemenkes" className="h-12 w-12 object-contain" />
+                            <h1 className="text-2xl font-semibold text-gray-800">BBPK Ciloto</h1>
+                            </div>
                         </div>
                     </Link>
                 </div>

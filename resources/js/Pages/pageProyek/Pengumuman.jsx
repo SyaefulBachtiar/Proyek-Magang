@@ -5,7 +5,7 @@ import { Transition } from '@headlessui/react';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 export default function Pengumuman({ dashboardId, activePage, tim, listPengumuman }) {
-    const { auth } = usePage().props; // Mengambil data user yang sedang login
+    const { auth } = usePage().props; 
 
     // State untuk modal Buat & Edit
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -71,7 +71,6 @@ export default function Pengumuman({ dashboardId, activePage, tim, listPengumuma
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
             <div className="p-4 md:p-8">
-                {/* Header dan Tombol Buat Pengumuman */}
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
                         Papan Pengumuman - {tim.nama_tim}
@@ -110,7 +109,6 @@ export default function Pengumuman({ dashboardId, activePage, tim, listPengumuma
                                     <div className="text-sm text-gray-600 font-medium">
                                         - Dibuat oleh {item.pembuat.name}
                                     </div>
-                                    {/* Tombol Aksi: Edit & Hapus (Hanya muncul jika user adalah pembuat) */}
                                     {auth.user.id === item.user_id && (
                                         <div className="flex items-center space-x-2">
                                             <button

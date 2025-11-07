@@ -44,7 +44,6 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
      *
      * @var list<string>
      */
@@ -54,7 +53,6 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
@@ -71,10 +69,8 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function ($model) {
-            // Jika belum ada ID, generate ID random
             if (empty($model->id)) {
-                $model->id = strtoupper(Str::uuid()); // contoh: A1B2C3D4E5
-                // bisa juga pakai UUID: $model->id = (string) Str::uuid();
+                $model->id = strtoupper(Str::uuid()); 
             }
         });
     }
@@ -94,7 +90,6 @@ class User extends Authenticatable
         return $this->hasOne(Anggota_tim::class, 'id_users', 'id');
     }
 
-    // relasi ke table tim perusahaan
     public function tim_perusahaan() 
     {
          return $this->belongsToMany(
@@ -111,12 +106,10 @@ class User extends Authenticatable
 
     public function isOnline()
     {
-        // Cek cache terlebih dahulu
         if (Cache::has('user-is-online-' . $this->id)) {
             return true;
         }
         
-        // Fallback ke database jika perlu
         return $this->is_online == true;
     }
     

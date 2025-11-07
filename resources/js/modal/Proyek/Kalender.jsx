@@ -12,9 +12,9 @@ export default function Kalender({ close, refTrigger, card_id }) {
     yesterday.setDate(today.getDate() - 1);
 
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState(today); // Default ke hari ini
-    const [startDate, setStartDate] = useState(today); // Default ke hari ini (bukan kemarin)
-    const [dueDate, setDueDate] = useState(today); // Default ke hari ini
+    const [selectedDate, setSelectedDate] = useState(today); 
+    const [startDate, setStartDate] = useState(today); 
+    const [dueDate, setDueDate] = useState(today); 
     const [dueTime, setDueTime] = useState("8:55");
     const [reminder, setReminder] = useState("None");
     const [selectionStep, setSelectionStep] = useState("none"); // 'none', 'start', 'due'
@@ -52,7 +52,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
     // handle simpan
     const handleSimpan = () => {
         setLoading(true);
-        // perbaiki format untuk database
         const formatUntukDB = (date) => {
             if(!date) return null;
             const tahun = date.getFullYear();
@@ -212,7 +211,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
         });
     }
 
-    // Current month's days
     for (let day = 1; day <= daysInMonth; day++) {
         calendarDays.push({
             day,
@@ -222,7 +220,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
         });
     }
 
-    // Next month's leading days
     const remainingCells = 42 - calendarDays.length;
     for (let day = 1; day <= remainingCells; day++) {
         calendarDays.push({
@@ -233,7 +230,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
         });
     }
 
-    // Helper functions for date checking
     const isSelectedDate = (dateInfo) => {
         if (!dateInfo.isCurrentMonth) return false;
 
@@ -257,21 +253,18 @@ export default function Kalender({ close, refTrigger, card_id }) {
     const handleDateClick = (dateInfo) => {
         if (!dateInfo.isCurrentMonth) return;
 
-        // Check if the date is in the past
         if (isPastDate(dateInfo.date)) {
-            return; // Don't allow selection of past dates
+            return; 
         }
 
         const clickedDate = new Date(dateInfo.date);
         console.log("📅 Date clicked:", clickedDate);
 
-        // If both checkboxes are unchecked, do nothing
         if (!startDate && !dueDate) {
             console.log("❌ No checkboxes selected, ignoring click");
             return;
         }
 
-        // If only start date is checked
         if (startDate && !dueDate) {
             console.log("🟢 Setting start date:", clickedDate);
             setStartDate(clickedDate);
@@ -279,7 +272,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
             return;
         }
 
-        // If only due date is checked
         if (!startDate && dueDate) {
             console.log("🔴 Setting due date:", clickedDate);
             setDueDate(clickedDate);
@@ -287,9 +279,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
             return;
         }
 
-        // If both are checked, logika baru:
-        // Jika tanggal diklik lebih dari due date, set sebagai due date
-        // Jika tanggal diklik kurang dari due date, set sebagai start date
         if (startDate && dueDate) {
             if (clickedDate > dueDate) {
                 console.log(
@@ -318,7 +307,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
         return `${month}/${day}/${year}`;
     };
 
-    // Handle manual date input validation
     const handleDateInputChange = (value, isStartDate) => {
         console.log(
             `📝 Manual input changed - ${
@@ -336,7 +324,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
                     parseInt(day)
                 );
 
-                // Check if the manually entered date is in the past
                 if (!isPastDate(newDate)) {
                     if (isStartDate) {
                         console.log("✅ Valid start date entered:", newDate);
@@ -347,7 +334,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
                     }
                 } else {
                     console.log("❌ Past date entered, resetting to today");
-                    // If past date is entered, reset to today
                     if (isStartDate) {
                         setStartDate(today);
                     } else {
@@ -366,7 +352,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
         }
     };
 
-    // Handle checkbox changes with debug
     const handleStartDateCheckbox = (checked) => {
         console.log("☑️ Start date checkbox changed:", checked);
         if (checked) {
@@ -387,13 +372,11 @@ export default function Kalender({ close, refTrigger, card_id }) {
         }
     };
 
-    // Handle time change with debug
     const handleTimeChange = (value) => {
         console.log("🕐 Time changed:", value);
         setDueTime(value);
     };
 
-    // Handle reminder change with debug
     const handleReminderChange = (value) => {
         console.log("🔔 Reminder changed:", value);
         setReminder(value);

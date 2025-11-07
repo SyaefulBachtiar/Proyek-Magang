@@ -2,7 +2,7 @@
 
 import { File, FileText, Loader2, Save, Upload, X } from "lucide-react";
 import { useEffect, useReducer, useRef } from "react";
-import { router, usePage } from "@inertiajs/react"; // 1. Tambahkan usePage di sini
+import { router, usePage } from "@inertiajs/react"; 
 
 const initialState = {
     file: null,
@@ -37,7 +37,6 @@ export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
     const modalRef = useRef(null);
     const [state, dispatch] = useReducer(reducer, initialState);
     
-    // 2. Ambil props halaman untuk mendapatkan 'id' dashboard
     const { props } = usePage();
     const dashboardId = props.id;
 
@@ -70,7 +69,6 @@ export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
 
         dispatch({ type: "SET_LOADING", payload: true });
 
-        // 3. Tambahkan parameter { id: dashboardId } di sini
         router.post(
             route("lampiran.store", { id: dashboardId, card_id: card_id }),
             {
@@ -104,13 +102,11 @@ export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
         }
     };
 
-    // ... sisa kode JSX tidak perlu diubah, biarkan sama ...
     return (
         <div
             ref={modalRef}
             className="w-80 absolute top-24 right-36 bg-white rounded-lg border shadow-[0_5px_10px_rgba(0,0,0,0.25)] z-50"
         >
-            {/* Header - Judul diperbaiki */}
             <div className="flex items-center justify-between p-4 border-b">
                 <h2 className="text-lg font-medium text-black">Tambah Lampiran</h2>
                 <X
@@ -223,8 +219,7 @@ export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
                         }
                     ></textarea>
                 </div>
-
-                {/* === TOMBOL SIMPAN DITAMBAHKAN DI SINI === */}
+                
                 <div className="mt-6">
                     <button
                         type="submit"

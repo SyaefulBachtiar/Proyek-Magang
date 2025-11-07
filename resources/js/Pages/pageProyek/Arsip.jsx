@@ -62,7 +62,6 @@ export default function Arsip({ dashboardId, activePage, tim, archivedCards }) {
                     </Link>
                 </div>
 
-                {/* --- TAMPILAN KARTU BARU YANG LEBIH BAIK --- */}
                 <div className="space-y-4">
                     {archivedCards.length > 0 ? (
                         archivedCards.map((card) => (

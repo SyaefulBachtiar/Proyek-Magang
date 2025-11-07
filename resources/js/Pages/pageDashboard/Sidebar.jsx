@@ -53,20 +53,16 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
         );
     };
 
-    // Handle search input change
     const handleSearchChange = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
 
-        // Auto-expand dropdown jika ada hasil pencarian
         if (query && filteredProyekTim.length > 0) {
             setDropwdownProyek(true);
         }
         if (query && filteredTimBiasa.length > 0) {
             setDropdownTim(true);
         }
-
-        // Collapse dropdown jika tidak ada query
         if (!query) {
             setDropwdownProyek(false);
             setDropdownTim(false);
@@ -96,7 +92,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
     return (
         <>
             <div className="w-full flex flex-col justify-end my-10 rounded-lg gap-6 overflow-y-auto">
-                {/* Home sidebar */}
                 <div
                     className={`w-full group cursor-pointer rounded-md hover:bg-[#F4F4F4] ${
                         activePage === "DashboardMain" ? "bg-[#F4F4F4]" : ""
@@ -199,7 +194,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                 {dropdownProyek && (
                                     <div className="w-full min-h-20">
                                         <ul className="relative ml-3 mt-2">
-                                            {/* Garis vertikal utama */}
                                             <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-400"></div>
 
                                             {filteredProyekTim.map(
@@ -223,13 +217,9 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                                         key={tim.id}
                                                         className="relative rounded-md py-2 hover:bg-gray-200 m-2 flex items-center gap-2 pl-4 cursor-pointer"
                                                     >
-                                                        {/* Garis horizontal untuk setiap item */}
                                                         <div className="absolute left-0 top-1/2 w-4 h-px bg-gray-400 -translate-y-1/2"></div>
-
-                                                        {/* Titik konektor */}
                                                         <div className="absolute left-0 top-1/2 w-1.5 h-1.5 bg-gray-400 rounded-full -translate-y-1/2 -translate-x-1/2"></div>
 
-                                                        {/* Garis vertikal terputus untuk item terakhir */}
                                                         {index ===
                                                             filteredProyekTim.length -
                                                                 1 && (
@@ -276,7 +266,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                 {dropdownTim && (
                                     <div className="w-full min-h-20">
                                         <ul className="relative ml-3 mt-2">
-                                            {/* Garis vertikal utama */}
                                             <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-400"></div>
 
                                             {filteredTimBiasa.map(
@@ -300,13 +289,9 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                                         key={anggota.id}
                                                         className="relative rounded-md hover:bg-gray-200 m-2 flex items-center gap-2 pl-4 py-2 cursor-pointer"
                                                     >
-                                                        {/* Garis horizontal untuk setiap item */}
                                                         <div className="absolute left-0 top-1/2 w-4 h-px bg-gray-400 -translate-y-1/2"></div>
-
-                                                        {/* Titik konektor */}
                                                         <div className="absolute left-0 top-1/2 w-1.5 h-1.5 bg-gray-400 rounded-full -translate-y-1/2 -translate-x-1/2"></div>
 
-                                                        {/* Garis vertikal terputus untuk item terakhir */}
                                                         {index ===
                                                             filteredTimBiasa.length -
                                                                 1 && (
@@ -332,7 +317,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                 </div>
                 {role !== "Member" ? (
                     <>
-                        {/* akses tim sidebar */}
                         <div
                             className={`w-full group cursor-pointer rounded-md hover:bg-[#F4F4F4] ${
                                 activePage === "DashboardAksesTim"
@@ -357,7 +341,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                             </div>
                         </div>
 
-                        {/* Pengaturan sidebar */}
                         <div
                             className={`w-full group cursor-pointer rounded-md hover:bg-[#F4F4F4] ${
                                 activePage === "DashboardPengaturan"

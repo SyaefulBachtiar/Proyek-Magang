@@ -10,7 +10,6 @@ export const SidebarContext = createContext();
 export const useAllState = () => useContext(SidebarContext);
 
 export default function AuthenticatedLayout({ children, header }) {
-    // users dari db
     const user = usePage().props.auth.user;
 
     const { perusahaan, timLayout, role, notifikasi, perusahaan_id } =
@@ -57,24 +56,19 @@ export default function AuthenticatedLayout({ children, header }) {
     // profil dropdown
     const [profileDown, setProfileDown] = useState(false);
 
-    // Gunakan state baru untuk menentukan siapa yang online/offline
     const onlineUsers = onlineUsersList;
     const onlineUserIds = new Set(onlineUsersList.map((u) => u.id));
     const offlineUsers = timLayout.filter(
         (member) => !onlineUserIds.has(member.id)
     );
-
-    // Limit online users display to 5
     const displayedOnlineUsers = onlineUsers.slice(0, 5);
     const remainingOnlineUsers = onlineUsers.length - 5;
 
     const displayedOfflineUsers = offlineUsers.slice(0, 2);
     const remainingOfflineUsers = offlineUsers.length - 2;
 
-    // profil dropdown ref
     const profileDropDownRef = useRef(null);
 
-    // useEffect untuk mengelola status online via Presence Channel
     useEffect(() => {
         if (!perusahaan_id) return;
 
@@ -89,7 +83,6 @@ export default function AuthenticatedLayout({ children, header }) {
                 setOnlineUsersList((prevUsers) =>
                     prevUsers.filter((u) => u.id !== user.id)
                 );
-                // Meminta data timLayout yang baru dari server untuk update last_seen
                 router.reload({
                     only: ["timLayout"],
                     preserveState: true,
@@ -105,7 +98,6 @@ export default function AuthenticatedLayout({ children, header }) {
         };
     }, [perusahaan_id]);
 
-    // useEffect untuk notifikasi (tidak diubah)
     useEffect(() => {
         if (!user.id) return;
         const channel = window.Echo.private(`user.${user.id}`);
@@ -123,7 +115,6 @@ export default function AuthenticatedLayout({ children, header }) {
         };
     }, [user.id]);
 
-    // useEffect untuk menutup dropdown saat klik di luar
     useEffect(() => {
         function handleClickOutside(event) {
             if (
@@ -232,7 +223,6 @@ export default function AuthenticatedLayout({ children, header }) {
                                         </div>
                                     ))}
 
-                                    {/* Ikon + jika ada lebih dari 5 user online */}
                                     {remainingOnlineUsers > 0 && (
                                         <div className="relative">
                                             <div
@@ -250,7 +240,6 @@ export default function AuthenticatedLayout({ children, header }) {
                                             </div>
                                             <div className="w-[10px] h-[10px] bg-green-500 rounded-[50%] absolute right-0 top-[25px]"></div>
 
-                                            {/* DAFTAR USER ONLINE (MUNCUL SAAT DIKLIK) */}
                                             {showRemainingOnline && (
                                                 <div
                                                     ref={remainingOnlineRef}
@@ -297,7 +286,6 @@ export default function AuthenticatedLayout({ children, header }) {
                                 </div>
 
                                 <div className="flex items-center">
-                                    {/* Tampilkan maksimal user offline */}
                                     {displayedOfflineUsers.map((users, i) => (
                                         <div
                                             key={i}
@@ -341,7 +329,6 @@ export default function AuthenticatedLayout({ children, header }) {
                                         </div>
                                     ))}
 
-                                    {/* Tampilkan icon + jika ada lebih dari user offline */}
                                     {remainingOfflineUsers > 0 && (
                                         <div className="relative group">
                                             <div className="w-[30px] h-[30px] rounded-[50%] bg-gray-600 cursor-pointer flex items-center justify-center text-white">

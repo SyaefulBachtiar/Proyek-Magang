@@ -13,7 +13,6 @@ import Proyek from "../Proyek";
 import { useEffect, useReducer, useRef, useState } from "react";
 import BubleChat from "@/Components/BubleChat";
 import { Head, router, usePage } from "@inertiajs/react";
-// Import emoji picker
 import EmojiPicker from "emoji-picker-react";
 
 const initialState = {
@@ -105,7 +104,6 @@ export default function ChatGrup({
             const end = textarea.selectionEnd;
             const currentText = state.pesanText;
 
-            // Insert emoji di posisi cursor
             const newText =
                 currentText.substring(0, start) +
                 emoji +
@@ -115,8 +113,6 @@ export default function ChatGrup({
                 type: "SET_PESAN_TEXT",
                 payload: newText,
             });
-
-            // Fokus kembali ke textarea dan set cursor position
             setTimeout(() => {
                 textarea.focus();
                 textarea.setSelectionRange(
@@ -125,12 +121,9 @@ export default function ChatGrup({
                 );
             }, 0);
         }
-
-        // Tutup emoji picker
         setShowEmojiPicker(false);
     };
 
-    // Close emoji picker when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (

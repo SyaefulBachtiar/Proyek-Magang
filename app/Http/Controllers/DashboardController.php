@@ -17,7 +17,6 @@ class DashboardController extends Controller
         if (Auth::id() != $id) {
         abort(403, 'Unauthorized.');
     }
-    // ambil role user
         $user = User::with(['anggotaPerusahaan.perusahaan'])->findOrFail($id);
 
         $keanggotaan = $user->anggotaPerusahaan;
@@ -40,9 +39,7 @@ class DashboardController extends Controller
             'perusahaan'
         ])->where('perusahaan_id', $perusahaan->id);
 
-        // filter sesuai role
     if (!in_array($role, ['Super User', 'Admin'])) {
-        // kalau member → hanya tim yang dia bergabung
         $query->whereHas('anggota_tim_perusahaan', function ($q) use ($id) {
             $q->where('id_users', $id);
         });
@@ -63,11 +60,8 @@ class DashboardController extends Controller
         $request->validate([
             'nama_perusahaan' => 'required|string|max:255'
         ]);
-
-        // Update di tabel users
         $user = User::with('perusahaan')->findOrFail($id);
 
-        // Update di tabel perusahaan (jika ada relasi)
         if ($user->perusahaan) {
             $user->perusahaan->update([
                 'nama_perusahaan' => $request->nama_perusahaan

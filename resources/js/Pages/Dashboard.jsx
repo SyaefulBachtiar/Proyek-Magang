@@ -40,12 +40,11 @@ function DashboardContent({children}){
     const [showFlashSuccess, setShowFlashSuccess] = useState(false);
     const [showFlashError, setShowFlashError] = useState(false);
 
-    // timer helper
     const showFlash = (setter, delay = 2000) => {
         setter(true);
 
         setTimeout(() => {
-            setter(false); // matikan flash setelah delay
+            setter(false); 
         }, delay);
     };
 
@@ -54,7 +53,6 @@ function DashboardContent({children}){
         error: null,
     });
 
-    // copy flash ke state lokal sekali setiap ada update
     useEffect(() => {
         if (flash.success || flash.error) {
             setLocalFlash(flash);
@@ -81,7 +79,6 @@ function DashboardContent({children}){
     // active page
     const [activePage, setActivePage] = useState("DashboardMain");
 
-    // tutup sidebar ketika klik selain sidebar
     useEffect(() => {
         function handleClickOutside(e) {
             if (
@@ -105,7 +102,6 @@ function DashboardContent({children}){
                 <Head title="Dashboard" />
 
                 <div className="h-full flex-1 flex">
-                    {/* Sidebar */}
                     <div
                         ref={sidebar}
                         className={`bg-white hover-sidebar transition-all group delay-150 overflow-hidden overflow-y-auto ease-in-out duration-300 px-[13px] w-[70px] hover:px-4 my-scrollable-element ${
@@ -119,7 +115,6 @@ function DashboardContent({children}){
                             id={id}
                         />
                     </div>
-                    {/* flash alert */}
                     <div
                         className={`
                                 fixed bottom-16 right-10 z-50 min-w-[100px] rounded-md p-4 

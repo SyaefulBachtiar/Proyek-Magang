@@ -17,7 +17,6 @@ export default function ContentMainDashboard() {
 }
 
 function MainDashboard() {
-    // Props dari controller
     const { props } = usePage();
     const activePage = props.activePage;
     const role = props.role;
@@ -29,24 +28,19 @@ function MainDashboard() {
     const proyekTim = data?.filter((tim) => tim.jenis_tim === "proyek") || [];
     const timBiasa = data?.filter((tim) => tim.jenis_tim === "tim") || [];
 
-    // Dasboard state, `id` di sini adalah ID Perusahaan
     const { setActivePage, id } = DashboardState();
 
-    // state untuk modal buat tim
     const [buatTimModal, setBuatTimModal] = useState(false);
 
-    // State untuk modal edit tim
     const [editTimModal, setEditTimModal] = useState(false);
     const [timToEdit, setTimToEdit] = useState(null);
 
-    // Fungsi untuk membuka modal edit
     const handleEditClick = (tim) => {
         setTimToEdit(tim);
         setEditTimModal(true);
         setActiveEllipsisId(null);
     };
 
-    // Function untuk toggle ellipsis dropdown
     const toggleEllipsis = (timId) => {
         setActiveEllipsisId(activeEllipsisId === timId ? null : timId);
     };
@@ -67,7 +61,6 @@ function MainDashboard() {
         }
     }, []);
 
-    // Function untuk close dropdown ketika click di luar
     useEffect(() => {
         const handleClickOutside = () => {
             setActiveEllipsisId(null);
@@ -82,7 +75,6 @@ function MainDashboard() {
         }
     }, [activePage]);
 
-    // useForm untuk form perusahaan (UPDATE)
     const {
         data: formData,
         setData,
@@ -95,7 +87,6 @@ function MainDashboard() {
         nama_perusahaan: '',
     });
 
-    // Handle form submission untuk UPDATE perusahaan
     const handleSubmit = (e) => {
         e.preventDefault();
         put(route("perusahaan.update", { id: id }), {

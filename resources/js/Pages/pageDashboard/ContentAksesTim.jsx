@@ -14,7 +14,6 @@ export default function ContentAksesTim() {
 
 function AksesTim() {
     const { props } = usePage();
-    // Pastikan 'auth' diambil dari props
     const { activePage, tim, auth } = props;
 
     const { setActivePage } = DashboardState();
@@ -79,8 +78,8 @@ function AksesTim() {
     const handleSaveRole = (member) => {
         router.put(
             route("aksestim.updateRole", {
-                id: auth.user.id, // ID dari user yang sedang login
-                user: member.id, // ID dari user yang akan diubah rolenya
+                id: auth.user.id, 
+                user: member.id, 
             }),
             { role: selectedRole },
             {
@@ -99,8 +98,8 @@ function AksesTim() {
         if (confirmDelete) {
             router.delete(
                 route("aksestim.destroy", {
-                    id: auth.user.id, // ID dari user yang login
-                    user: member.id, // ID dari user yang akan dihapus
+                    id: auth.user.id, 
+                    user: member.id, 
                 }),
                 {
                     preserveScroll: true,
@@ -149,11 +148,9 @@ function AksesTim() {
                                     {member.name}
                                 </span>
 
-                                {/* INI ADALAH BARIS KODE YANG DITAMBAHKAN */}
                                 <span className="text-sm text-gray-500">
                                     {member.email}
                                 </span>
-                                {/* SELESAI */}
 
                                 {editIndex === index ? (
                                     <select

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-// Tambahkan model yang diperlukan
 use App\Models\Anggota_perusahaan;
 use App\Models\timPerusahaan\Card_listModel;
 use App\Models\User;
@@ -27,16 +26,12 @@ class LeaderboardController extends Controller
         
         $perusahaanId = $anggotaInfo->perusahaan_id;
 
-        // 2. Dapatkan SEMUA user ID yang berada di perusahaan yang SAMA,
-        //    DAN BUKAN seorang 'Super User'.
         $userIds = Anggota_perusahaan::where('perusahaan_id', $perusahaanId)
-                                ->where('role', '!=', 'Super User') // <-- TAMBAHAN KONDISI DI SINI
+                                ->where('role', '!=', 'Super User')
                                 ->pluck('user_id');
         
-        // 3. Ambil data lengkap pengguna berdasarkan ID yang didapat dari perusahaan tersebut.
         $semuaUser = User::whereIn('id', $userIds)->get();
         
-        // Sisa kode tidak berubah...
         $semuaTugas = Card_listModel::whereHas('anggota_card_list', function ($query) use ($userIds) {
             $query->whereIn('id_user', $userIds);
         })
@@ -60,11 +55,7 @@ class LeaderboardController extends Controller
                 $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
 
                 if ($isCompleted) {
-                    // --- PERBAIKAN DI SINI ---
-                    // Relasi 'kalender' adalah hasOne, bukan hasMany. Tidak perlu ->first().
                     $dueDate = optional($tugas->kalender)->due_date;
-                    // --- AKHIR PERBAIKAN ---
-
                     $completionDate = $tugas->checklist_card_max_updated_at;
 
                     if (!$dueDate || Carbon::parse($completionDate)->lessThanOrEqualTo(Carbon::parse($dueDate))) {

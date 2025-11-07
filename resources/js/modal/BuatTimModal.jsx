@@ -4,7 +4,6 @@ import Input from "./input/Input";
 import { useForm, usePage } from "@inertiajs/react";
 
 export default function BuatTimModal({onClose}) {
-    // modal tim ref
     const modalTimRef = useRef(null);
 
     const { auth } = usePage().props;
@@ -22,15 +21,13 @@ export default function BuatTimModal({onClose}) {
          post(route("tim-perusahaan.store", { id: auth.user.id }), {
              onSuccess: () => {
                  reset();
-                 onClose(); // tutup modal setelah sukses
+                 onClose();
              },
          });
      };
 
     // radio state
     const [jenisTim, setJenisTim] = useState("");
-
-    // handleClick Outside
     useEffect(() => {
         function handleClickOutside (e) {
             if(modalTimRef.current && !modalTimRef.current.contains(e.target)){

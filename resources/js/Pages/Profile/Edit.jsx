@@ -12,18 +12,13 @@ export default function Edit({ auth, user }) {
             <Head title={`Pengaturan Profil - ${auth.user.name}`} />
             <div className="min-h-screen bg-slate-50">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-                    {/* Komponen utama untuk informasi profil */}
                     <ProfileContent user={auth.user} userProfile={user} />
-
-                    {/* Komponen untuk pengaturan kata sandi */}
                     <ProfileSection
                         title="Ubah Kata Sandi"
                         description="Pastikan akun Anda menggunakan kata sandi yang panjang dan acak agar tetap aman."
                     >
                         <UpdatePasswordForm className="p-6" />
                     </ProfileSection>
-
-                    {/* Komponen untuk hapus akun */}
                     <ProfileSection
                         title="Hapus Akun"
                         description="Setelah akun Anda dihapus, semua sumber daya dan datanya akan dihapus secara permanen."
@@ -37,7 +32,7 @@ export default function Edit({ auth, user }) {
     );
 }
 
-// -- Komponen Inti: Konten Profil --
+
 function ProfileContent({ user, userProfile }) {
     const { data, setData, post, processing, errors, isDirty, reset } = useForm({
         name: user.name || "",
@@ -77,7 +72,7 @@ function ProfileContent({ user, userProfile }) {
     const handleCancel = () => {
         setEditMode(false);
         setPreviewImage(null);
-        reset(); // Reset form ke kondisi awal
+        reset(); 
     }
 
     const getProfileImageSrc = () => {
@@ -89,14 +84,10 @@ function ProfileContent({ user, userProfile }) {
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-            {/* Banner Section */}
             <div className="h-32 bg-slate-100">
-                {/* Anda bisa menaruh gambar banner di sini jika mau */}
             </div>
 
-            {/* Content Section */}
             <div className="px-6 pb-8">
-                {/* Avatar and Edit Button Container */}
                 <div className="relative flex flex-col sm:flex-row items-center sm:items-end -mt-16">
                     <div className="relative flex-shrink-0">
                         <img
@@ -122,7 +113,6 @@ function ProfileContent({ user, userProfile }) {
                         )}
                     </div>
                     <div className="w-full sm:ml-6 mt-4 sm:mt-0 text-center sm:text-left flex-grow">
-                        {/* Conditional rendering for Name and Edit button */}
                         {!editMode && (
                              <div className="flex flex-col sm:flex-row justify-between items-center">
                                 <div>
@@ -137,10 +127,8 @@ function ProfileContent({ user, userProfile }) {
                     </div>
                 </div>
 
-                {/* Profile Details (View or Edit) */}
                 <div className="mt-8">
                     {editMode ? (
-                        // -- FORM EDIT --
                         <form onSubmit={handleSubmit} className="space-y-6">
                              {errors.poto_profile_user && <p className="text-red-500 text-xs text-center -mt-2 mb-4">{errors.poto_profile_user}</p>}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -160,21 +148,18 @@ function ProfileContent({ user, userProfile }) {
                             </div>
                         </form>
                     ) : (
-                        // -- TAMPILAN VIEW --
                         <div className="space-y-4">
                             <div>
-    {/* Label "Jabatan" sebagai judul */}
-    <span className="text-sm font-semibold text-slate-500">
-        Jabatan
-    </span>
-    
-    {/* Nilai/Jawaban di bawahnya, diberi jarak margin-top (mt-2) */}
-    <div className="mt-2">
-        <span className="text-sm font-semibold bg-sky-100 text-sky-800 px-3 py-1 rounded-md">
-            {userProfile.perusahaan?.jabatan || "Belum diatur"}
-        </span>
-    </div>
-</div>
+                                <span className="text-sm font-semibold text-slate-500">
+                                    Jabatan
+                                </span>
+                                
+                                <div className="mt-2">
+                                    <span className="text-sm font-semibold bg-sky-100 text-sky-800 px-3 py-1 rounded-md">
+                                        {userProfile.perusahaan?.jabatan || "Belum diatur"}
+                                    </span>
+                                </div>
+                            </div>
                             <div>
                                 <span className="text-sm font-semibold text-slate-500">Bio</span>
                                 <p className="mt-1 text-base text-slate-700 max-w-2xl leading-relaxed">
@@ -189,7 +174,6 @@ function ProfileContent({ user, userProfile }) {
     );
 }
 
-// -- Komponen Pembantu (UI Components) --
 
 const ProfileSection = ({ title, description, children, variant = "default" }) => {
     const borderClass = variant === "danger" ? "border-red-300/70" : "border-slate-200/80";

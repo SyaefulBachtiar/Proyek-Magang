@@ -30,7 +30,6 @@ export default function UpdateProfileInformation({
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <p className="text-lg font-semibold mb-2">Nama: {user.name}</p>
                         <p className="text-lg mb-2">Email: {user.email}</p>
-                        {/* Tambahkan informasi lainnya jika ada */}
                     </div>
                 </div>
             </div>

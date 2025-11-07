@@ -32,7 +32,6 @@ class UserLoggedOut
                 'last_seen' => now()
             ]);;
 
-     // Ambil semua user dalam perusahaan yang sama
         $currentUser = $event->user;
         
         if ($currentUser && $currentUser->anggotaPerusahaan) {
@@ -41,8 +40,6 @@ class UserLoggedOut
             $companyUserIds = User::whereHas('anggotaPerusahaan.perusahaan', function ($query) use ($namaPerusahaan) {
                 $query->where('nama_perusahaan', $namaPerusahaan);
             })->pluck('id')->toArray();
-
-            // Broadcast ke semua user dalam perusahaan
             broadcast(new NotifikasiEvent($event->user->id, $companyUserIds));
         }
     }

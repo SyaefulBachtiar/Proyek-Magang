@@ -29,13 +29,11 @@ function PengaturanProfile() {
         setDivision(tempDivision);
         setIsModalOpen(false);
         console.log("Profil diperbarui:", { name: tempName, division: tempDivision, bio });
-        // Kirim ke server pakai Inertia post/put jika backend sudah siap
     };
 
     return (
         <div className="p-8 w-full flex justify-center items-start min-h-screen bg-gray-50 overflow-y-auto">
             <div className="w-full max-w-4xl space-y-8">
-                {/* Kartu Profil */}
                 <div className="bg-white shadow-md rounded-2xl p-8">
                     <div className="flex flex-col items-center">
                         <div className="relative w-32 h-32 mb-4">

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-// Ganti model Perusahaan dengan Anggota_perusahaan
 use App\Models\Anggota_perusahaan; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +21,6 @@ class AksesTimController extends Controller
             ->with('user')
             ->get();
 
-        // 3. Ubah (map) data ke format yang dibutuhkan oleh frontend
         $tim = $semuaAnggota->map(function ($anggota) {
             return [
                 'id'    => $anggota->user->id,       
@@ -38,45 +36,29 @@ class AksesTimController extends Controller
         ]);
     }
 
-    /**
-     * Method untuk mengubah role seorang anggota tim.
-     */
     public function updateRole(Request $request, $id, $userId)
     {
-        // Validasi input
         $request->validate([
             'role' => 'required|string|in:Admin,Member',
         ]);
-
-        // Cari data keanggotaan berdasarkan user_id yang akan diubah
         $anggota = Anggota_perusahaan::where('user_id', $userId)->firstOrFail();
 
-        // Pastikan role Super User tidak diubah
         if ($anggota->role === 'Super User') {
             return back()->withErrors(['error' => 'Role Super User tidak dapat diubah.']);
         }
-
-        // Update role di database
         $anggota->role = $request->input('role');
         $anggota->save();
 
         return back()->with('success', 'Role berhasil diperbarui.');
     }
 
-    /**
-     * Menghapus user dari tim dan tabel users.
-     */
     public function destroy($id, $userId)
     {
-        // Cari data keanggotaan untuk memeriksa role
         $anggota = Anggota_perusahaan::where('user_id', $userId)->first();
 
-        // Pencegahan: Jangan hapus user jika rolenya adalah 'Super User'
         if ($anggota && $anggota->role === 'Super User') {
             return back()->withErrors(['error' => 'User dengan role Super User tidak dapat dihapus.']);
         }
-        
-        // Cari user yang akan dihapus berdasarkan ID
         $userToDelete = User::findOrFail($userId);
 
         $userToDelete->delete();

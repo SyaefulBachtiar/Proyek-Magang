@@ -21,9 +21,6 @@ class Perusahaan extends Model
         'user_id',
     ];
 
-    /**
-     * Boot method untuk generate UUID secara otomatis.
-     */
     protected static function boot()
     {
         parent::boot();
@@ -36,20 +33,15 @@ class Perusahaan extends Model
     }
     
     /**
-     * Accessor untuk mendapatkan URL logo perusahaan.
-     * Ini akan secara otomatis membuat URL lengkap ke file logo.
-     * Jika tidak ada logo, akan mengembalikan gambar default.
      *
      * @return string
      */
     public function getLogoUrlAttribute()
     {
         if ($this->image && Storage::disk('public')->exists($this->image)) {
-            // Jika ada file logo, kembalikan URL-nya dari storage
             return Storage::url($this->image);
         }
 
-        // Jika tidak ada, kembalikan path ke logo default
         return asset('images/default-company-logo.png');
     }
 

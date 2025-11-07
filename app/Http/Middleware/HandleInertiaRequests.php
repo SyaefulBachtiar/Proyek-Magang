@@ -22,9 +22,6 @@ class HandleInertiaRequests extends Middleware
      */
     protected $rootView = 'app';
 
-    /**
-     * Determine the current asset version.
-     */
     public function version(Request $request): ?string
     {
         return parent::version($request);
@@ -133,7 +130,6 @@ class HandleInertiaRequests extends Middleware
                         ])->where('perusahaan_id', $perusahaan->id);
 
                     if (!in_array($role, ['Super User', 'Admin'])) {
-                    // kalau member → hanya tim yang dia bergabung
                     $query->whereHas('anggota_tim_perusahaan', function ($q) use ($user) {
                         $q->where('id_users', $user->id);
                     });

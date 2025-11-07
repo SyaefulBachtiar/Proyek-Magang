@@ -69,7 +69,7 @@ class ProyekController extends Controller
             'activePage' => 'tugasPage',
             'tim' => $tim,
             'dataBoard' => $board_data,
-            'currentUserRole' => $currentUserRole, // Kirim role ke frontend
+            'currentUserRole' => $currentUserRole,
         ]);
     }
 
@@ -234,7 +234,7 @@ class ProyekController extends Controller
             'label_tim' => $label_tim,
             'label_card' => $label_card,
             'id_board' => $id_board,
-            'anggota_tim' => $formatedTim, // Mengirim data yang sudah benar
+            'anggota_tim' => $formatedTim, 
             'dataCard' => $dataCard,
             'title_checklist' => $title_checklist,
             'checklist' => $checklist,
@@ -450,23 +450,16 @@ class ProyekController extends Controller
                 ->first();
 
             if (!$anggota) {
-                // Mengembalikan pesan gagal jika anggota tidak ditemukan
                 return redirect()->back()->with('gagal', 'Anggota tidak ditemukan di tim ini.');
             }
 
-            // Hapus anggota dari semua card terlebih dahulu
             Anggota_card::where('id_user', $anggota->id_users)->delete();
-
-            // Hapus anggota dari tim
             $anggota->delete();
 
             broadcast(new NotifikasiEvent($id_user));
-
-            // Mengembalikan redirect dengan flash message 'success'
             return redirect()->back()->with('success', 'Anggota tim berhasil dihapus.');
 
         } catch (\Exception $e) {
-            // Mengembalikan redirect dengan flash message 'gagal' jika ada error
             return redirect()->back()->with('gagal', 'Terjadi kesalahan server: ' . $e->getMessage());
         }
     }
@@ -796,8 +789,6 @@ class ProyekController extends Controller
             $checklist_card->update([
                 'title' => $request->title_checklist
             ]);
-
-            // update checklist kalau ada
             if ($checklist && $checklist->checklist->first()) {
                 $checklist->checklist->first()->update([
                     'title' => $request->title_checklist
@@ -849,7 +840,6 @@ class ProyekController extends Controller
     $checklist = Checklist_card::findOrFail($checklist_id);
 
     if ($request->hasFile('file')) {
-        // Hapus file lama jika ada
         if ($checklist->image) {
             Storage::disk('public')->delete($checklist->image);
         }
@@ -880,8 +870,6 @@ class ProyekController extends Controller
             $list->update([
                 'judul' => $request->judul,
             ]);
-
-            // Panggil broadcast agar update realtime di semua client
             $this->broadcastBoardUpdate($list->id_board);
 
             return back()->with('success', 'Judul list berhasil diperbarui.');
@@ -1036,7 +1024,6 @@ class ProyekController extends Controller
     }
 
     // Arsip
-
     public function archiveCard($id, $cardId)
     {
         $card = Card_listModel::withoutGlobalScope('active')->findOrFail($cardId);

@@ -2,7 +2,6 @@ import { useForm } from "@inertiajs/react";
 import { CheckCircle, Loader2, X } from "lucide-react";
 import { useEffect } from "react";
 
-// Menerima props: `tim`, `onClose`, dan `id_perusahaan`
 export default function EditTimModal({ tim, onClose, id_perusahaan }) {
     const {
         data,
@@ -12,7 +11,6 @@ export default function EditTimModal({ tim, onClose, id_perusahaan }) {
         errors,
         wasSuccessful,
     } = useForm({
-        // Inisialisasi form dengan data dari prop `tim`
         nama_tim: tim.nama_tim || "",
         deskripsi_tim: tim.deskripsi_tim || "",
     });
@@ -20,11 +18,10 @@ export default function EditTimModal({ tim, onClose, id_perusahaan }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Kirim request PUT dengan DUA parameter yang dibutuhkan: id dan id_tim
         put(route("tim-perusahaan.update", { id: id_perusahaan, id_tim: tim.id }), {
             preserveScroll: true,
             onSuccess: () => {
-                onClose(); // Jika berhasil, tutup modal
+                onClose(); 
             },
             onError: (errors) => {
                 console.error("Error updating team:", errors);
@@ -32,7 +29,6 @@ export default function EditTimModal({ tim, onClose, id_perusahaan }) {
         });
     };
 
-    // Efek untuk menutup modal jika proses update berhasil
     useEffect(() => {
         if (wasSuccessful) {
             onClose();

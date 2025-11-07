@@ -19,7 +19,6 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
             [name]: value,
         }));
 
-        // Clear error saat user mulai mengetik
         if (errors[name]) {
             setErrors((prev) => ({
                 ...prev,
@@ -40,7 +39,6 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
         setLoading(true);
         setErrors({});
 
-        // Validasi client-side
         const newErrors = {};
         if (!formData.nama_tugas.trim()) {
             newErrors.nama_tugas = "Nama tugas harus diisi";
@@ -52,7 +50,6 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
             return;
         }
 
-        // Buat FormData untuk upload file
         const submitData = new FormData();
         submitData.append("nama_tugas", formData.nama_tugas);
         submitData.append("id_list", formData.id_list);
@@ -67,8 +64,7 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
                 forceFormData: true,
                 onSuccess: (response) => {
                     console.log("Card berhasil ditambahkan");
-                    close(); // Tutup modal
-                    // Optional: refresh halaman atau update state parent
+                    close();
                 },
                 onError: (errors) => {
                     setErrors(errors);

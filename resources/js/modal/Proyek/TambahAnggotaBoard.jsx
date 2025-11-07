@@ -6,11 +6,10 @@ export default function TambahAnggotaBoard({ close }) {
     
     const { anggota_tim, anggota_board, tim, auth } = usePage().props;
 
-    // State untuk search, role, dan status proses
+
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRole, setSelectedRole] = useState("Member");
     const [isAdding, setIsAdding] = useState(false);
-    // Filter anggota perusahaan berdasarkan query pencarian
     console.log(anggota_tim);
     useEffect(() => {
         if(auth.user.id){
@@ -81,7 +80,6 @@ export default function TambahAnggotaBoard({ close }) {
                     id_tim: tim.id,
                 }),
                 {
-                    // Data yang dikirim ke controller
                     id_users: anggota.id,
                     role_anggota: selectedRole,
                 },
@@ -91,7 +89,6 @@ export default function TambahAnggotaBoard({ close }) {
                     onSuccess: () => {
                     },
                     onError: (errors) => {
-                        // Ambil pesan error pertama jika ada untuk ditampilkan
                         const firstError = Object.values(errors)[0];
                         alert(
                             firstError ||
@@ -100,13 +97,12 @@ export default function TambahAnggotaBoard({ close }) {
                         console.error("Gagal menambahkan anggota:", errors);
                     },
                     onFinish: () => {
-                        // Hentikan state loading setelah permintaan selesai (baik sukses maupun gagal)
                         setIsAdding(false);
                     },
                 }
             );
         },
-        [selectedRole, tim, auth] // Dependencies untuk useCallback
+        [selectedRole, tim, auth] 
     );
 
     // Handle hapus anggota dari board
@@ -132,7 +128,6 @@ export default function TambahAnggotaBoard({ close }) {
                 // Opsi Inertia
                 preserveScroll: true,
                 onSuccess: () => {
-                    // Notifikasi akan muncul secara otomatis dari flash message.
                 },
                 onError: (errors) => {
                     const firstError = Object.values(errors)[0];

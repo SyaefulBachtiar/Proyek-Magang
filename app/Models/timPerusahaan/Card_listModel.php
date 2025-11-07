@@ -46,83 +46,46 @@ class Card_listModel extends Model
     }
 
     // RELASI-RELASI
-
-    /**
-     * Mendapatkan list board tempat kartu ini berada.
-     * (Relasi One-to-Many Invers)
-     */
     public function listBoard()
     {
         return $this->belongsTo(List_boardModel::class, 'id_list', 'id');
     }
 
-    /**
-     * Mendapatkan semua anggota yang ditugaskan ke kartu ini.
-     * (Relasi One-to-Many)
-     */
     public function anggota_card_list()
     {
         return $this->hasMany(Anggota_card::class, 'id_card', 'id');
     }
 
-    /**
-     * Mendapatkan data kalender (waktu) untuk kartu ini.
-     * (Relasi One-to-One)
-     */
     public function kalender()
     {
         return $this->hasOne(Kalender::class, 'id_card', 'id');
     }
 
-    /**
-     * Mendapatkan semua label yang ditempelkan pada kartu ini.
-     * (Relasi One-to-Many)
-     */
     public function label_card()
     {
         return $this->hasMany(Label_card::class, 'id_card', 'id');
     }
 
-    /**
-     * Mendapatkan semua judul checklist yang ada di kartu ini.
-     * (Relasi One-to-Many)
-     */
     public function title_checklist_card()
     {
         return $this->hasMany(Title_Checklist_card::class, 'id_card', 'id');
     }
 
-    /**
-     * Mendapatkan semua item checklist individual di kartu ini.
-     * (Relasi One-to-Many)
-     */
     public function checklist_card()
     {
         return $this->hasMany(Checklist_card::class, 'id_card', 'id');
     }
     
-    /**
-     * Mendapatkan semua lampiran yang ada di kartu ini.
-     * (Relasi One-to-Many)
-     */
     public function lampiran()
     {
         return $this->hasMany(Lampiran::class, 'id_card', 'id');
     }
 
-    /**
-     * Mendapatkan data deskripsi untuk kartu ini.
-     * (Relasi One-to-One)
-     */
     public function deskripsi()
     {
         return $this->hasOne(Deskripsi::class, 'id_card', 'id');
     }
 
-    /**
-     * Mendapatkan semua komentar yang ada di kartu ini.
-     * (Relasi One-to-Many)
-     */
     public function komentar()
     {
         return $this->hasMany(Komentar::class, 'id_card', 'id');
