@@ -159,12 +159,13 @@ Route::middleware(['auth'])->prefix('dashboard/{id}')->group(function () {
     Route::delete('/proyek/card/{cardId}/delete', [ProyekController::class, 'destroyCard'])->name('proyek.card.delete');
     Route::put('/proyek/card/{cardId}/restore', [ProyekController::class, 'restoreCard'])->name('proyek.card.restore');
     Route::get('/proyek/{id_tim}/arsip', [ProyekController::class, 'showArchived'])->name('proyek.arsip');
+
+    Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim');
+    Route::put('/proyek/card/{cardId}/update-title', [ProyekController::class, 'updateCardTitle'])->name('proyek.card.update.title');
 });
 
 Route::middleware('auth')->group(function () {
     Route::get('/users', [Tim_perusahaanController::class, 'getUsers']); // untuk modal
 });
-
-Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim');
 
 require __DIR__.'/auth.php';

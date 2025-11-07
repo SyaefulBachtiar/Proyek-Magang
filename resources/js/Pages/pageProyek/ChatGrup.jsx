@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Proyek from "../Proyek";
 import { useEffect, useReducer, useRef, useState } from "react";
-import BubleChat from "@/Components/BubleChat";
+import BubleChat from "@/Components/BubleChat"; // <-- Perubahan ada di file ini
 import { Head, router, usePage } from "@inertiajs/react";
 import EmojiPicker from "emoji-picker-react";
 
@@ -179,7 +179,6 @@ export default function ChatGrup({
         }
     }, [state.pesanText]);
 
-    // Scroll ke bawah saat pertama kali load
     useEffect(() => {
         setTimeout(() => {
             scrollToBottom("auto");
@@ -306,7 +305,6 @@ export default function ChatGrup({
 
                 {/* Input chat */}
                 <div className="w-full px-2 pb-4 pt-2 relative">
-                    {/* Emoji Picker */}
                     {showEmojiPicker && (
                         <div
                             ref={emojiPickerRef}

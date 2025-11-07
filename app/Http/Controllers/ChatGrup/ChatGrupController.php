@@ -13,16 +13,22 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage; 
 
 class ChatGrupController extends Controller
 {
     // CHAT GRUP
     public function chatgrup ($id, $id_tim) {
         $messages = Messages::where('id_tim', $id_tim)->with('sender', 'file')->orderBy('created_at', 'asc')->get();
+        
         $dataChat = $messages->map(function($message) {
+            
             $files = $message->file->map(function ($file){
-                return ['file' => $file->file];
+                return [
+                    'file' => Storage::url($file->file) 
+                ];
             })->all();
+
             return [
                 'id' => $message->id,
                 'pesan' => $message->pesan,
@@ -31,7 +37,7 @@ class ChatGrupController extends Controller
                 'updated_at' => $message->created_at,
                 'name' => optional($message->sender)->name,
                 'poto' => optional($message->sender)->poto_profile_user,
-                'file' => $files,
+                'file' => $files, 
             ];
         });
 
@@ -70,7 +76,7 @@ class ChatGrupController extends Controller
                 'id' => (string) Str::uuid(),
                 'id_tim' => $id_tim,
                 'sender_id' => $id,
-                'pesan' => $request->pesan_text,
+                'pesan' => $request->pesan_text ?? '',
                 'parent_id' => $request->id_pesan_balas
             ]);
             }else{
@@ -78,14 +84,15 @@ class ChatGrupController extends Controller
                 'id' => (string) Str::uuid(),
                 'id_tim' => $id_tim,
                 'sender_id' => $id,
-                'pesan' => $request->pesan_text,
+                'pesan' => $request->pesan_text ?? '',
                 'parent_id' => null
             ]);
             }
 
             if($request->hasFile('pesan_file')){
                 foreach($request->pesan_file as $uploadFile){
-                    $filePath = $uploadFile->store('chat_files', 'public');
+                    
+                    $filePath = $uploadFile->store('chatgroup', 'public');
 
                     $message->file()->create([
                         'id' => (string) Str::uuid(),
@@ -114,11 +121,13 @@ class ChatGrupController extends Controller
 
         $id_board = $hapus_pesan->tim->board_tim->id;
 
+        foreach ($hapus_pesan->file as $file) {
+            Storage::disk('public')->delete($file->file);
+        }
+
         $hapus_pesan->delete();
 
         broadcast(new BoardUpdated($id_board));
-
-        // return redirect()->back()->with('success', 'berhasil hapus pesan');
     }
 
     // EDIT PESAN
@@ -136,7 +145,5 @@ class ChatGrupController extends Controller
         ]);
 
         broadcast(new BoardUpdated($id_board));
-
-        // return redirect()->back()->with('success', 'berhasil edit pesan');
     }
 }

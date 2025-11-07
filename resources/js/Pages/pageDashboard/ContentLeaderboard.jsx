@@ -13,14 +13,7 @@ export default function ContentLeaderboard() {
   );
 }
 
-const getStarRating = (tasks) => {
-  if (tasks >= 10) return 5;
-  if (tasks >= 8) return 4;
-  if (tasks >= 6) return 3;
-  if (tasks >= 4) return 2;
-  if (tasks > 0) return 1;
-  return 0; 
-};
+
 
 const getPodiumDetails = (rank) => {
   switch (rank) {
@@ -81,7 +74,9 @@ function PodiumCard({ user }) {
       </div>
       <h3 className="mt-4 text-xl font-bold text-gray-800 text-center truncate w-full">{user.name}</h3>
       <div className="flex items-center gap-1 mt-1 text-amber-500">
-        {[...Array(getStarRating(user.tasks))].map((_, i) => <FaStar key={i} size={16} />)}
+        
+        {[...Array(user.rating_bintang || 0)].map((_, i) => <FaStar key={i} size={16} />)}
+
       </div>
       <div className="mt-4 text-center">
         <span className={`text-3xl font-bold ${details.text}`}>{user.tasks}</span>
@@ -102,7 +97,9 @@ function UserRow({ user }) {
         <div>
           <span className="font-bold text-base text-gray-800">{user.name}</span>
           <div className="flex text-amber-500 mt-1">
-            {[...Array(getStarRating(user.tasks))].map((_, i) => <FaStar key={i} size={14} />)}
+            
+            {[...Array(user.rating_bintang || 0)].map((_, i) => <FaStar key={i} size={14} />)}
+
           </div>
         </div>
       </div>

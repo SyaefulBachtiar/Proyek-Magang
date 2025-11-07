@@ -1,5 +1,11 @@
 import { router, usePage } from "@inertiajs/react";
-import { EllipsisIcon, Reply, SquarePen, Trash2 } from "lucide-react";
+import {
+    EllipsisIcon,
+    Reply,
+    SquarePen,
+    Trash2,
+    Paperclip, // <-- 1. TAMBAHKAN IMPORT INI
+} from "lucide-react";
 import { useEffect, useReducer, useRef } from "react";
 
 const initialState = {
@@ -12,15 +18,23 @@ function reducer(state, action) {
         case "SET_ELLIPSIS":
             return { ...state, ellipsisChat: action.payload.ellipsisChat };
         case "PESAN_BALAS":
-            return {...state, focusPesanBalas: action.payload}
+            return { ...state, focusPesanBalas: action.payload };
         default:
             return state;
     }
 }
 
-const OpsiEllipsis = ({ ellipsisClose, triggerRef, isOwn, auth, limit, edit_pesan, balas_pesan, itemChatUser }) => {
+const OpsiEllipsis = ({
+    ellipsisClose,
+    triggerRef,
+    isOwn,
+    auth,
+    limit,
+    edit_pesan,
+    balas_pesan,
+    itemChatUser,
+}) => {
     const modalRef = useRef(null);
-
 
     useEffect(() => {
         function handleClickOutside(e) {
@@ -69,17 +83,30 @@ const OpsiEllipsis = ({ ellipsisClose, triggerRef, isOwn, auth, limit, edit_pesa
                             <Trash2 size={14} />
                             <span>Hapus</span>
                         </li>
-                        <li 
-                        onClick={() => edit_pesan(itemChatUser?.pesan, itemChatUser?.id)}
-                        className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm">
-                            <SquarePen size={14}/>
+                        <li
+                            onClick={() =>
+                                edit_pesan(
+                                    itemChatUser?.pesan,
+                                    itemChatUser?.id
+                                )
+                            }
+                            className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                        >
+                            <SquarePen size={14} />
                             <span>edit</span>
                         </li>
                     </>
                 ) : null}
-                <li 
-                onClick={() => balas_pesan(itemChatUser.id, itemChatUser.name, itemChatUser.pesan)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm">
+                <li
+                    onClick={() =>
+                        balas_pesan(
+                            itemChatUser.id,
+                            itemChatUser.name,
+                            itemChatUser.pesan
+                        )
+                    }
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                >
                     <Reply size={14} />
                     <span>Balas</span>
                 </li>
@@ -95,7 +122,6 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
     const messageRefs = useRef({});
     const previousHighlightedRef = useRef(null);
 
-    
     const handleEllipsisClick = (messageId) => {
         dispatch({
             type: "SET_ELLIPSIS",
@@ -104,7 +130,7 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
             },
         });
     };
-    
+
     const removeHighlight = () => {
         if (previousHighlightedRef.current) {
             previousHighlightedRef.current.classList.remove("bg-yellow-100");
@@ -112,12 +138,11 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
         }
     };
 
-      useEffect(() => {
-          if (
+    useEffect(() => {
+        if (
             state.focusPesanBalas &&
             messageRefs.current[state.focusPesanBalas]
-          ) {
-
+        ) {
             removeHighlight();
 
             const targetElement = messageRefs.current[state.focusPesanBalas];
@@ -127,7 +152,7 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
                 block: "center",
             });
 
-              // highlight sebentar
+            // highlight sebentar
             targetElement.classList.add("bg-yellow-100");
 
             previousHighlightedRef.current = targetElement;
@@ -135,9 +160,8 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
             // setTimeout(() => {
             //     removeHighlight();
             // }, 3000);
-            
-          }
-      }, [state.focusPesanBalas]);
+        }
+    }, [state.focusPesanBalas]);
 
     const handleEllipsisClose = () => {
         dispatch({
@@ -158,7 +182,7 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
                         .padStart(2, "0");
                     const formattedTime = `${hours}:${minutes}`;
 
-                    const now =  new Date();
+                    const now = new Date();
 
                     const diffMinutes = (now - date) / 1000 / 60;
 
@@ -166,10 +190,9 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
 
                     const isOwn = item.sender_id === auth.user.id;
 
-                     const repliedMessage = item.parent_id
-                         ? chatting.find((c) => c.id === item.parent_id)
-                         : null;
-
+                    const repliedMessage = item.parent_id
+                        ? chatting.find((c) => c.id === item.parent_id)
+                        : null;
 
                     return isOwn ? (
                         // Pesan dari user yang sedang login (kanan)
@@ -223,16 +246,38 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
                                             className="bg-gray-100 p-2 rounded mb-2"
                                         >
                                             <p className="text-sm text-gray-700">
-                                                {repliedMessage.name === auth.user.name ? "Anda" : repliedMessage.name}
+                                                {repliedMessage.name ===
+                                                auth.user.name
+                                                    ? "Anda"
+                                                    : repliedMessage.name}
                                             </p>
                                             <p className="text-xs text-gray-500">
                                                 {repliedMessage.pesan}
                                             </p>
                                         </div>
                                     )}
-                                    <p className="text-sm leading-relaxed">
-                                        {item.pesan}
-                                    </p>
+
+                                    {/* --- 2. TAMBAHKAN BLOK INI --- */}
+                                    {/* Render file jika ada */}
+                                    {item.file && item.file.length > 0 && (
+                                        <div className="my-2 flex flex-col gap-2">
+                                            {item.file.map((file, index) => (
+                                                <FileRenderer
+                                                    key={index}
+                                                    fileUrl={file.file}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Tampilkan pesan teks HANYA jika ada */}
+                                    {item.pesan && (
+                                        <p className="text-sm leading-relaxed">
+                                            {item.pesan}
+                                        </p>
+                                    )}
+                                    {/* --- BATAS PERUBAHAN --- */}
+
                                     <div className="flex justify-end mt-1">
                                         <p className="text-xs opacity-80">
                                             {formattedTime}
@@ -281,9 +326,29 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
                                     )}
                                     {/* Nama pengirim */}
                                     <div className="mt-2">
-                                        <p className="text-sm leading-relaxed text-gray-800">
-                                            {item.pesan}
-                                        </p>
+                                        {/* --- 2. TAMBAHKAN BLOK INI (LAGI) --- */}
+                                        {/* Render file jika ada */}
+                                        {item.file && item.file.length > 0 && (
+                                            <div className="mb-2 flex flex-col gap-2">
+                                                {item.file.map(
+                                                    (file, index) => (
+                                                        <FileRenderer
+                                                            key={index}
+                                                            fileUrl={file.file}
+                                                        />
+                                                    )
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Tampilkan pesan teks HANYA jika ada */}
+                                        {item.pesan && (
+                                            <p className="text-sm leading-relaxed text-gray-800">
+                                                {item.pesan}
+                                            </p>
+                                        )}
+                                        {/* --- BATAS PERUBAHAN --- */}
+
                                         <div className="flex justify-end mt-1">
                                             <p className="text-xs text-gray-500">
                                                 {formattedTime}
@@ -338,3 +403,39 @@ export default function BubleChat({ chatting, edit_pesan, balas_pesan }) {
         </div>
     );
 }
+
+// --- 3. TAMBAHKAN KOMPONEN HELPER INI DI BAWAH ---
+const FileRenderer = ({ fileUrl }) => {
+    // Ambil ekstensi file dan bersihkan dari query parameter
+    const extension = fileUrl.split(".").pop().toLowerCase().split("?")[0];
+    const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(extension);
+
+    // Ambil nama file dari URL
+    const fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1).split("?")[0];
+
+    if (isImage) {
+        return (
+            <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                <img
+                    src={fileUrl}
+                    alt="Lampiran gambar"
+                    className="max-w-xs rounded-lg object-cover cursor-pointer border border-gray-200"
+                />
+            </a>
+        );
+    }
+
+    // Jika bukan gambar, tampilkan sebagai link file biasa
+    return (
+        <a
+            href={fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+            className="flex items-center gap-3 rounded-lg bg-gray-100 p-3 text-sm text-gray-800 hover:bg-gray-200 max-w-xs border border-gray-200"
+        >
+            <Paperclip size={18} className="flex-shrink-0 text-gray-600" />
+            <span className="truncate" title={fileName}>{fileName}</span>
+        </a>
+    );
+};

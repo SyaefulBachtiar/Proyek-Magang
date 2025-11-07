@@ -49,26 +49,50 @@ class LeaderboardController extends Controller
         foreach ($semuaUser as $user) {
             $tugasUser = $semuaTugas->filter(fn($tugas) => $tugas->anggota_card_list->contains('id_user', $user->id));
             
-            $tepatWaktu = 0; 
+            $tepatWaktu = 0;
+            $selesaiTerlambat = 0;
+            $terlambatBelumSelesai = 0;
 
             foreach ($tugasUser as $tugas) {
                 $isCompleted = $tugas->checklist_card_count > 0 && $tugas->completed_checklist_count === $tugas->checklist_card_count;
+                
+                $dueDate = optional($tugas->kalender)->due_date;
+                $completionDate = $tugas->checklist_card_max_updated_at;
 
                 if ($isCompleted) {
-                    $dueDate = optional($tugas->kalender)->due_date;
-                    $completionDate = $tugas->checklist_card_max_updated_at;
-
                     if (!$dueDate || Carbon::parse($completionDate)->lessThanOrEqualTo(Carbon::parse($dueDate))) {
-                        $tepatWaktu++;
+                        $tepatWaktu++; 
+                    } else {
+                        $selesaiTerlambat++;
+                    }
+                } else {
+                    if ($dueDate && Carbon::parse($dueDate)->isPast()) {
+                        $terlambatBelumSelesai++; 
                     }
                 }
+            }
+
+            $totalTugasRelevan = $tepatWaktu + $selesaiTerlambat + $terlambatBelumSelesai;
+            $ratingBintang = 3; 
+
+            if ($totalTugasRelevan > 0) {
+                $skor = $tepatWaktu / $totalTugasRelevan;
+                if ($skor > 0.9) { $ratingBintang = 5; }
+                elseif ($skor > 0.75) { $ratingBintang = 4; }
+                elseif ($skor > 0.5) { $ratingBintang = 3; }
+                elseif ($skor > 0.25) { $ratingBintang = 2; }
+                else { $ratingBintang = 1; }
+            } else {
+                 $ratingBintang = 0;
             }
             
              $leaderboardData[] = [
                 'name' => $user->name,
-                'tasks' => $tepatWaktu,
+                'tasks' => $tepatWaktu, 
+                'rating_bintang' => $ratingBintang, 
             ];
         }
+
         $sortedLeaderboard = collect($leaderboardData)->sortByDesc('tasks')->values()->all();
 
         return Inertia::render('pageDashboard/ContentLeaderboard', [

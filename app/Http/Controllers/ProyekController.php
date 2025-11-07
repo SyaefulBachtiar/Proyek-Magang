@@ -1076,4 +1076,27 @@ class ProyekController extends Controller
             'archivedCards' => $archivedCards
         ]);
     }
+
+
+    // Update Nama Card
+    public function updateCardTitle(Request $request, $id, $cardId)
+    {
+        $request->validate([
+            'nama_card' => 'required|string|max:50',
+        ]);
+
+        try {
+            $card = Card_listModel::findOrFail($cardId);
+            $card->update([
+                'nama_card' => $request->nama_card,
+            ]);
+
+            $this->broadcastBoardUpdate($card->listBoard->id_board);
+
+            return back()->with('success', 'Judul card berhasil diperbarui.');
+        } catch (\Exception $e) {
+            Log::error('Gagal memperbarui judul card: ' . $e->getMessage());
+            return back()->with('gagal', 'Gagal memperbarui judul card.');
+        }
+    }
 }

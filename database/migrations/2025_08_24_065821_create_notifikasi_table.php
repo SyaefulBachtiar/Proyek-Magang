@@ -13,13 +13,11 @@ return new class extends Migration
     {
         Schema::create('notifikasi', function (Blueprint $table) {
             $table->string('id', 36)->primary();
-             // user penerima notifikasi
             $table->string('user_id', 36);
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            // isi notifikasi
             $table->string('title')->nullable();
             $table->text('message')->nullable();
-            $table->string('type')->default('info'); // info, reminder, task, dll
+            $table->string('type')->default('info'); 
             $table->boolean('is_read')->default(false);
             $table->timestamps();
         });

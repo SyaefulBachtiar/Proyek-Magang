@@ -107,7 +107,7 @@ function reducer(state, action) {
             return {
                 ...state,
                 photoError: action.payload.error,
-                uploadingPhoto: null,
+                uploadingPhoto: null, // Pastikan di-null agar error bisa tampil
             };
         case "CLEAR_FILE_ERROR":
             return { ...state, photoError: null };
@@ -163,6 +163,10 @@ export default function Card_kanban() {
     const newItemInputRef = useRef({});
     const triggerRefs = useRef({});
 
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [currentTitle, setCurrentTitle] = useState(dataCard?.nama_card || "");
+    const titleInputRef = useRef(null);
+
     let date = "";
     let fullDate = "";
 
@@ -174,6 +178,52 @@ export default function Card_kanban() {
             });
         }
     }, [checklistProps]);
+
+    useEffect(() => {
+        if (!isEditingTitle) {
+            setCurrentTitle(dataCard?.nama_card || "");
+        }
+    }, [dataCard, isEditingTitle]);
+
+    // Fokus ke input saat mode edit aktif
+    useEffect(() => {
+        if (isEditingTitle && titleInputRef.current) {
+            titleInputRef.current.focus();
+            titleInputRef.current.select();
+        }
+    }, [isEditingTitle]);
+
+    const handleTitleSave = () => {
+        if (!currentTitle.trim() || currentTitle === dataCard?.nama_card) {
+            setIsEditingTitle(false);
+            setCurrentTitle(dataCard?.nama_card || ""); 
+            return;
+        }
+
+        router.put(
+            route("proyek.card.update.title", { id: user.id, cardId: card_id }),
+            { nama_card: currentTitle },
+            {
+                preserveScroll: true,
+                onSuccess: () => setIsEditingTitle(false),
+                onError: (errors) => {
+                    console.error(errors);
+                    setCurrentTitle(dataCard?.nama_card || ""); 
+                    setIsEditingTitle(false);
+                }
+            }
+        );
+    };
+
+    const handleTitleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleTitleSave();
+        }
+        if (e.key === 'Escape') {
+            setIsEditingTitle(false);
+            setCurrentTitle(dataCard?.nama_card || "");
+        }
+    };
 
     useEffect(() => {
         if (flash && flash.new_checklist) {
@@ -233,6 +283,10 @@ export default function Card_kanban() {
     const handleFileUpload = async (event, checklistId) => {
         const file = event.target.files[0];
         if (!file) return;
+        
+        // Bersihkan error sebelumnya untuk item ini
+        dispatch({ type: "CLEAR_FILE_ERROR" });
+        dispatch({ type: "SET_UPLOADING_FILE", payload: { checklistId } });
 
         const allowedTypes = [
             "image/jpeg", "image/png", "image/gif", "image/webp",
@@ -260,9 +314,6 @@ export default function Card_kanban() {
             });
             return;
         }
-
-        dispatch({ type: "SET_UPLOADING_FILE", payload: { checklistId } });
-        dispatch({ type: "CLEAR_FILE_ERROR" });
 
         try {
             const formData = new FormData();
@@ -305,7 +356,7 @@ export default function Card_kanban() {
         } finally {
             dispatch({
                 type: "SET_UPLOADING_FILE",
-                payload: { checklistId: null },
+                payload: { checklistId: null }, // Selesai uploading, baik sukses atau gagal
             });
             event.target.value = "";
         }
@@ -371,7 +422,7 @@ export default function Card_kanban() {
         const channel = window.Echo.private(`board.${id_board}`);
         channel.listen(".board.updated", (event) => {
             router.reload({
-                only: ["label_card", "label_tim", "anggota_card", "kalender", "checklist", "lampiran_card", "komentar"],
+                only: ["dataCard", "label_card", "label_tim", "anggota_card", "kalender", "checklist", "lampiran_card", "komentar"],
                 preserveState: true,
                 preserveScroll: true,
             });
@@ -394,6 +445,8 @@ export default function Card_kanban() {
 
     useEffect(() => {
         function handleClickOutside(e) {
+            if (isEditingTitle) return;
+            
             if (lihatCardRef.current && !lihatCardRef.current.contains(e.target)) {
                 router.visit(route("proyek", { id: user.id, id_tim: id_tim, id_board: id_board }));
             }
@@ -402,7 +455,7 @@ export default function Card_kanban() {
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [user.id, id_tim, id_board]);
+    }, [user.id, id_tim, id_board, isEditingTitle]); 
 
     const [isEditing, setIsEditing] = useState(false);
     const [description, setDescription] = useState(deskripsi?.deskripsi || "");
@@ -539,9 +592,52 @@ export default function Card_kanban() {
                             <X />
                         </div>
                     </div>
+                
                     <div className="p-4 border px-4 border-b-gray-200">
-                        <h1 className="font-bold text-xl">{dataCard?.nama_card}</h1>
+                        {isEditingTitle ? (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    ref={titleInputRef}
+                                    type="text"
+                                    value={currentTitle}
+                                    onChange={(e) => setCurrentTitle(e.target.value)}
+                                    onBlur={handleTitleSave}
+                                    onKeyDown={handleTitleKeyDown}
+                                    className="font-bold text-xl w-90% rounded border-gray-300 focus:ring-blue-500 focus:border-blue-500 px-2 py-1"
+                                />
+                                <button
+                                    onClick={handleTitleSave}
+                                    className="p-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm px-3"
+                                >
+                                    Simpan
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsEditingTitle(false);
+                                        setCurrentTitle(dataCard?.nama_card || "");
+                                    }}
+                                    className="p-2 bg-gray-200 rounded hover:bg-gray-300"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 group min-h-[40px] -ml-1">
+                                <h1 
+                                    className="font-bold text-xl rounded-md px-1 py-1 cursor-pointer hover:bg-gray-100"
+                                    onClick={() => setIsEditingTitle(true)}
+                                >
+                                    {currentTitle}
+                                </h1>
+                                <SquarePen
+                                    size={18}
+                                    className="text-gray-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => setIsEditingTitle(true)}
+                                />
+                            </div>
+                        )}
                     </div>
+
                     <div className="px-4 flex-1 flex flex-col lg:flex-row overflow-y-auto gap-4">
                         <div className="flex flex-col gap-4 w-full py-4 lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element">
                             <div className="flex justify-between items-center">
@@ -734,6 +830,12 @@ export default function Card_kanban() {
                                                                         <Download size={18} />
                                                                     </a>
                                                                 </div>
+                                                            )}
+                                                            {/* PERBAIKAN: Menampilkan error upload file */}
+                                                            {state.photoError && !state.uploadingPhoto && (
+                                                                <p className="text-xs text-red-500 mt-1 pl-7">
+                                                                    Error: {state.photoError}
+                                                                </p>
                                                             )}
                                                         </div>
                                                     ))}
