@@ -10,6 +10,7 @@ use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage; 
 
 
 class Tim_perusahaanController extends Controller
@@ -20,6 +21,7 @@ class Tim_perusahaanController extends Controller
         'nama_tim' => 'required|string|max:100',
         'deskripsi_tim' => 'nullable|string',
         'jenis_tim' => 'required|string|in:proyek,tim',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
     ]);
 
     $user = Auth::user();
@@ -28,11 +30,19 @@ class Tim_perusahaanController extends Controller
         return response()->json(['error' => 'User tidak terkait dengan perusahaan.'], 403);
     }
 
+    $imagePath = null;
+    if ($request->hasFile('image')) {
+        // Simpan file ke 'storage/app/public/timperusahaan'
+        $imagePath = $request->file('image')->store('timperusahaan', 'public');
+    }
+
+
     $tim = TimPerusahaan::create([
         'id' => (string) Str::uuid(),
         'nama_tim' => $request->nama_tim,
         'deskripsi_tim' => $request->deskripsi_tim,
         'jenis_tim' => $request->jenis_tim,
+        'image' => $imagePath, 
         'perusahaan_id' => $user->anggotaPerusahaan?->perusahaan?->id,
         'user_id' => $user->id,
     ]);
@@ -85,6 +95,8 @@ class Tim_perusahaanController extends Controller
         $request->validate([
             'nama_tim' => 'required|string|max:255',
             'deskripsi_tim' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
+            '_delete_image' => 'nullable|boolean' 
         ]);
 
         $tim = TimPerusahaan::findOrFail($id_tim);
@@ -93,6 +105,19 @@ class Tim_perusahaanController extends Controller
         $tim->nama_tim = $request->nama_tim;
         $tim->deskripsi_tim = $request->deskripsi_tim;
 
+        if ($request->hasFile('image')) {
+            if ($tim->image) {
+                Storage::disk('public')->delete($tim->image);
+            }
+            $imagePath = $request->file('image')->store('timperusahaan', 'public');
+            $tim->image = $imagePath;
+        } 
+        elseif ($request->input('_delete_image')) {
+            if ($tim->image) {
+                Storage::disk('public')->delete($tim->image);
+            }
+            $tim->image = null;
+        }
         $tim->save();
 
         return redirect()->back()->with('success', 'Tim berhasil diperbarui.');
@@ -101,6 +126,11 @@ class Tim_perusahaanController extends Controller
     public function destroy($id, $id_tim)
     {
         $tim = TimPerusahaan::findOrFail($id_tim);
+
+        if ($tim->image) {
+            Storage::disk('public')->delete($tim->image);
+        }
+
         $tim->delete();
 
         return redirect()->back()->with('success', 'Tim berhasil dihapus.');

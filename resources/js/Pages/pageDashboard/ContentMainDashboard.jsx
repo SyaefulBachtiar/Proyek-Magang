@@ -1,5 +1,5 @@
 import BuatTimModal from "@/modal/BuatTimModal";
-import EditTimModal from "@/modal/EditTimModal"; // Import modal edit
+import EditTimModal from "@/modal/EditTimModal"; 
 
 import { router, useForm, usePage } from "@inertiajs/react";
 import { AlertCircle, CheckCircle, EllipsisVertical, Kanban, Loader2, Plus } from "lucide-react";
@@ -296,13 +296,14 @@ function MainDashboard() {
                                                     className="rounded-xl h-full overflow-hidden"
                                                 >
                                                     <div className="h-[168px] relative flex justify-center items-center">
-                                                        <div className="w-[180px]">
+                                                        <div className="w-full h-full relative">
                                                             <img
-                                                                src="/img/kanban.png"
-                                                                alt="Gambar grup proyek opsional"
+                                                                src={tim.image ? `/storage/${tim.image}` : "/img/kanban.png"}
+                                                                alt={tim.nama_tim}
                                                                 className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
                                                             />
-                                                        </div>
+                                                        </div>    
+
                                                         <div className="absolute inset-0 shadow-none group-hover:shadow-inset-lg transition-shadow duration-300"></div>
                                                     </div>
                                                     <div className="px-4 bg-white h-full">
@@ -417,13 +418,14 @@ function MainDashboard() {
                                                     className="rounded-xl h-full overflow-hidden"
                                                 >
                                                     <div className="h-[168px] relative flex justify-center items-center">
-                                                        <div className="w-[180px]">
+                                                        <div className="w-full h-full relative">
                                                             <img
-                                                                src="/img/kanban.png"
-                                                                alt="Gambar grup proyek opsional"
+                                                                src={tim.image ? `/storage/${tim.image}` : "/img/kanban.png"}
+                                                                alt={tim.nama_tim}
                                                                 className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
                                                             />
                                                         </div>
+
                                                         <div className="absolute inset-0 shadow-none group-hover:shadow-inset-lg transition-shadow duration-300"></div>
                                                     </div>
                                                     <div className="px-4 h-full bg-white">

@@ -1,24 +1,30 @@
 import { useForm } from "@inertiajs/react";
-import { CheckCircle, Loader2, X } from "lucide-react";
-import { useEffect } from "react";
+import { CheckCircle, Loader2, X, Trash2 } from "lucide-react"; 
+import { useEffect, useState } from "react";
 
 export default function EditTimModal({ tim, onClose, id_perusahaan }) {
+    
+    const [imagePreview, setImagePreview] = useState(null);
+
     const {
         data,
         setData,
-        put,
+        post, 
         processing,
         errors,
         wasSuccessful,
     } = useForm({
         nama_tim: tim.nama_tim || "",
         deskripsi_tim: tim.deskripsi_tim || "",
+        image: null, 
+        _delete_image: false, 
+        _method: "PUT", 
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        put(route("tim-perusahaan.update", { id: id_perusahaan, id_tim: tim.id }), {
+        post(route("tim-perusahaan.update", { id: id_perusahaan, id_tim: tim.id }), {
             preserveScroll: true,
             onSuccess: () => {
                 onClose(); 
@@ -29,6 +35,34 @@ export default function EditTimModal({ tim, onClose, id_perusahaan }) {
         });
     };
 
+    // Fungsi untuk menangani perubahan file
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData((prevData) => ({
+                ...prevData,
+                image: file,
+                _delete_image: false 
+            }));
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    // Fungsi untuk menghapus gambar
+    const handleDeleteImage = () => {
+        setData((prevData) => ({
+            ...prevData,
+            image: null,
+            _delete_image: true 
+        }));
+        setImagePreview(null); 
+        const fileInput = document.getElementById("image_edit");
+        if (fileInput) fileInput.value = "";
+    };
+
+    const currentImageUrl = tim.image ? `/storage/${tim.image}` : null;
+    const displayImage = imagePreview || (data._delete_image ? null : currentImageUrl);
+
     useEffect(() => {
         if (wasSuccessful) {
             onClose();
@@ -36,8 +70,8 @@ export default function EditTimModal({ tim, onClose, id_perusahaan }) {
     }, [wasSuccessful]);
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-[99] flex justify-center items-center">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative animate-in fade-in-0 zoom-in-95">
+        <div className="fixed inset-0 bg-black/50 z-[99] flex justify-center items-center overflow-y-auto p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative animate-in fade-in-0 zoom-in-95 max-h-full overflow-y-auto">
                 {/* Tombol Close */}
                 <button
                     onClick={onClose}
@@ -55,13 +89,13 @@ export default function EditTimModal({ tim, onClose, id_perusahaan }) {
                     {/* Input Nama Tim */}
                     <div>
                         <label
-                            htmlFor="nama_tim"
+                            htmlFor="nama_tim_edit"
                             className="block text-sm font-medium text-gray-700 mb-1"
                         >
                             Nama Tim
                         </label>
                         <input
-                            id="nama_tim"
+                            id="nama_tim_edit"
                             type="text"
                             value={data.nama_tim}
                             onChange={(e) => setData("nama_tim", e.target.value)}
@@ -82,13 +116,13 @@ export default function EditTimModal({ tim, onClose, id_perusahaan }) {
                     {/* Input Deskripsi Tim */}
                     <div>
                         <label
-                            htmlFor="deskripsi_tim"
+                            htmlFor="deskripsi_tim_edit"
                             className="block text-sm font-medium text-gray-700 mb-1"
                         >
                             Deskripsi
                         </label>
                         <textarea
-                            id="deskripsi_tim"
+                            id="deskripsi_tim_edit"
                             value={data.deskripsi_tim}
                             onChange={(e) => setData("deskripsi_tim", e.target.value)}
                             rows={3}
@@ -105,6 +139,58 @@ export default function EditTimModal({ tim, onClose, id_perusahaan }) {
                             </p>
                         )}
                     </div>
+                    <div>
+                        <label
+                            htmlFor="image_edit"
+                            className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                            Gambar Tim
+                        </label>
+                        
+                        {/* Preview Gambar */}
+                        {displayImage && (
+                            <div className="mt-2 mb-2 relative w-full h-40">
+                                <img
+                                    src={displayImage}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover rounded-md border"
+                                />
+                            </div>
+                        )}
+
+                        {/* Tombol Hapus Gambar */}
+                        {(displayImage) && (
+                            <button
+                                type="button"
+                                onClick={handleDeleteImage}
+                                className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 transition-colors mb-2"
+                                disabled={processing}
+                            >
+                                <Trash2 size={14} />
+                                Hapus Gambar
+                            </button>
+                        )}
+
+                        <input
+                            id="image_edit"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700
+                                hover:file:bg-blue-100"
+                            disabled={processing}
+                        />
+                        {errors.image && (
+                            <p className="text-red-500 text-sm mt-1">
+                                {errors.image}
+                            </p>
+                        )}
+                    </div>
+
 
                     {/* Tombol Submit */}
                     <div className="flex justify-end pt-2">

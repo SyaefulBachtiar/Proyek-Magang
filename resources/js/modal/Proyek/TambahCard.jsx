@@ -111,7 +111,7 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
                     </div>
 
                     {/* Optional: Upload gambar */}
-                    <div className="mb-6">
+                    {/* <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Gambar (Opsional)
                         </label>
@@ -126,7 +126,7 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
                                 {errors.image}
                             </p>
                         )}
-                    </div>
+                    </div> */}
 
                     <div className="flex justify-end gap-3">
                         <button
