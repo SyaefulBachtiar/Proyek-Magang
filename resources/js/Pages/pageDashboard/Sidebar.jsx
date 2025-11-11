@@ -394,20 +394,18 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                     ""
                 )}
 
-                {/* <div
+                <div
                     className={`w-full text-xs text-gray-500 px-4 pt-4 border-t border-gray-200 mt-4 ${
                         sidebarOpen ? "block" : "hidden group-hover:block"
                     }`}
                 >
                     <p className="font-bold">Horizon University Indonesia</p>
-                    <p className="mt-1">
-                        Pembuat: Sahrul Maulidi, Syaeful Bachtiar & M Fikri H
-                    </p>
-                    <p className="mt-2 opacity-75">
-                        &copy; {new Date().getFullYear()} All rights reserved.
-                    </p>
-                </div> */}
+    <p className="mt-1 sm:mt-0 opacity-75">
+        &copy; {new Date().getFullYear()} All rights reserved.
+    </p>
+                </div>
             </div>
+            
         </>
     );
 }
