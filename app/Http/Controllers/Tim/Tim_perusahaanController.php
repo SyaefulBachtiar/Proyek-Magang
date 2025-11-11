@@ -77,7 +77,7 @@ class Tim_perusahaanController extends Controller
     List_boardModel::create([
         'id' => (string) Str::uuid(),
         'urutan_posisi' => 3,
-        'judul' => 'Verifikasi Katim',
+        'judul' => 'Perlu Verifikasi',
         'id_board' => $board->id,
     ]);
 

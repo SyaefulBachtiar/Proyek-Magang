@@ -32,14 +32,14 @@ export default function Notif ({close, notifData}) {
     };
 
     return (
-        <div className="fixed w-[300px] max-h-[400px] bg-white rounded-lg p-2 shadow-[0_2px_8px_rgba(0,0,0,0.10)] z-50 top-[70px] right-[300px]">
+        <div className="fixed w-[95vw] max-h-[400px] bg-white rounded-lg p-2 shadow-[0_2px_8px_rgba(0,0,0,0.10)] z-50 top-[70px] right-1/2 translate-x-1/2 lg:w-[300px] lg:right-[300px] lg:translate-x-0">
             <X
                 onClick={close}
                 size={25}
                 className="cursor-pointer hover:bg-gray-200 rounded-md p-1"
             />
-            <h1 className="font-semibold text-center text-xl">Notifikasi</h1>
-            <div className="p-2 overflow-y-auto max-h-[300px] my-scrollable-element rounded-md flex flex-col gap-1 mt-5">
+            <h1 className="font-semibold text-center text-lg lg:text-xl">Notifikasi</h1>
+            <div className="p-2 overflow-y-auto max-h-[300px] my-scrollable-element rounded-md flex flex-col gap-1 mt-3 lg:mt-5">
                 {notifData.items.length > 0 ? (
                     notifData.items.map((item) => (
                         <div
@@ -49,8 +49,8 @@ export default function Notif ({close, notifData}) {
                             }`}
                         >
                             <Bell size={20} className="text-gray-800 flex-shrink-0" />
-                            <div className="flex flex-col">
-                                <h1 className="font-semibold text-gray-800">
+                            <div className="flex flex-col w-full">
+                                <h1 className="font-semibold text-gray-800 text-sm">
                                     {item.title}
                                 </h1>
                                 <p className="text-xs mt-[1px] font-semibold text-gray-600">
@@ -59,7 +59,7 @@ export default function Notif ({close, notifData}) {
                                 <p className="text-xs text-gray-600">
                                     {item.message}
                                 </p>
-                                <div className="mt-1 flex gap-2">
+                                <div className="mt-2 flex flex-col sm:flex-row gap-2">
                                     <button
                                         onClick={() =>
                                             router.delete(
@@ -69,7 +69,7 @@ export default function Notif ({close, notifData}) {
                                                 })
                                             )
                                         }
-                                        className="text-sm hover:bg-red-200 p-1 rounded-md"
+                                        className="text-sm hover:bg-red-200 py-1 px-2 rounded-md w-full sm:w-auto text-center sm:text-left"
                                     >
                                         Hapus
                                     </button>
@@ -82,7 +82,7 @@ export default function Notif ({close, notifData}) {
                                                 })
                                             )
                                         }
-                                        className="text-sm hover:bg-blue-200 p-1 rounded-md"
+                                        className="text-sm hover:bg-blue-200 py-1 px-2 rounded-md w-full sm:w-auto text-center sm:text-left"
                                     >
                                         Tandai sudah di baca
                                     </button>

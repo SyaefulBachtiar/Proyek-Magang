@@ -74,7 +74,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
         setSearchQuery("");
         setDropwdownProyek(false);
         setDropdownTim(false);
-        setIsSearchFocused(false)
+        setIsSearchFocused(false);
     };
 
     const handleSearchFocus = () => {
@@ -113,7 +113,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                 </div>
 
                 {/* search sidebar */}
-                <div className="w-full group cursor-pointer">
+                <div className="w-full group cursor-pointer ">
                     <div className="w-full group flex overflow-hidden gap-4 relative items-center py-1 px-[2px]">
                         <Search
                             className="absolute top-1/2 left-2 -translate-y-1/2"
@@ -381,7 +381,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                     className={`px-[5px] rounded-lg h-[42px] flex items-center`}
                                 >
                                     <div className="w-8 h-8 flex justify-center items-center">
-                                        <Medal size={25}/>
+                                        <Medal size={25} />
                                     </div>
                                 </div>
                                 <p className="w-[80px] flex-shrink-0">
@@ -393,6 +393,20 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                 ) : (
                     ""
                 )}
+
+                {/* <div
+                    className={`w-full text-xs text-gray-500 px-4 pt-4 border-t border-gray-200 mt-4 ${
+                        sidebarOpen ? "block" : "hidden group-hover:block"
+                    }`}
+                >
+                    <p className="font-bold">Horizon University Indonesia</p>
+                    <p className="mt-1">
+                        Pembuat: Sahrul Maulidi, Syaeful Bachtiar & M Fikri H
+                    </p>
+                    <p className="mt-2 opacity-75">
+                        &copy; {new Date().getFullYear()} All rights reserved.
+                    </p>
+                </div> */}
             </div>
         </>
     );

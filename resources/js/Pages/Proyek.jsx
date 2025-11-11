@@ -21,19 +21,21 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
             <Dashboard
                 header={
                     <>
-                        <div className="w-full flex justify-between border-t-2 py-2 pt-3">
-                            <div className="">
-                                <div className="ml-[10px] flex gap-2 items-center">
-                                    <SquareKanban size={25} />
-                                    <h1 className="text-xl font-semibold">
+                        <div className="w-full flex justify-between items-center border-t-2 py-2 pt-3">
+                            <div className="pl-3 flex-shrink-0">
+                                <div className="flex gap-2 items-center">
+                                    <SquareKanban
+                                        size={20}
+                                        className="md:size-25"
+                                    />
+                                    <h1 className="text-lg md:text-xl font-semibold truncate max-w-48">
                                         {nama_board}
                                     </h1>
                                 </div>
                             </div>
-                            <div className="flex gap-2">
-                                {/* Kelola Tim */}
+                            <div className="flex gap-2 px-3 sm:px-0 overflow-x-auto pb-2 -mb-2 sm:overflow-x-visible sm:pb-0 sm:-mb-0">
                                 <div
-                                    className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
                                     onClick={() =>
                                         router.visit(
                                             route("proyek.kelolatim", {
@@ -45,7 +47,9 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                 >
                                     <div className="flex items-center gap-2">
                                         <AppWindow size={20} />
-                                        <h1>Anggota Tim</h1>
+                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
+                                            Anggota Tim
+                                        </span>
                                     </div>
                                     <div
                                         className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
@@ -56,7 +60,7 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                     ></div>
                                 </div>
                                 <div
-                                    className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
                                     onClick={() =>
                                         router.visit(
                                             route("proyek", {
@@ -69,10 +73,12 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                 >
                                     <div className="flex items-center gap-2">
                                         <LayoutList size={20} />
-                                        <h1>Tugas</h1>
+                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
+                                            Tugas
+                                        </span>
                                     </div>
                                     <div
-                                        className={`bg-[#A8E038] h-1 left-0 absolute ${
+                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
                                             activePage === "tugasPage"
                                                 ? "w-full"
                                                 : ""
@@ -80,7 +86,7 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                     ></div>
                                 </div>
                                 <div
-                                    className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
                                     onClick={() =>
                                         router.visit(
                                             route("proyek.chatgrup", {
@@ -92,10 +98,12 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                 >
                                     <div className="flex items-center gap-2">
                                         <MessageSquare size={20} />
-                                        <h1>Chat grup</h1>
+                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
+                                            Chat grup
+                                        </span>
                                     </div>
                                     <div
-                                        className={`bg-[#A8E038] h-1 left-0 absolute ${
+                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
                                             activePage === "chatGrupPage"
                                                 ? "w-full"
                                                 : ""
@@ -103,7 +111,7 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                     ></div>
                                 </div>
                                 <div
-                                    className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
                                     onClick={() =>
                                         router.visit(
                                             route("proyek.pengumuman", {
@@ -114,20 +122,22 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                     }
                                 >
                                     <div className="flex items-center gap-2">
-                                        <Megaphone size={20} /> 
-                                        <h1>Pengumuman</h1>
+                                        <Megaphone size={20} />
+                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
+                                            Pengumuman
+                                        </span>
                                     </div>
                                     <div
-                                        className={`bg-[#A8E038] h-1 left-0 absolute ${
-                                            activePage === "pengumumanPage" 
+                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
+                                            activePage === "pengumumanPage"
                                                 ? "w-full"
                                                 : ""
                                         }`}
                                     ></div>
                                 </div>
-                                
+
                                 <div
-                                    className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
                                     onClick={() =>
                                         router.visit(
                                             route("proyek.laporan", {
@@ -139,10 +149,12 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                 >
                                     <div className="flex items-center gap-2">
                                         <AlignEndHorizontal size={20} />
-                                        <h1>Laporan</h1>
+                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
+                                            Laporan
+                                        </span>
                                     </div>
                                     <div
-                                        className={`bg-[#A8E038] h-1 left-0 absolute ${
+                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
                                             activePage === "laporanPage"
                                                 ? "w-full"
                                                 : ""
@@ -151,17 +163,19 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                 </div>
                                 {role !== "Member" ? (
                                     <div
-                                        className="bg-[#006F78] text-white px-2 py-1 rounded-md cursor-pointer relative overflow-hidden"
+                                        className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
                                         onClick={() =>
                                             setTambahAnggota(!tambahAnggota)
                                         }
                                     >
                                         <div className="flex items-center gap-2">
                                             <UserRoundPlus size={20} />
-                                            <h1>Tambah</h1>
+                                            <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
+                                                Tambah
+                                            </span>
                                         </div>
                                         <div
-                                            className={`bg-[#A8E038] h-1 left-0 absolute`}
+                                            className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute`}
                                         ></div>
                                     </div>
                                 ) : (

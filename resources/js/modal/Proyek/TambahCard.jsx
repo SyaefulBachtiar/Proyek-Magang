@@ -57,8 +57,12 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
             submitData.append("image", formData.image);
         }
 
-        // Submit menggunakan Inertia
-        router.post(route('proyek.card.store', { id: id, id_tim: id_tim, id_board: id_board }),
+        router.post(
+            route("proyek.card.store", {
+                id: id,
+                id_tim: id_tim,
+                id_board: id_board,
+            }),
             submitData,
             {
                 forceFormData: true,
@@ -78,19 +82,21 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
     };
 
     return (
-        <div className="fixed top-0 bg-black/20 w-screen h-screen z-50 flex justify-center items-center">
-            <div className="p-5 bg-white relative rounded-lg w-[500px] px-8">
+        <div className="fixed top-0 bg-black/20 w-screen h-screen z-50 flex justify-center items-center p-4">
+            <div className="p-6 sm:p-8 bg-white relative rounded-lg w-full max-w-[500px]">
                 <X
                     onClick={close}
-                    className="cursor-pointer absolute top-0 right-0 m-5 hover:bg-gray-100 rounded p-1"
+                    className="cursor-pointer absolute top-0 right-0 m-4 sm:m-5 hover:bg-gray-100 rounded p-1"
                 />
 
                 <form onSubmit={handleSubmit}>
-                    <div className="mt-10 mb-6">
-                        <h1 className="text-2xl font-semibold">Tambah Tugas</h1>
+                    <div className="mt-6 sm:mt-10 mb-5 sm:mb-6">
+                        <h1 className="text-xl sm:text-2xl font-semibold">
+                            Tambah Tugas
+                        </h1>
                     </div>
 
-                    <div className="mb-4">
+                    <div className="mb-5 sm:mb-6">
                         <Input
                             label="Nama Tugas"
                             name="nama_tugas"
@@ -128,11 +134,11 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
                         )}
                     </div> */}
 
-                    <div className="flex justify-end gap-3">
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                         <button
                             type="button"
                             onClick={close}
-                            className="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
+                            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
                             disabled={loading}
                         >
                             Batal
@@ -140,7 +146,7 @@ export default function TambahCard({ id_list, close, id, id_tim, id_board }) {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             {loading ? "Menyimpan..." : "Simpan"}
                         </button>

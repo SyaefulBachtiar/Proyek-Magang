@@ -1,8 +1,15 @@
 import BuatTimModal from "@/modal/BuatTimModal";
-import EditTimModal from "@/modal/EditTimModal"; 
+import EditTimModal from "@/modal/EditTimModal";
 
 import { router, useForm, usePage } from "@inertiajs/react";
-import { AlertCircle, CheckCircle, EllipsisVertical, Kanban, Loader2, Plus } from "lucide-react";
+import {
+    AlertCircle,
+    CheckCircle,
+    EllipsisVertical,
+    Kanban,
+    Loader2,
+    Plus,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import Dashboard, { DashboardState } from "../Dashboard";
 
@@ -46,18 +53,18 @@ function MainDashboard() {
     };
 
     useEffect(() => {
-        if(id){
+        if (id) {
             const channel = window.Echo.private(`user.${id}`);
 
             channel.listen(".notif.updated", (event) => {
                 router.reload({
-                    only: ["data", "role", "perusahaan"]
+                    only: ["data", "role", "perusahaan"],
                 });
             });
 
             return () => {
                 window.Echo.leave(`user.${id}`);
-            }
+            };
         }
     }, []);
 
@@ -84,7 +91,7 @@ function MainDashboard() {
         recentlySuccessful,
         isDirty,
     } = useForm({
-        nama_perusahaan: '',
+        nama_perusahaan: "",
     });
 
     const handleSubmit = (e) => {
@@ -104,20 +111,20 @@ function MainDashboard() {
         <>
             <div className="flex flex-col justify-center items-center ">
                 {!perusahaan ? (
-                    <div className="flex flex-col justify-center items-center w-full mt-10">
+                    <div className="flex flex-col justify-center items-center w-full mt-10 px-4 sm:px-0">
                         <form
                             onSubmit={handleSubmit}
-                            className="w-full max-w-md bg-white shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4 border border-gray-100"
+                            className="w-full max-w-md bg-white shadow-lg rounded-lg px-4 sm:px-8 pt-6 pb-8 mb-4 border border-gray-100"
                         >
-                            <div className="mb-6 flex gap-5 items-end">
-                                <div className="h-[40px] w-[40px]">
+                            <div className="mb-6 flex gap-3 sm:gap-5 items-end">
+                                <div className="h-[40px] w-[40px] flex-shrink-0">
                                     <img
                                         src="/img/perusahaan.png"
                                         alt="Perusahaan"
                                         className="object-cover w-full h-full"
                                     />
                                 </div>
-                                <h2 className="text-2xl font-bold text-gray-800">
+                                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                                     Masukan Nama Instansi
                                 </h2>
                             </div>
@@ -196,8 +203,8 @@ function MainDashboard() {
                         className="flex mt-10 p-3 rounded-lg bg-blue-600 text-white justify-center items-center gap-2 cursor-pointer shadow-[0_2px_10px_rgba(0,0,0,0.25)]"
                         onClick={() => setBuatTimModal(true)}
                     >
-                        <Plus size={30} />
-                        <h1 className="text-2xl">Buat grup</h1>
+                        <Plus size={24} sm:size={30} />
+                        <h1 className="text-xl sm:text-2xl">Buat grup</h1>
                     </div>
                 ) : (
                     ""
@@ -205,21 +212,22 @@ function MainDashboard() {
                 {data.length > 0 ? (
                     <div className="flex flex-col justify-center items-center mt-10">
                         <div className="w-full px-4 sm:px-2 md:px-2 xl:px-10 pb-10">
-                            {/* Proyek grup */}
                             {proyekTim.length > 0 && (
                                 <div className="my-4 w-full rounded-lg">
                                     <div className="mb-5">
-                                        <h1 className="text-2xl">Proyek</h1>
+                                        <h1 className="text-xl sm:text-2xl">
+                                            Proyek
+                                        </h1>
                                     </div>
-                                    <div className="grid grid-flow-row grid-cols-3 gap-10">
+                                    <div className="grid grid-flow-row grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
                                         {proyekTim.map((tim) => (
                                             <div
                                                 key={tim.id}
-                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] hover:shadow-lg bg-[#F0E460] rounded-xl group relative"
+                                                className="w-full md:w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] hover:shadow-lg bg-[#F0E460] rounded-xl group relative"
                                             >
                                                 {activeEllipsisId ===
                                                     tim.id && (
-                                                    <div className="absolute left-72 z-50 top-8 bg-white rounded-md p-2 min-w-[120px]">
+                                                    <div className="absolute right-10 md:right-auto md:left-72 z-50 top-8 bg-white rounded-md p-2 min-w-[120px] shadow-lg border border-gray-100">
                                                         <ul className="space-y-2">
                                                             <li
                                                                 className="cursor-pointer text-gray-700 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
@@ -268,7 +276,7 @@ function MainDashboard() {
                                                         </ul>
                                                     </div>
                                                 )}
-                                                <div className="absolute top-3 right-3 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white/40">
+                                                <div className="absolute top-3 right-3 z-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white/40">
                                                     <EllipsisVertical
                                                         size={18}
                                                         className="text-black hover:text-gray-700"
@@ -298,23 +306,33 @@ function MainDashboard() {
                                                     <div className="h-[168px] relative flex justify-center items-center">
                                                         <div className="w-full h-full relative">
                                                             <img
-                                                                src={tim.image ? `/storage/${tim.image}` : "/img/kanban.png"}
-                                                                alt={tim.nama_tim}
+                                                                src={
+                                                                    tim.image
+                                                                        ? `/storage/${tim.image}`
+                                                                        : "/img/kanban.png"
+                                                                }
+                                                                alt={
+                                                                    tim.nama_tim
+                                                                }
                                                                 className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
                                                             />
-                                                        </div>    
+                                                        </div>
 
                                                         <div className="absolute inset-0 shadow-none group-hover:shadow-inset-lg transition-shadow duration-300"></div>
                                                     </div>
                                                     <div className="px-4 bg-white h-full">
                                                         <div className="pt-2">
                                                             <div className="flex items-center gap-2">
-                                                                <Kanban size={16}/>
+                                                                <Kanban
+                                                                    size={16}
+                                                                />
                                                                 <h1 className="text-lg text-gray-700 group-hover:underline cursor-pointer">
-                                                                    {tim.nama_tim}
+                                                                    {
+                                                                        tim.nama_tim
+                                                                    }
                                                                 </h1>
                                                             </div>
-                                                            <p className="text-sm text-gray-400">
+                                                            <p className="text-sm text-gray-400 truncate">
                                                                 {
                                                                     tim.deskripsi_tim
                                                                 }
@@ -327,21 +345,22 @@ function MainDashboard() {
                                     </div>
                                 </div>
                             )}
-                            {/* Tim biasa */}
                             {timBiasa.length > 0 && (
-                                <div className="my-4 w-full rounded-lg mt-16">
+                                <div className="my-4 w-full rounded-lg mt-10 md:mt-16">
                                     <div className="mb-5">
-                                        <h1 className="text-2xl">Tim</h1>
+                                        <h1 className="text-xl sm:text-2xl">
+                                            Tim
+                                        </h1>
                                     </div>
-                                    <div className="grid grid-flow-row grid-cols-3 gap-10">
+                                    <div className="grid grid-flow-row grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
                                         {timBiasa.map((tim) => (
                                             <div
                                                 key={tim.id}
-                                                className="w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] bg-[#F0E460] hover:shadow-lg rounded-xl group relative"
+                                                className="w-full md:w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] bg-[#F0E460] hover:shadow-lg rounded-xl group relative"
                                             >
                                                 {activeEllipsisId ===
                                                     tim.id && (
-                                                    <div className="absolute left-72 z-50 top-8 bg-white shadow-lg rounded-md p-2 min-w-[120px]">
+                                                    <div className="absolute right-10 md:right-auto md:left-72 z-50 top-8 bg-white shadow-lg rounded-md p-2 min-w-[120px] border border-gray-100">
                                                         <ul className="space-y-2">
                                                             <li
                                                                 className="cursor-pointer text-gray-700 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
@@ -390,7 +409,7 @@ function MainDashboard() {
                                                         </ul>
                                                     </div>
                                                 )}
-                                                <div className="absolute top-3 right-3 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white/40">
+                                                <div className="absolute top-3 right-3 z-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white/40">
                                                     <EllipsisVertical
                                                         size={18}
                                                         className="text-black hover:text-gray-700"
@@ -420,8 +439,14 @@ function MainDashboard() {
                                                     <div className="h-[168px] relative flex justify-center items-center">
                                                         <div className="w-full h-full relative">
                                                             <img
-                                                                src={tim.image ? `/storage/${tim.image}` : "/img/kanban.png"}
-                                                                alt={tim.nama_tim}
+                                                                src={
+                                                                    tim.image
+                                                                        ? `/storage/${tim.image}`
+                                                                        : "/img/kanban.png"
+                                                                }
+                                                                alt={
+                                                                    tim.nama_tim
+                                                                }
                                                                 className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
                                                             />
                                                         </div>
@@ -433,7 +458,7 @@ function MainDashboard() {
                                                             <h1 className="text-lg text-gray-700 group-hover:underline">
                                                                 {tim.nama_tim}
                                                             </h1>
-                                                            <p className="text-sm text-gray-400">
+                                                            <p className="text-sm text-gray-400 truncate">
                                                                 {
                                                                     tim.deskripsi_tim
                                                                 }
@@ -452,7 +477,7 @@ function MainDashboard() {
                     ""
                 ) : (
                     <div className="w-full mt-10 flex justify-center items-center">
-                        <div className="w-[500px]">
+                        <div className="w-full max-w-sm md:w-[500px] md:max-w-none px-4 md:px-0">
                             <img
                                 src="/img/ilustrasi.png"
                                 alt="ilustrasi"
@@ -463,12 +488,10 @@ function MainDashboard() {
                 )}
             </div>
 
-            {/* Modal untuk buat tim */}
             {buatTimModal && (
                 <BuatTimModal onClose={() => setBuatTimModal(false)} />
             )}
 
-            {/* Modal untuk edit tim */}
             {editTimModal && timToEdit && (
                 <EditTimModal
                     id_perusahaan={id}

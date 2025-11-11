@@ -1,50 +1,64 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Link } from '@inertiajs/react';
+import ApplicationLogo from "@/Components/ApplicationLogo";
+import { Link } from "@inertiajs/react";
 
-export default function GuestLayout({ children, register}) {
+export default function GuestLayout({ children, register }) {
     return (
-        <div className="flex flex-wrap sm:flex-nowrap min-h-screen">
-            <div className="w-full sm:w-[90vw] h-[20vh] sm:h-screen relative">
-                <div>
-                    <Link
-                        href="/"
-                        className="absolute z-50 top-[40px] left-[30px]"
-                    >
-                        <div className='flex gap-4 items-center'>
-                            <div className="flex items-center justify-center space-x-4 bg-white px-4 py-3 rounded-lg shadow-md w-fit mx-auto">
-                            <img src="/img/kemenkes.png" alt="Logo Kemenkes" className="h-12 w-12 object-contain" />
-                            <h1 className="text-2xl font-semibold text-gray-800">BBPK Ciloto</h1>
-                            </div>
-                        </div>
+        <div className="flex min-h-screen bg-white">
+            <div className="relative hidden sm:block sm:w-1/2">
+                <Link
+                    href="/"
+                    className="absolute z-10 top-10 left-10"
+                >
+                    <div className="flex items-center justify-center gap-4 px-4 py-3 bg-white rounded-lg shadow-md w-fit">
+                        <img
+                            src="/img/kemenkes.png"
+                            alt="Logo Kemenkes"
+                            className="object-contain h-10 w-10"
+                        />
+                        <h1 className="text-xl font-semibold text-gray-800">
+                            BBPK Ciloto
+                        </h1>
+                    </div>
+                </Link>
+
+                {/* Gambar */}
+                <img
+                    src="/img/first.png"
+                    alt="BBPK Ciloto"
+                    className="object-cover w-full h-full"
+                />
+            </div>
+
+            <div className="flex flex-col w-full px-6 py-40 sm:w-1/2 sm:px-12 lg:px-20">
+                
+                {/* Logo untuk Mobile (Muncul di atas form) */}
+                <div className="mb-10 sm:hidden">
+                    <Link href="/" className="flex items-center gap-3 w-fit">
+                        <img
+                            src="/img/kemenkes.png"
+                            alt="Logo Kemenkes"
+                            className="object-contain h-10 w-10"
+                        />
+                        <h1 className="text-xl font-semibold text-gray-800">
+                            BBPK Ciloto
+                        </h1>
                     </Link>
                 </div>
 
-                {/* Image */}
-                <div className="h-full w-full bg-gray-200">
-                    <img
-                        src="/img/first.png"
-                        alt=""
-                        className="object-cover h-full w-full"
-                    />
-                </div>
-            </div>
-
-            {/* Form login */}
-            <div className="w-full flex flex-col gap-7 items-center px-5 sm:px-20">
-                {/* Judul */}
-                <div className="mt-[70px] w-full text-start space-y-3">
-                    <h1 className="text-3xl sm:text-5xl">
+                <div className="w-full mb-8 text-start">
+                    <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
                         {register ? "Register" : "Log in"}
                     </h1>
-                    <p className="font-light text-xs sm:text-sm">
-                        {register ? "Register" : "Log in"} Aplikasi kantor BBPK
-                        Ciloto
+                    <p className="mt-2 text-sm font-light text-gray-600">
+                        {register
+                            ? "Buat akun baru"
+                            : "Login ke Aplikasi kantor BBPK Ciloto"}
                     </p>
                 </div>
 
-                {/* Form konten */}
-                <div className="w-full bg-white py-4">{children}</div>
+                <div className="w-full">{children}</div>
             </div>
+
         </div>
     );
 }

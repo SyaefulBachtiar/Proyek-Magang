@@ -4,7 +4,6 @@ import { useState, useEffect, createContext, useContext, useRef } from "react";
 import TambahAnggotaModal from "@/modal/TambahAnggotaModal";
 import Notif from "@/modal/Notifikasi/Notif";
 
-// untuk sidebar
 export const SidebarContext = createContext();
 
 export const useAllState = () => useContext(SidebarContext);
@@ -15,30 +14,22 @@ export default function AuthenticatedLayout({ children, header }) {
     const { perusahaan, timLayout, role, notifikasi, perusahaan_id } =
         usePage().props;
 
-    // notif state
     const [notif, setNotif] = useState(false);
 
-    // sidebar state
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // sidebar ref
     const buttonMenu = useRef(null);
 
-    // search/cari state
     const [search, setSearch] = useState(false);
 
-    // Tambah Anggota
     const [tambahAnggotaModal, setTambahAnggotaModal] = useState(false);
 
-    // State baru untuk menampung user yang benar-benar online
     const [onlineUsersList, setOnlineUsersList] = useState([]);
 
-    // State untuk menampilkan/menyembunyikan daftar sisa user online
     const [showRemainingOnline, setShowRemainingOnline] = useState(false);
     const remainingOnlineRef = useRef(null);
     const remainingOnlineTriggerRef = useRef(null);
 
-    // format waktu
     const formatRelativeTime = (isoDate) => {
         const date = new Date(isoDate);
         const now = new Date();
@@ -53,7 +44,6 @@ export default function AuthenticatedLayout({ children, header }) {
         return `${days} hari yang lalu`;
     };
 
-    // profil dropdown
     const [profileDown, setProfileDown] = useState(false);
 
     const onlineUsers = onlineUsersList;
@@ -151,22 +141,22 @@ export default function AuthenticatedLayout({ children, header }) {
         >
             <div className="h-screen flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="py-1 px-3 bg-white relative">
-                    <div className="flex py-2 gap-5">
-                        <div className="flex items-center w-[500px] justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-[40px] h-[40px]">
+                <div className="py-2 px-4 bg-white relative border-b">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center justify-between w-full sm:w-auto md:w-[320px]">
+                        <div className="flex items-center gap-3">
+                                <div className="flex-shrink-0 w-10 h-10">
                                     <img
                                         src="/img/kemenkes.png"
-                                        alt="Image"
-                                        className="h-full w-full object-cover rounded-[50%]"
+                                        alt="Logo Perusahaan" 
+                                        className="h-full w-full object-cover rounded-full"
                                     />
                                 </div>
-                                <h1 className="text-sm font-semibold sm:text-sm md:text-sm lg:text-lg xl:text-2xl uppercase">
+                                <h1 className="text-base font-semibold uppercase md:text-lg leading-snug">
                                     {perusahaan || "Belum ada nama perusahaan"}
                                 </h1>
                             </div>
-                            <div>
+                            <div className="flex-shrink-0">
                                 <Menu
                                     size={30}
                                     ref={buttonMenu}
@@ -178,9 +168,9 @@ export default function AuthenticatedLayout({ children, header }) {
                             </div>
                         </div>
 
-                        <div className="w-full justify-end items-center hidden mr-5 gap-8 sm:flex md:flex lg:flex xl:flex">
+                        <div className="w-full sm:w-auto flex items-center justify-end gap-2 sm:gap-3 md:gap-8">
                             {/* Users */}
-                            <div className="flex gap-5 items-center">
+                            <div className="hidden sm:flex gap-5 items-center">
                                 <div className="flex items-center">
                                     {/* Tampilkan maksimal 5 user online */}
                                     {displayedOnlineUsers.map((users, i) => (
@@ -198,7 +188,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                                 </div>
                                             ) : (
                                                 <div className="w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white">
-                                                    <p>
+                                                    <p className="text-sm">
                                                         {users.name.charAt(0)}
                                                     </p>
                                                 </div>
@@ -285,7 +275,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                     )}
                                 </div>
 
-                                <div className="flex items-center">
+                                <div className="hidden md:flex items-center">
                                     {displayedOfflineUsers.map((users, i) => (
                                         <div
                                             key={i}
@@ -301,7 +291,7 @@ export default function AuthenticatedLayout({ children, header }) {
                                                 </div>
                                             ) : (
                                                 <div className="w-[30px] h-[30px] rounded-[50%] bg-cyan-400 cursor-pointer flex items-center justify-center text-white">
-                                                    <p>
+                                                    <p className="text-sm">
                                                         {users.name.charAt(0)}
                                                     </p>
                                                 </div>
@@ -366,10 +356,10 @@ export default function AuthenticatedLayout({ children, header }) {
                             </div>
                             <div
                                 onClick={() => setNotif(!notif)}
-                                className="p-2 bg-[#F0E460] rounded-lg text-white cursor-pointer relative"
+                                className="p-2 bg-[#F0E460] rounded-lg text-white cursor-pointer relative flex-shrink-0"
                             >
                                 {notifikasi.unread_count > 0 ? (
-                                    <div className="absolute -top-2 -right-2 p-1 bg-blue-600 h-[20px] w-[20px] rounded-full flex items-center justify-center text-xs">
+                                    <div className="absolute -top-1 -right-1 p-1 bg-blue-600 h-5 w-5 rounded-full flex items-center justify-center text-xs">
                                         <span>{notifikasi.unread_count}</span>
                                     </div>
                                 ) : (
@@ -387,23 +377,26 @@ export default function AuthenticatedLayout({ children, header }) {
 
                             {(role === "Super User" || role === "Admin") && (
                                 <button
-                                    className="p-2 bg-[#0076FD] rounded-lg flex items-center text-white gap-2"
+                                    className="p-2 bg-[#0076FD] rounded-lg flex items-center text-white gap-2 flex-shrink-0"
                                     onClick={() => setTambahAnggotaModal(true)}
                                 >
                                     <UserRoundPlus size={20} />
-                                    <p className="text-xs sm:text-[15px]">
+                                    <p className="text-xs sm:text-[15px] hidden sm:block">
                                         Tambah anggota
                                     </p>
                                 </button>
                             )}
 
-                            <div ref={profileDropDownRef} className="relative">
+                            <div
+                                ref={profileDropDownRef}
+                                className="relative flex-shrink-0"
+                            >
                                 {user.poto_profile_user ? (
                                     <div
                                         onClick={() =>
                                             setProfileDown((prev) => !prev)
                                         }
-                                        className="w-[50px] h-[50px] rounded-[50%] flex justify-center items-center text-md text-white text-xl overflow-hidden cursor-pointer"
+                                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex justify-center items-center overflow-hidden cursor-pointer"
                                     >
                                         <img
                                             src={`/storage/${user.poto_profile_user}`}
@@ -416,14 +409,16 @@ export default function AuthenticatedLayout({ children, header }) {
                                         onClick={() =>
                                             setProfileDown((prev) => !prev)
                                         }
-                                        className="w-[40px] h-[40px] rounded-[50%] flex bg-blue-500 justify-center items-center text-md text-white text-xl overflow-hidden cursor-pointer"
+                                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex bg-blue-500 justify-center items-center text-md text-white overflow-hidden cursor-pointer"
                                     >
-                                        <p>{user?.name?.charAt(0)}</p>
+                                        <p className="text-sm sm:text-xl">
+                                            {user?.name?.charAt(0)}
+                                        </p>
                                     </div>
                                 )}
 
                                 <div
-                                    className={`absolute z-50 right-1 top-14 ${
+                                    className={`absolute z-50 right-1 top-12 sm:top-14 ${
                                         profileDown ? "flex" : "hidden"
                                     }`}
                                 >
@@ -456,7 +451,11 @@ export default function AuthenticatedLayout({ children, header }) {
                         </div>
                     </div>
 
-                    {header && <header className="w-full">{header}</header>}
+                    {header && (
+                        <header className="w-full mt-2 px-4 sm:px-0">
+                            {header}
+                        </header>
+                    )}
                 </div>
 
                 <main className="flex-1 h-full flex flex-col overflow-hidden">

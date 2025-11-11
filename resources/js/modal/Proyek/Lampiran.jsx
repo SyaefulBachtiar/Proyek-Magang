@@ -2,7 +2,7 @@
 
 import { File, FileText, Loader2, Save, Upload, X } from "lucide-react";
 import { useEffect, useReducer, useRef } from "react";
-import { router, usePage } from "@inertiajs/react"; 
+import { router, usePage } from "@inertiajs/react";
 
 const initialState = {
     file: null,
@@ -27,6 +27,7 @@ function reducer(state, action) {
         case "RESET_FORM":
             return initialState;
         case "SET_LOADING":
+INSTANCE:
             return { ...state, loading: action.payload };
         default:
             throw new Error("Aksi tidak dikenal");
@@ -36,7 +37,7 @@ function reducer(state, action) {
 export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
     const modalRef = useRef(null);
     const [state, dispatch] = useReducer(reducer, initialState);
-    
+
     const { props } = usePage();
     const dashboardId = props.id;
 
@@ -105,21 +106,26 @@ export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
     return (
         <div
             ref={modalRef}
-            className="w-80 absolute top-24 right-36 bg-white rounded-lg border shadow-[0_5px_10px_rgba(0,0,0,0.25)] z-50"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-sm max-h-[90vh] md:max-h-none md:w-80 md:absolute md:right-36 md:left-auto md:top-auto md:translate-x-0 md:translate-y-0 bg-white rounded-lg border shadow-[0_5px_10px_rgba(0,0,0,0.25)] z-50 flex flex-col"
         >
-            <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="text-lg font-medium text-black">Tambah Lampiran</h2>
+            <div className="flex items-center justify-between p-3 md:p-4 border-b">
+                <h2 className="text-base md:text-lg font-medium text-black">
+                    Tambah Lampiran
+                </h2>
                 <X
                     onClick={close}
                     className="cursor-pointer hover:bg-gray-100 rounded p-1"
                     size={20}
                 />
             </div>
-            <form onSubmit={handleSubmit} className="p-4 w-full">
+            <form
+                onSubmit={handleSubmit}
+                className="p-3 md:p-4 w-full overflow-y-auto my-scrollable-element flex-1"
+            >
                 <div className="w-full">
                     <label
                         htmlFor="file_lampiran"
-                        className="cursor-pointer p-2 bg-gray-200 hover:bg-gray-300 rounded w-full text-center font-semibold text-gray-800 flex items-center justify-center gap-2"
+                        className="cursor-pointer p-3 md:p-2 bg-gray-200 hover:bg-gray-300 rounded w-full text-center font-semibold text-gray-800 flex items-center justify-center gap-2 text-sm"
                     >
                         <Upload size={16} />
                         <span>Pilih File...</span>
@@ -132,7 +138,7 @@ export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
                     />
                 </div>
                 {state.filePreview && (
-                    <div className="mt-4 flex justify-center items-center w-full">
+                    <div className="mt-3 md:mt-4 flex justify-center items-center w-full">
                         <a
                             href={state.filePreview}
                             target="_blank"
@@ -156,7 +162,7 @@ export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
                                         </span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-semibold text-gray-800">
+                                        <span className="font-semibold text-gray-800 text-sm">
                                             {state.file.name}
                                         </span>
                                         <span className="text-gray-800 text-xs">
@@ -177,7 +183,7 @@ export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
                                         {state.file.type.split("/")[1]}
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-bold">
+                                        <span className="font-bold text-sm">
                                             {state.file.name}
                                         </span>
                                         <span className="text-xs">
@@ -192,39 +198,45 @@ export default function Lampiran({ close, card_id, id_tim, refTrigger }) {
                         </a>
                     </div>
                 )}
-                <div className="w-full mt-4">
-                    <label className="block text-gray-800 font-semibold mb-1">
+                <div className="w-full mt-3 md:mt-4">
+                    <label className="block text-gray-800 font-semibold mb-1 text-sm md:text-base">
                         Judul
                     </label>
                     <input
                         type="text"
-                        className="w-full rounded h-10 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full rounded h-10 border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
                         placeholder="Judul lampiran..."
                         value={state.title}
                         onChange={(e) =>
-                            dispatch({ type: "SET_TITLE", payload: e.target.value })
+                            dispatch({
+                                type: "SET_TITLE",
+                                payload: e.target.value,
+                            })
                         }
                     />
                 </div>
-                <div className="mt-4">
-                    <label className="block text-gray-800 font-semibold mb-1">
+                <div className="mt-3 md:mt-4">
+                    <label className="block text-gray-800 font-semibold mb-1 text-sm md:text-base">
                         Deskripsi
                     </label>
                     <textarea
-                        className="w-full rounded resize-none h-28 border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full rounded resize-none h-28 border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base"
                         placeholder="Deskripsi (opsional)..."
                         value={state.deskripsi}
                         onChange={(e) =>
-                            dispatch({ type: "SET_DESKRIPSI", payload: e.target.value })
+                            dispatch({
+                                type: "SET_DESKRIPSI",
+                                payload: e.target.value,
+                            })
                         }
                     ></textarea>
                 </div>
-                
-                <div className="mt-6">
+
+                <div className="mt-4 md:mt-6">
                     <button
                         type="submit"
                         disabled={state.loading}
-                        className="w-full flex justify-center items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full flex justify-center items-center gap-2 px-4 py-2.5 md:py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {state.loading ? (
                             <>

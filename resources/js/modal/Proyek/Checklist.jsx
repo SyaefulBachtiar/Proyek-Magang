@@ -3,20 +3,30 @@ import { router, usePage } from "@inertiajs/react";
 import { X } from "lucide-react";
 import { useRef, useState } from "react";
 
-export default function Checklist ({ close, card_id, id_tim, refTrigger, title_check }) {
-    const {auth, errors} = usePage().props;
+export default function Checklist({
+    close,
+    card_id,
+    id_tim,
+    refTrigger,
+    title_check,
+}) {
+    const { auth, errors } = usePage().props;
     const modalRef = useRef(null);
 
-
     const [data, setData] = useState({
-        'title': "",
-        'template_id': "",
-        'foto': ""
-    })
+        title: "",
+        template_id: "",
+        foto: "",
+    });
 
     useState(() => {
         function handleClickOutside(event) {
-            if(modalRef.current && !modalRef.current.contains(event.target) && refTrigger && !refTrigger.contains(event.target)) {
+            if (
+                modalRef.current &&
+                !modalRef.current.contains(event.target) &&
+                refTrigger &&
+                !refTrigger.contains(event.target)
+            ) {
                 close();
             }
         }
@@ -32,15 +42,15 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
             ...prevData,
             template_id: selectId,
         }));
-    }
+    };
 
     const handleChange = (e) => {
-        const {name, value} = e.target;
+        const { name, value } = e.target;
         setData((prevData) => ({
             ...prevData,
             [name]: value,
         }));
-    }
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -49,7 +59,7 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
             route("store.title.checklist", {
                 id: auth.user.id,
                 id_tim: id_tim,
-                id_card: card_id
+                id_card: card_id,
             }),
             data,
             {
@@ -59,16 +69,17 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
                 },
             }
         );
-    }
+    };
 
     return (
         <div
             ref={modalRef}
-            className="w-80 absolute top-11 right-36 bg-white rounded-lg border shadow-[0_5px_10px_rgba(0,0,0,0.25)]"
+            className="fixed md:absolute w-[90vw] max-w-md md:w-80 top-1/2 left-1/2 md:left-auto md:top-11 -translate-x-1/2 -translate-y-1/2 md:translate-x-0 md:translate-y-0 md:right-36 bg-white rounded-lg border shadow-[0_5px_10px_rgba(0,0,0,0.25)] z-50"
         >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="text-lg font-medium text-black">Checklist</h2>
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b">
+                <h2 className="text-base sm:text-lg font-medium text-black">
+                    Checklist
+                </h2>
                 <X
                     onClick={close}
                     className="cursor-pointer hover:bg-gray-100 rounded p-1"
@@ -76,14 +87,14 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
                 />
             </div>
 
-            <div className="p-4 space-y-4">
+            <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                 <div>
-                    <label className="block">Title</label>
+                    <label className="block text-sm sm:text-base">Title</label>
                     <input
                         type="text"
                         name="title"
                         disabled={!!data.template_id}
-                        className={`w-full rounded h-10 ${
+                        className={`w-full rounded h-9 sm:h-10 text-sm sm:text-base ${
                             errors.title ? "border-red-500" : ""
                         }`}
                         placeholder="Checklist"
@@ -97,7 +108,9 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
                     )}
                 </div>
                 <div className="w-full">
-                    <label className="block">Tamplate checklist</label>
+                    <label className="block text-sm sm:text-base">
+                        Template checklist
+                    </label>
                     <InputSelect
                         title_check={title_check}
                         onSelectChange={handleSelectChange}
@@ -107,7 +120,7 @@ export default function Checklist ({ close, card_id, id_tim, refTrigger, title_c
                 <div>
                     <button
                         onClick={handleSubmit}
-                        className="p-2 bg-blue-600 rounded-md text-white"
+                        className="w-full md:w-auto p-2.5 md:p-2 bg-blue-600 rounded-md text-white text-sm font-medium"
                     >
                         Tambah
                     </button>

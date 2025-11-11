@@ -364,10 +364,10 @@ class ProyekController extends Controller
 
         if ($anggota && $anggota->role_anggota === 'Member') {
             $listVerifikasiId = List_boardModel::where('id_board', $request->id_board)
-                ->where('judul', 'Verifikasi Katim')->value('id');
+                ->where('judul', 'Perlu Verifikasi')->value('id');
 
             $listSelesaiId = List_boardModel::where('id_board', $request->id_board)
-                ->where('judul', 'Anngeus')->value('id');
+                ->where('judul', 'Selesai')->value('id');
 
             foreach ($request->cards as $cardData) {
                 $card = Card_listModel::find($cardData['id']);

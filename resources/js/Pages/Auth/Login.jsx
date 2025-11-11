@@ -1,17 +1,17 @@
-import Checkbox from '@/Components/Checkbox';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import Checkbox from "@/Components/Checkbox";
+import InputError from "@/Components/InputError";
+import InputLabel from "@/Components/InputLabel";
+import PrimaryButton from "@/Components/PrimaryButton";
+import TextInput from "@/Components/TextInput";
+import GuestLayout from "@/Layouts/GuestLayout";
+import { Head, Link, useForm } from "@inertiajs/react";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        password: '',
+        email: "",
+        password: "",
         remember: false,
     });
 
@@ -20,8 +20,8 @@ export default function Login({ status, canResetPassword }) {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('login'), {
-            onFinish: () => reset('password'),
+        post(route("login"), {
+            onFinish: () => reset("password"),
         });
     };
 
@@ -72,7 +72,11 @@ export default function Login({ status, canResetPassword }) {
                             className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 focus:outline-none"
                             tabIndex={-1}
                         >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            {showPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                            ) : (
+                                <Eye className="w-5 h-S5" />
+                            )}
                         </button>
                     </div>
 
@@ -94,26 +98,35 @@ export default function Login({ status, canResetPassword }) {
                     </label>
                 </div>
 
-                <div className="mt-10 flex items-center justify-between">
+                {/* ====== AREA PERUBAHAN YANG DIPERBAIKI ====== */}
+                <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    
+                    {/* Link-link */}
                     <div className="space-y-3">
+                        {/* Link "Lupa kata sandi?" sekarang selalu tampil */}
                         <Link
                             href={route("password.request")}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            className="block rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         >
                             Lupa kata sandi?
                         </Link>
-                        <p className="text-sm">
+                        
+                        <p className="text-sm text-gray-600">
                             Belum punya akun?{" "}
                             <Link
                                 href={route("register")}
-                                className="text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                className="underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                             >
                                 Daftar
                             </Link>
                         </p>
                     </div>
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    {/* Tombol Login */}
+                    <PrimaryButton 
+                        className="w-full justify-center mt-6 sm:mt-0 sm:w-auto sm:ms-4" 
+                        disabled={processing}
+                    >
                         Log in
                     </PrimaryButton>
                 </div>

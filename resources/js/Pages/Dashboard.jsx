@@ -1,12 +1,11 @@
 import AuthenticatedLayout, {
     useAllState,
 } from "@/Layouts/AuthenticatedLayout";
-import { Head, usePage } from '@inertiajs/react';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { Head, usePage } from "@inertiajs/react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import Sidebar from "./pageDashboard/Sidebar";
 
-
-export default function Dashboard({children, header}) {
+export default function Dashboard({ children, header }) {
     return (
         <AuthenticatedLayout
             header={
@@ -20,16 +19,12 @@ export default function Dashboard({children, header}) {
     );
 }
 
-
-
 // untuk state dashboard
 export const DashboardContext = createContext();
 
 export const DashboardState = () => useContext(DashboardContext);
 
-
-
-function DashboardContent({children}){
+function DashboardContent({ children }) {
     // sidebar ref
     const sidebar = useRef(null);
 
@@ -44,7 +39,7 @@ function DashboardContent({children}){
         setter(true);
 
         setTimeout(() => {
-            setter(false); 
+            setter(false);
         }, delay);
     };
 
@@ -63,10 +58,10 @@ function DashboardContent({children}){
     useEffect(() => {
         if (localFlash.success) {
             showFlash(setShowFlashSuccess);
-            setLocalFlash((prev) => ({ ...prev, success: null })); // reset
+            setLocalFlash((prev) => ({ ...prev, success: null })); 
         } else if (localFlash.error) {
             showFlash(setShowFlashError);
-            setLocalFlash((prev) => ({ ...prev, error: null })); // reset
+            setLocalFlash((prev) => ({ ...prev, error: null })); 
         }
     }, [localFlash]);
 
@@ -90,11 +85,11 @@ function DashboardContent({children}){
                 setSidebarOpen(false);
             }
         }
-        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("click", handleClickOutside);
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("click", handleClickOutside);
         };
-    }, []);
+    }, []); 
 
     return (
         <>
@@ -104,7 +99,8 @@ function DashboardContent({children}){
                 <div className="h-full flex-1 flex">
                     <div
                         ref={sidebar}
-                        className={`bg-white hover-sidebar transition-all group delay-150 overflow-hidden overflow-y-auto ease-in-out duration-300 px-[13px] w-[70px] hover:px-4 my-scrollable-element ${
+
+                        className={`bg-white hover-sidebar transition-all group delay-150 overflow-hidden overflow-y-auto ease-in-out duration-300 px-[13px] w-[70px] @media(hover:hover):hover:px-4 my-scrollable-element ${
                             sidebarOpen ? "sidebar-click px-4" : ""
                         }`}
                     >
@@ -113,6 +109,7 @@ function DashboardContent({children}){
                             activePage={activePage}
                             setActivePage={setActivePage}
                             id={id}
+                            setSidebarOpen={setSidebarOpen} // Tetap teruskan ini
                         />
                     </div>
                     <div

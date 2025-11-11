@@ -3,18 +3,17 @@ import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export default function Kalender({ close, refTrigger, card_id }) {
-    // user
     const user = usePage().props.auth.user;
-    const {kalender} = usePage().props;
+    const { kalender } = usePage().props;
 
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
 
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [selectedDate, setSelectedDate] = useState(today); 
-    const [startDate, setStartDate] = useState(today); 
-    const [dueDate, setDueDate] = useState(today); 
+    const [selectedDate, setSelectedDate] = useState(today);
+    const [startDate, setStartDate] = useState(today);
+    const [dueDate, setDueDate] = useState(today);
     const [dueTime, setDueTime] = useState("8:55");
     const [reminder, setReminder] = useState("None");
     const [selectionStep, setSelectionStep] = useState("none"); // 'none', 'start', 'due'
@@ -49,28 +48,29 @@ export default function Kalender({ close, refTrigger, card_id }) {
         }
     }, [kalender]);
 
-    // handle simpan
     const handleSimpan = () => {
         setLoading(true);
         const formatUntukDB = (date) => {
-            if(!date) return null;
+            if (!date) return null;
             const tahun = date.getFullYear();
-            const bulan = String(date.getMonth() + 1).padStart(2, '0');
+            const bulan = String(date.getMonth() + 1).padStart(2, "0");
             const hari = String(date.getDate()).padStart(2, "0");
             return `${tahun}-${bulan}-${hari}`;
         };
-
 
         const data = {
             start_date: startDate ? formatUntukDB(startDate) : null,
             due_date: dueDate ? formatUntukDB(dueDate) : null,
             due_time: dueTime || null,
             reminder: reminder || null,
-        }
+        };
 
-        if(kalender){
+        if (kalender) {
             router.put(
-                route("kalender.update", { id: user.id, kalender_id: kalender.id }),
+                route("kalender.update", {
+                    id: user.id,
+                    kalender_id: kalender.id,
+                }),
                 data,
                 {
                     onSuccess: () => {
@@ -84,40 +84,41 @@ export default function Kalender({ close, refTrigger, card_id }) {
                     },
                 }
             );
-        }else{
-            router.post(route('kalender.store', {id: user.id, cardId: card_id}),
-            data,
+        } else {
+            router.post(
+                route("kalender.store", { id: user.id, cardId: card_id }),
+                data,
+                {
+                    onSuccess: () => {
+                        close();
+                    },
+                    onError: (errors) => {
+                        console.log("error", errors);
+                    },
+                    onFinish: () => {
+                        setLoading(false);
+                    },
+                }
+            );
+        }
+    };
+
+    const handleRemove = () => {
+        router.delete(
+            route("kalender.delete", { id: user.id, kalender_id: kalender.id }),
             {
                 onSuccess: () => {
-                    close()
+                    close();
                 },
                 onError: (errors) => {
-                    console.log('error', errors);
+                    console.log("error", errors);
                 },
                 onFinish: () => {
                     setLoading(false);
-                }
+                },
             }
-    
-         ); 
-        }
-    }
-
-    const handleRemove = () => {
-        router.delete(route('kalender.delete', {id: user.id, kalender_id: kalender.id}),
-        {
-            onSuccess: () => {
-                close()
-            },
-            onError: (errors) => {
-                console.log('error', errors);
-            },
-            onFinish: () => {
-                setLoading(false);
-            }
-        }
-    )}
-
+        );
+    };
 
     useEffect(() => {
         function handleClickOutside(e) {
@@ -138,7 +139,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
         };
     }, [modalRef, refTrigger]);
 
-    // Helper function to check if date is in the past
     const isPastDate = (date) => {
         const dateOnly = new Date(
             date.getFullYear(),
@@ -153,7 +153,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
         return dateOnly < todayOnly;
     };
 
-    // Get month and year for display
     const monthNames = [
         "Januari",
         "Februari",
@@ -172,7 +171,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
 
-    // Navigation functions
     const goToPreviousMonth = () => {
         setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
     };
@@ -189,19 +187,16 @@ export default function Kalender({ close, refTrigger, card_id }) {
         setCurrentDate(new Date(currentYear + 1, currentMonth, 1));
     };
 
-    // Get calendar days
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
     const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
     const firstDayWeekday = firstDayOfMonth.getDay();
     const daysInMonth = lastDayOfMonth.getDate();
 
-    // Get previous month's last days
     const prevMonth = new Date(currentYear, currentMonth - 1, 0);
     const daysInPrevMonth = prevMonth.getDate();
 
     const calendarDays = [];
 
-    // Previous month's trailing days
     for (let i = firstDayWeekday - 1; i >= 0; i--) {
         calendarDays.push({
             day: daysInPrevMonth - i,
@@ -254,7 +249,7 @@ export default function Kalender({ close, refTrigger, card_id }) {
         if (!dateInfo.isCurrentMonth) return;
 
         if (isPastDate(dateInfo.date)) {
-            return; 
+            return;
         }
 
         const clickedDate = new Date(dateInfo.date);
@@ -385,11 +380,12 @@ export default function Kalender({ close, refTrigger, card_id }) {
     return (
         <div
             ref={modalRef}
-            className="w-80 absolute top-11 right-36 bg-white rounded-lg border shadow-[0_5px_10px_rgba(0,0,0,0.25)]"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-sm md:w-80 md:absolute md:top-11 md:right-36 md:translate-x-0 md:translate-y-0 bg-white rounded-lg border shadow-[0_5px_10px_rgba(0,0,0,0.25)] z-50"
         >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="text-lg font-medium text-black">Waktu</h2>
+            <div className="flex items-center justify-between p-3 md:p-4 border-b">
+                <h2 className="text-base md:text-lg font-medium text-black">
+                    Waktu
+                </h2>
                 <X
                     onClick={close}
                     className="cursor-pointer hover:bg-gray-100 rounded p-1"
@@ -397,29 +393,12 @@ export default function Kalender({ close, refTrigger, card_id }) {
                 />
             </div>
 
-            <div className="p-4">
-                {/* Debug Info Panel */}
-                {/* <div className="mb-4 p-3 bg-gray-50 rounded text-xs">
-                    <div className="font-bold mb-1">Debug Info:</div>
-                    <div>
-                        Start:{" "}
-                        {startDate ? formatDateForInput(startDate) : "None"}
-                    </div>
-                    <div>
-                        Due:{" "}
-                        {dueDate
-                            ? formatDateForInput(dueDate) + " " + dueTime
-                            : "None"}
-                    </div>
-                    <div>Reminder: {reminder}</div>
-                </div> */}
-
-                {/* Calendar Navigation */}
+            <div className="p-3 md:p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-1">
                         <button
                             onClick={goToPreviousYear}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1.5 md:p-1 hover:bg-gray-100 rounded"
                         >
                             <svg
                                 className="w-4 h-4"
@@ -437,7 +416,7 @@ export default function Kalender({ close, refTrigger, card_id }) {
                         </button>
                         <button
                             onClick={goToPreviousMonth}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1.5 md:p-1 hover:bg-gray-100 rounded"
                         >
                             <svg
                                 className="w-4 h-4"
@@ -455,14 +434,14 @@ export default function Kalender({ close, refTrigger, card_id }) {
                         </button>
                     </div>
 
-                    <span className="font-medium text-gray-700">
+                    <span className="font-medium text-gray-700 text-sm">
                         {monthNames[currentMonth]} {currentYear}
                     </span>
 
                     <div className="flex items-center gap-1">
                         <button
                             onClick={goToNextMonth}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1.5 md:p-1 hover:bg-gray-100 rounded"
                         >
                             <svg
                                 className="w-4 h-4"
@@ -480,7 +459,7 @@ export default function Kalender({ close, refTrigger, card_id }) {
                         </button>
                         <button
                             onClick={goToNextYear}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1.5 md:p-1 hover:bg-gray-100 rounded"
                         >
                             <svg
                                 className="w-4 h-4"
@@ -499,23 +478,18 @@ export default function Kalender({ close, refTrigger, card_id }) {
                     </div>
                 </div>
 
-                {/* Calendar Grid */}
                 <div className="mb-4">
-                    {/* Day headers */}
                     <div className="grid grid-cols-7 mb-2">
-                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                            (day) => (
-                                <div
-                                    key={day}
-                                    className="text-center text-xs font-medium text-gray-500 py-2"
-                                >
-                                    {day}
-                                </div>
-                            )
-                        )}
+                        {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
+                            <div
+                                key={day}
+                                className="text-center text-xs font-medium text-gray-500 py-2"
+                            >
+                                {day}
+                            </div>
+                        ))}
                     </div>
 
-                    {/* Calendar days */}
                     <div className="grid grid-cols-7 gap-1">
                         {calendarDays.slice(0, 42).map((dateInfo, index) => {
                             const isSelected = isSelectedDate(dateInfo);
@@ -540,7 +514,7 @@ export default function Kalender({ close, refTrigger, card_id }) {
                                     onClick={() => handleDateClick(dateInfo)}
                                     disabled={isPast}
                                     className={`
-                                        h-8 text-sm flex items-center justify-center rounded relative
+                                        h-9 md:h-8 text-sm flex items-center justify-center rounded relative
                                         ${
                                             !dateInfo.isCurrentMonth
                                                 ? "text-gray-300"
@@ -577,7 +551,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
                     </div>
                 </div>
 
-                {/* Start date */}
                 <div className="mb-4">
                     <div className="flex items-center gap-3 mb-2">
                         <input
@@ -603,7 +576,7 @@ export default function Kalender({ close, refTrigger, card_id }) {
                             }
                             placeholder="M/D/YYYY"
                             disabled={!startDate}
-                            className={`w-full border rounded px-3 py-1.5 text-sm ${
+                            className={`w-full border rounded px-3 py-2 md:py-1.5 text-sm ${
                                 startDate
                                     ? "border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                     : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
@@ -612,7 +585,6 @@ export default function Kalender({ close, refTrigger, card_id }) {
                     </div>
                 </div>
 
-                {/* Due date */}
                 <div className="mb-4">
                     <div className="flex items-center gap-3 mb-2">
                         <input
@@ -627,7 +599,7 @@ export default function Kalender({ close, refTrigger, card_id }) {
                             Tenggat Waktu
                         </span>
                     </div>
-                    <div className="ml-7 flex gap-2">
+                    <div className="ml-7 flex flex-col md:flex-row gap-2">
                         <input
                             type="text"
                             value={dueDate ? formatDateForInput(dueDate) : ""}
@@ -636,7 +608,7 @@ export default function Kalender({ close, refTrigger, card_id }) {
                             }
                             placeholder="M/D/YYYY"
                             disabled={!dueDate}
-                            className={`flex-1 border rounded px-3 py-1.5 text-sm ${
+                            className={`flex-1 border rounded px-3 py-2 md:py-1.5 text-sm ${
                                 dueDate
                                     ? "border-blue-400 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                     : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
@@ -648,7 +620,7 @@ export default function Kalender({ close, refTrigger, card_id }) {
                             onChange={(e) => handleTimeChange(e.target.value)}
                             placeholder="Jam"
                             disabled={!dueDate}
-                            className={`w-full border rounded px-3 py-1.5 text-sm ${
+                            className={`w-full border rounded px-3 py-2 md:py-1.5 text-sm ${
                                 dueDate
                                     ? "border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                                     : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
@@ -657,15 +629,14 @@ export default function Kalender({ close, refTrigger, card_id }) {
                     </div>
                 </div>
 
-                {/* Reminder */}
-                <div className="mb-4">
+                {/* <div className="mb-4">
                     <label className="block mb-2 text-sm text-gray-700">
                         Set Pengingat Tenggat Waktu
                     </label>
                     <select
                         value={reminder}
                         onChange={(e) => handleReminderChange(e.target.value)}
-                        className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border rounded-md px-3 py-2.5 md:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option>None</option>
                         <option>5 menit sebelumnya</option>
@@ -674,20 +645,23 @@ export default function Kalender({ close, refTrigger, card_id }) {
                         <option>1 jam sebelumnya</option>
                         <option>1 hari sebelumnya</option>
                     </select>
-                </div>
+                </div> */}
 
-                {/* Button simpan dan batal */}
-                <div className="space-x-2">
+                <div className="space-y-2 md:space-y-0 md:space-x-2">
                     <button
                         onClick={handleSimpan}
-                        className="p-2 bg-blue-600 rounded-md text-white"
+                        className="w-full md:w-auto p-2.5 md:p-2 bg-blue-600 rounded-md text-white text-sm"
                         disabled={loading}
                     >
                         {loading ? "Loading..." : "Simpan"}
                     </button>
                     <button
                         onClick={kalender ? handleRemove : close}
-                        className={`p-2 ${kalender ? 'bg-red-600 text-white' : 'text-gray-800'} rounded-md`}
+                        className={`w-full md:w-auto p-2.5 md:p-2 ${
+                            kalender
+                                ? "bg-red-600 text-white"
+                                : "text-gray-800 bg-gray-100 hover:bg-gray-200"
+                        } rounded-md text-sm`}
                     >
                         {kalender ? "Hapus" : "Batal"}
                     </button>

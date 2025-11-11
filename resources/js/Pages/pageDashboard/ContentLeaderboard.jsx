@@ -60,7 +60,7 @@ function PodiumCard({ user }) {
   const Icon = details.icon;
 
   return (
-    <div className={`flex flex-col items-center p-6 bg-white rounded-xl shadow-lg ${details.border} border-b-4 transition-transform duration-300 hover:scale-105 ${details.order} ${details.animation}`}>
+    <div className={`flex flex-col items-center p-4 sm:p-6 bg-white rounded-xl shadow-lg ${details.border} border-b-4 transition-transform duration-300 hover:scale-105 ${details.order} ${details.animation}`}>
       <div className={`relative w-20 h-20 rounded-full ${details.bg} flex items-center justify-center text-4xl font-bold text-white border-4 border-white shadow-md`}>
         {user.name.charAt(0)}
         <div className={`absolute -top-3 ${details.text}`}>
@@ -79,7 +79,7 @@ function PodiumCard({ user }) {
 
       </div>
       <div className="mt-4 text-center">
-        <span className={`text-3xl font-bold ${details.text}`}>{user.tasks}</span>
+        <span className={`text-2xl sm:text-3xl font-bold ${details.text}`}>{user.tasks}</span>
         <span className="block text-sm text-gray-500">Tugas</span>
       </div>
     </div>
@@ -88,10 +88,10 @@ function PodiumCard({ user }) {
 
 function UserRow({ user }) {
   return (
-    <div className="flex items-center p-4 bg-white border-b border-gray-200 transition-colors hover:bg-gray-50">
-      <span className="w-10 text-center text-lg font-semibold text-gray-400">{user.rank}</span>
-      <div className="flex items-center gap-4 flex-grow">
-        <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-lg text-indigo-600">
+    <div className="flex items-center p-3 sm:p-4 bg-white border-b border-gray-200 transition-colors hover:bg-gray-50">
+      <span className="w-10 text-center text-base sm:text-lg font-semibold text-gray-400">{user.rank}</span>
+      <div className="flex items-center gap-3 sm:gap-4 flex-grow">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-base sm:text-lg text-indigo-600">
           {user.name.charAt(0)}
         </div>
         <div>
@@ -104,7 +104,7 @@ function UserRow({ user }) {
         </div>
       </div>
       <div className="text-right">
-        <span className="font-bold text-xl text-indigo-600">{user.tasks}</span>
+        <span className="font-bold text-lg sm:text-xl text-indigo-600">{user.tasks}</span>
         <span className="text-xs block text-gray-500">Tugas</span>
       </div>
     </div>
@@ -134,20 +134,20 @@ function Leaderboard() {
     <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">Papan Peringkat</h1>
-          <p className="text-gray-600 mt-2 text-lg">
+        <div className="text-center mb-8 sm:mb-10">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800 tracking-tight">Papan Peringkat</h1>
+          <p className="text-gray-600 mt-2 text-base sm:text-lg">
             Kinerja anggota teratas berdasarkan tugas yang diselesaikan tepat waktu.
           </p>
         </div>
 
         {/* Search Input */}
         <div className="relative mb-8">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <FaSearch className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Cari nama anggota..."
-            className="w-full py-3 pl-12 pr-4 bg-white border border-gray-300 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm hover:shadow-md"
+            className="w-full py-2.5 pl-10 sm:py-3 sm:pl-12 pr-4 bg-white border border-gray-300 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm hover:shadow-md"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -155,7 +155,7 @@ function Leaderboard() {
 
         {/* Podium Section for Top 3 */}
         {topThree.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 items-end mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-8 sm:mb-12">
             {topThree.map((user) => (
               <PodiumCard key={user.rank} user={user} />
             ))}
@@ -165,7 +165,7 @@ function Leaderboard() {
         {/* General Ranking List */}
         {restOfUsers.length > 0 && (
           <div>
-             <h2 className="text-xl font-bold text-gray-700 mb-4 px-2">Peringkat Lainnya</h2>
+             <h2 className="text-lg sm:text-xl font-bold text-gray-700 mb-4 px-2">Peringkat Lainnya</h2>
              <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 {restOfUsers.map((user) => (
                    <UserRow key={user.rank} user={user} />
@@ -176,20 +176,20 @@ function Leaderboard() {
 
         {/* Pesan jika tidak ada data sama sekali */}
         {(leaderboardData || []).length === 0 && search === '' && (
-          <div className="text-center text-gray-500 py-16 bg-white rounded-xl shadow-md">
-            <HiOutlineUserGroup size={50} className="mx-auto text-gray-400 mb-4" />
-            <p className="text-xl font-semibold text-gray-700">Belum Ada Data</p>
-            <p className="text-base mt-1">
+          <div className="text-center text-gray-500 py-10 sm:py-16 bg-white rounded-xl shadow-md">
+            <HiOutlineUserGroup className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mb-4" />
+            <p className="text-lg sm:text-xl font-semibold text-gray-700">Belum Ada Data</p>
+            <p className="text-sm sm:text-base mt-1">
               Papan peringkat akan muncul setelah anggota menyelesaikan tugas.
             </p>
           </div>
         )}
 
         {filteredData.length === 0 && search !== '' && (
-          <div className="text-center text-gray-500 py-16 bg-white rounded-xl shadow-md">
-            <HiOutlineUserGroup size={50} className="mx-auto text-gray-400 mb-4" />
-            <p className="text-xl font-semibold text-gray-700">Anggota tidak ditemukan</p>
-            <p className="text-base mt-1">
+          <div className="text-center text-gray-500 py-10 sm:py-16 bg-white rounded-xl shadow-md">
+            <HiOutlineUserGroup className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mb-4" />
+            <p className="text-lg sm:text-xl font-semibold text-gray-700">Anggota tidak ditemukan</p>
+            <p className="text-sm sm:text-base mt-1">
               Coba gunakan kata kunci pencarian yang lain.
             </p>
           </div>

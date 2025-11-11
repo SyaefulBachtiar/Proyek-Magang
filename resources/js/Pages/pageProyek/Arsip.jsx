@@ -44,9 +44,9 @@ export default function Arsip({ dashboardId, activePage, tim, archivedCards }) {
     return (
         <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
             <Head title="Arsip Tugas" />
-            <div className="p-6 bg-slate-50 rounded-lg h-full overflow-y-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold text-gray-800">
+            <div className="p-4 sm:p-6 bg-slate-50 rounded-lg h-full overflow-y-auto">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 sm:gap-2">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
                         Arsip Tugas
                     </h1>
                     <Link
@@ -55,10 +55,10 @@ export default function Arsip({ dashboardId, activePage, tim, archivedCards }) {
                             id_tim: tim.id,
                             id_board: id_board,
                         })}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg shadow-sm hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg shadow-sm hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 w-full sm:w-auto"
                     >
                         <ArrowLeft size={18} />
-                        <span className="font-semibold">Kembali ke Papan</span>
+                        <span className="font-semibold text-sm sm:text-base">Kembali ke Papan</span>
                     </Link>
                 </div>
 
@@ -70,7 +70,7 @@ export default function Arsip({ dashboardId, activePage, tim, archivedCards }) {
                                 className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm transition-shadow hover:shadow-md"
                             >
                                 <div className="mb-3 sm:mb-0">
-                                    <p className="text-lg font-bold text-gray-900">
+                                    <p className="text-md sm:text-lg font-bold text-gray-900">
                                         {card.nama_card}
                                     </p>
                                     <p className="text-sm text-gray-500 mt-1">
@@ -103,12 +103,12 @@ export default function Arsip({ dashboardId, activePage, tim, archivedCards }) {
                             </div>
                         ))
                     ) : (
-                        <div className="text-center py-16 px-6 border-2 border-dashed border-gray-300 rounded-xl">
+                        <div className="text-center py-12 sm:py-16 px-4 sm:px-6 border-2 border-dashed border-gray-300 rounded-xl">
                             <Inbox
                                 className="mx-auto h-12 w-12 text-gray-400"
                                 strokeWidth={1.5}
                             />
-                            <h3 className="mt-2 text-lg font-medium text-gray-900">
+                            <h3 className="mt-2 text-base sm:text-lg font-medium text-gray-900">
                                 Arsip Kosong
                             </h3>
                             <p className="mt-1 text-sm text-gray-500">

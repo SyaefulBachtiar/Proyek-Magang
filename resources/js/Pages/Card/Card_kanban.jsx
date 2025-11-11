@@ -107,7 +107,7 @@ function reducer(state, action) {
             return {
                 ...state,
                 photoError: action.payload.error,
-                uploadingPhoto: null, // Pastikan di-null agar error bisa tampil
+                uploadingPhoto: null, 
             };
         case "CLEAR_FILE_ERROR":
             return { ...state, photoError: null };
@@ -185,7 +185,6 @@ export default function Card_kanban() {
         }
     }, [dataCard, isEditingTitle]);
 
-    // Fokus ke input saat mode edit aktif
     useEffect(() => {
         if (isEditingTitle && titleInputRef.current) {
             titleInputRef.current.focus();
@@ -284,16 +283,15 @@ export default function Card_kanban() {
         const file = event.target.files[0];
         if (!file) return;
         
-        // Bersihkan error sebelumnya untuk item ini
         dispatch({ type: "CLEAR_FILE_ERROR" });
         dispatch({ type: "SET_UPLOADING_FILE", payload: { checklistId } });
 
         const allowedTypes = [
             "image/jpeg", "image/png", "image/gif", "image/webp",
             "application/pdf", "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
             "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
             "text/csv",
         ];
         if (!allowedTypes.includes(file.type)) {
@@ -356,7 +354,7 @@ export default function Card_kanban() {
         } finally {
             dispatch({
                 type: "SET_UPLOADING_FILE",
-                payload: { checklistId: null }, // Selesai uploading, baik sukses atau gagal
+                payload: { checklistId: null }, 
             });
             event.target.value = "";
         }
@@ -586,16 +584,16 @@ export default function Card_kanban() {
         <Proyek>
             <Head title="Card"/>
             <div className="w-screen h-screen fixed top-0 left-0 bg-black/20 flex justify-center items-center z-50 ">
-                <div ref={lihatCardRef} className="rounded-xl bg-white w-full max-w-[90%] h-auto max-h-[95vh] lg:w-[80%] lg:h-[90%] flex flex-col overflow-hidden relative">
+                <div ref={lihatCardRef} className="rounded-none lg:rounded-xl bg-white w-full h-full lg:w-[80%] lg:h-[90%] flex flex-col overflow-hidden relative">
                     <div className="flex justify-end absolute top-2 right-2">
                         <div className="p-1 hover:bg-black/20 rounded-md cursor-pointer" onClick={() => router.visit(route("proyek", { id: user.id, id_tim: id_tim, id_board: id_board }))}>
                             <X />
                         </div>
                     </div>
                 
-                    <div className="p-4 border px-4 border-b-gray-200">
+                    <div className="p-4 border-b border-b-gray-200">
                         {isEditingTitle ? (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                                 <input
                                     ref={titleInputRef}
                                     type="text"
@@ -638,8 +636,8 @@ export default function Card_kanban() {
                         )}
                     </div>
 
-                    <div className="px-4 flex-1 flex flex-col lg:flex-row overflow-y-auto gap-4">
-                        <div className="flex flex-col gap-4 w-full py-4 lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element">
+                    <div className="px-4 py-4 flex-1 flex flex-col lg:flex-row overflow-hidden gap-4">
+                        <div className="flex flex-col gap-4 w-full lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element flex-1 h-0 lg:flex-none lg:h-auto">
                             <div className="flex justify-between items-center">
                                 <div className="flex gap-2 items-center">
                                     <Captions />
@@ -739,11 +737,11 @@ export default function Card_kanban() {
                                                         </div>
                                                     </div>
                                                     <div className="flex justify-center">
-                                                        <div className="w-[200px] max-h-[200px] rounded overflow-hidden flex justify-center items-center">
+                                                        <div className="w-full max-w-[200px] max-h-[200px] rounded overflow-hidden flex justify-center items-center">
                                                             {renderAttachmentPreview(lampiran)}
                                                         </div>
                                                     </div>
-                                                    <div className="mt-6 font-semibold text-gray-600 flex gap-6">
+                                                    <div className="mt-6 font-semibold text-gray-600 flex gap-4 sm:gap-6 flex-wrap">
                                                         <div onClick={() => lampiranComment(lampiran.judul, lampiran.id)} className="flex flex-col items-center w-fit cursor-pointer gap-1">
                                                             <MessageCircleMore size={16}/><span className="text-xs">Comment</span>
                                                         </div>
@@ -787,7 +785,7 @@ export default function Card_kanban() {
                                                     {title.checklist_card?.map((check) => (
                                                         <div key={check.id} className="group hover:bg-gray-100 p-2 rounded-md">
                                                             <div className="flex items-center justify-between">
-                                                                <div className="flex items-center gap-3">
+                                                                <div className="flex items-center gap-2">
                                                                     <input type="checkbox" className="rounded" checked={!!check.is_checked} disabled={state.loading} onChange={(e) => handleCheckboxChange(e, check.id)}/>
                                                                     {state.inputCheck === check.id ? (
                                                                         <InputChecklist close={() => dispatch({ type: "TOGGLE_INPUT_CHECKLIST", payload: null })} value={check.title} id_check={check.id}/>
@@ -795,10 +793,10 @@ export default function Card_kanban() {
                                                                         <span onClick={() => dispatch({ type: "TOGGLE_INPUT_CHECKLIST", payload: check.id })} className={check.is_checked ? "line-through text-gray-500" : ""}>{check.title}</span>
                                                                     )}
                                                                 </div>
-                                                                <div className="flex items-center gap-4">
+                                                                <div className="flex items-center gap-2">
                                                                     <label htmlFor={`file_upload_${check.id}`} className={`flex items-center gap-2 p-1.5 px-2 text-xs rounded text-white cursor-pointer transition-colors ${state.uploadingPhoto === check.id ? "bg-gray-400 cursor-not-allowed" : check.image ? "bg-green-500 hover:bg-green-600" : "bg-blue-400 hover:bg-blue-500"}`}>
                                                                         <Paperclip size={14} />
-                                                                        <span>{state.uploadingPhoto === check.id ? "Mengunggah..." : check.image ? "Ganti File" : "File"}</span>
+                                                                        <span className="hidden sm:inline">{state.uploadingPhoto === check.id ? "Mengunggah..." : check.image ? "Ganti File" : "File"}</span>
                                                                     </label>
                                                                     <input id={`file_upload_${check.id}`} className="hidden" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv" onChange={(e) => handleFileUpload(e, check.id)} disabled={state.uploadingPhoto === check.id}/>
                                                                     <div ref={(el) => (triggerRefs.current[check.id] = el)} className="relative">
@@ -831,7 +829,6 @@ export default function Card_kanban() {
                                                                     </a>
                                                                 </div>
                                                             )}
-                                                            {/* PERBAIKAN: Menampilkan error upload file */}
                                                             {state.photoError && !state.uploadingPhoto && (
                                                                 <p className="text-xs text-red-500 mt-1 pl-7">
                                                                     Error: {state.photoError}
@@ -861,7 +858,7 @@ export default function Card_kanban() {
                                 </div>
                             )}
                         </div>
-                        <div className="w-full lg:w-1/2 px-0 lg:px-4 my-4 overflow-y-auto">
+                        <div className="w-full lg:w-1/2 px-0 lg:px-4 overflow-y-auto flex-1 h-0 lg:flex-none lg:h-auto">
                             <div className="flex gap-2 items-center mb-4"><MessageSquareText /><p className="font-bold text-lg">Komentar</p></div>
                             {!state.isCommenting ? (<div onClick={() => dispatch({ type: "START_KOMENTAR", payload: true })} className="mt-2 p-3 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 cursor-pointer text-gray-500"><p>Tulis komentar...</p></div>) : (<InputEditor anggota_card={anggota_card} close={() => dispatch({ type: "BATAL_KOMENTAR" })} value={state.komentarValue} loading={state.loading} isCommenting={state.isCommenting} onChange={(val) => dispatch({ type: "SET_KOMENTAR_VALUE", payload: val })} setComment={(val) => dispatch({ type: "SET_KOMENTAR_VALUE", payload: val })} onSave={handleKomentar} placeholder={state.mention ? `Komentari ${state.mention}` : "Komentar"}/>)}
                             <KomponenKomentar komentar={komentar} id_board={id_board} balasKomentar={(val) => balasKomentar(val)} editKomentar={(val) => editKomentar(val)}/>

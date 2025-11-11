@@ -78,8 +78,8 @@ function AksesTim() {
     const handleSaveRole = (member) => {
         router.put(
             route("aksestim.updateRole", {
-                id: auth.user.id, 
-                user: member.id, 
+                id: auth.user.id,
+                user: member.id,
             }),
             { role: selectedRole },
             {
@@ -98,8 +98,8 @@ function AksesTim() {
         if (confirmDelete) {
             router.delete(
                 route("aksestim.destroy", {
-                    id: auth.user.id, 
-                    user: member.id, 
+                    id: auth.user.id,
+                    user: member.id,
                 }),
                 {
                     preserveScroll: true,
@@ -112,10 +112,12 @@ function AksesTim() {
     };
 
     return (
-        <div className="p-8 min-h-screen">
-            <h2 className="text-xl font-semibold mb-6">Anggota Perusahaan</h2>
+        <div className="p-4 sm:p-8 min-h-screen">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">
+                Anggota Perusahaan
+            </h2>
 
-            <div className="mb-6">
+            <div className="mb-4 sm:mb-6">
                 <input
                     type="text"
                     placeholder="🔍 Cari nama anggota..."
@@ -137,18 +139,18 @@ function AksesTim() {
                 {filteredMembers.map((member, index) => (
                     <div
                         key={member.id}
-                        className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-4 flex items-center justify-between"
+                        className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 px-3 py-4 sm:p-4 flex items-center justify-between"
                     >
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-200 text-blue-800 font-bold flex items-center justify-center">
+                        <div className="flex items-center space-x-3 min-w-0">
+                            <div className="w-10 h-10 rounded-full bg-blue-200 text-blue-800 font-bold flex items-center justify-center flex-shrink-0">
                                 {getInitial(member.name)}
                             </div>
-                            <div className="flex flex-col">
-                                <span className="font-semibold text-gray-800">
+                            <div className="flex flex-col min-w-0">
+                                <span className="font-semibold text-gray-800 truncate">
                                     {member.name}
                                 </span>
 
-                                <span className="text-sm text-gray-500">
+                                <span className="text-sm text-gray-500 truncate">
                                     {member.email}
                                 </span>
 
@@ -158,14 +160,14 @@ function AksesTim() {
                                         onChange={(e) =>
                                             setSelectedRole(e.target.value)
                                         }
-                                        className="mt-2 border rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="mt-2 border rounded px-2 py-1.5 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="Admin">Admin</option>
                                         <option value="Member">Member</option>
                                     </select>
                                 ) : (
                                     <span
-                                        className={`text-white text-xs px-3 py-1 rounded-md w-fit mt-2 ${
+                                        className={`text-white text-xs px-2 py-0.5 sm:px-3 sm:py-1 rounded-md w-fit mt-2 ${
                                             roleColor[member.role] ||
                                             roleColor.default
                                         }`}
@@ -182,21 +184,23 @@ function AksesTim() {
                                 ref={(el) => (menuRefs.current[index] = el)}
                             >
                                 {editIndex === index ? (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1 sm:gap-2">
                                         <button
                                             onClick={() =>
                                                 handleSaveRole(member)
                                             }
-                                            className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 text-sm transition-colors"
+                                            className="flex items-center gap-1 sm:gap-1.5 bg-green-500 text-white px-2 sm:px-3 py-1.5 sm:py-1 rounded-md hover:bg-green-600 text-xs sm:text-sm transition-colors"
                                         >
-                                            <Save className="w-4 h-4" />
-                                            Simpan
+                                            <Save className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="hidden sm:inline">
+                                                Simpan
+                                            </span>
                                         </button>
                                         <button
                                             onClick={handleCancelEdit}
-                                            className="p-1 text-gray-500 hover:text-gray-800"
+                                            className="p-1.5 sm:p-1 text-gray-500 hover:text-gray-800"
                                         >
-                                            <X className="w-5 h-5" />
+                                            <X className="w-4 h-4 sm:w-5 sm:h-5" />
                                         </button>
                                     </div>
                                 ) : (
@@ -207,7 +211,7 @@ function AksesTim() {
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
-                                                className="w-6 h-6"
+                                                className="w-5 h-5 sm:w-6 sm:h-6"
                                                 fill="currentColor"
                                                 viewBox="0 0 24 24"
                                             >

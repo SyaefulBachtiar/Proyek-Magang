@@ -74,6 +74,17 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
         type: "error",
     });
 
+    const listColors = [
+        "bg-sky-500/20",      // Biru Langit
+        "bg-green-500/20",    // Hijau
+        "bg-amber-500/20",  // Kuning/Oranye
+        "bg-pink-500/20",     // Pink
+        "bg-purple-500/20",   // Ungu
+        "bg-teal-500/20",     // Teal/Tosca
+        "bg-indigo-500/20",   // Indigo
+    ];
+
+
     useEffect(() => {
         setLists(mapBoardData(dataBoard));
     }, [dataBoard]);
@@ -114,17 +125,17 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
             const sourceList = lists.find(list => list.id === source.droppableId);
             const destList = lists.find(list => list.id === destination.droppableId);
 
-            if (sourceList.title === 'Verifikasi Katim') {
+            if (sourceList.title === 'Perlu Verifikasi') {
                 alert('Anda tidak diizinkan memindahkan tugas dari list verifikasi.');
                 return;
             }
 
-            if (sourceList.title === 'Anngeus') {
+            if (sourceList.title === 'Selesai') {
                 alert('Anda tidak dapat memindahkan tugas yang sudah selesai.');
                 return;
             }
 
-            if (destList.title === 'Anngeus') {
+            if (destList.title === 'Selesai') {
                 alert('Hanya ketua tim yang dapat menyelesaikan tugas.');
                 return;
             }
@@ -323,7 +334,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
         <>
             <Proyek dashboardId={dashboardId} activePage={activePage} tim={tim}>
                 <Head title="Board Proyek" />
-                <div className="h-full w-full bg-slate-300 rounded-lg overflow-x-auto relative">
+                <div className="h-full w-full bg-slate-100 rounded-lg overflow-x-auto relative">
                     <DragDropContext onDragEnd={handleDragEnd}>
                         <Droppable
                             droppableId="all-lists"
@@ -332,7 +343,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                         >
                             {(provided) => (
                                 <div
-                                    className="flex items-start gap-2 px-4 py-4"
+                                    className="flex items-start gap-3 px-3 py-4 lg:px-4"
                                     ref={provided.innerRef}
                                     {...provided.droppableProps}
                                 >
@@ -347,7 +358,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                 <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
-                                                    className="w-[280px] flex-shrink-0 bg-white/40 px-4 pb-4 rounded-lg"
+                                                    className={`w-[280px] flex-shrink-0 ${listColors[listIndex % listColors.length]} px-3 pb-3 rounded-lg`}
                                                 >
                                                     <div
                                                         className="w-full flex justify-between items-center my-3"
@@ -385,7 +396,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                         list.id
                                                                     )
                                                                 }
-                                                                className="font-bold text-lg cursor-pointer"
+                                                                className="font-bold text-base sm:text-lg cursor-pointer"
                                                             >
                                                                 {list.title}
                                                             </h1>
@@ -481,7 +492,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                                                                                     </div>
                                                                                                                 ))}
                                                                                                             </div>
-                                                                                                            <div className="flex items-center gap-4 ">
+                                                                                                            <div className="flex items-center gap-3">
                                                                                                                 <div>
                                                                                                                     {card.kalender.map((kal) => {
                                                                                                                         const dueDate = new Date(kal.due_date);
@@ -568,13 +579,13 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
                                                     </Droppable>
 
                                                     {(() => {
-                                                        const isProtectedList = list.title === 'Verifikasi Katim' || list.title === 'Selesai';
+                                                        const isProtectedList = list.title === 'Perlu Verifikasi' || list.title === 'Selesai';
                                                         const shouldShowButton = currentUserRole === 'Ketua tim' || !isProtectedList;
 
                                                         return shouldShowButton && (
                                                             <div
                                                                 onClick={() => handleAddCard(list.id)}
-                                                                className="flex mt-4 gap-2 items-center text-sm text-gray-700 cursor-pointer hover:opacity-80"
+                                                                className="flex mt-3 gap-2 items-center text-sm text-gray-700 cursor-pointer hover:opacity-80"
                                                             >
                                                                 <Plus size={16} />
                                                                 <p>Tambah</p>
@@ -589,7 +600,7 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
 
                                     <div
                                         onClick={() => setTambahList(true)}
-                                        className="w-[280px] flex-shrink-0 bg-white/40 px-4 py-4 rounded-lg cursor-pointer hover:bg-white/60"
+                                        className="w-[280px] flex-shrink-0 bg-white/40 px-4 py-3 rounded-lg cursor-pointer hover:bg-white/60"
                                     >
                                         <div className="flex gap-2 items-center text-sm text-gray-700">
                                             <Plus size={16} />
@@ -603,10 +614,11 @@ export default function Kanban({ children, dashboardId, activePage, tim, dataBoa
 
                     <Link
                         href={route('proyek.arsip', { id: dashboardId, id_tim: id_tim })}
-                        className="absolute bottom-5 right-5 bg-gray-700 text-white p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors"
+                        className="absolute bottom-4 right-4 lg:bottom-5 lg:right-5 bg-gray-700 text-white p-2 lg:p-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors"
                         title="Lihat Arsip"
                     >
-                        <Archive size={24} />
+                        <Archive size={20} className="lg:hidden" />
+                        <Archive size={24} className="hidden lg:block" />
                     </Link>
                 </div>
                 {children}
