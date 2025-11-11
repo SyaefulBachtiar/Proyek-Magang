@@ -48,22 +48,22 @@ const KinerjaCard = ({ user, startDate, endDate }) => {
     }, [startDate, endDate]);
 
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-sm flex flex-col justify-between h-full border border-gray-200/80">
+        <div className="bg-blue-600 text-white p-6 rounded-2xl shadow-sm flex flex-col justify-between h-full border border-blue-700">
             <div>
-                <h3 className="text-sm font-semibold text-gray-500 mb-4">Laporan Kinerja</h3>
+                <h3 className="text-sm font-semibold text-blue-100 mb-4">Laporan Kinerja</h3>
                 <div className="flex items-center gap-4">
                     <img src={`https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=c7d2fe&color=3730a3&size=48`} alt={user.name} className="w-12 h-12 rounded-full"/>
                     <div>
-                        <p className="font-bold text-gray-800 text-lg">{user.name}</p>
-                        <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-sm font-semibold">{user.role}</span>
+                        <p className="font-bold text-white text-lg">{user.name}</p>
+                        <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-sm font-semibold">{user.role}</span>
                     </div>
                 </div>
-                <p className="text-sm text-gray-500 mt-3 flex items-center gap-2">
+                <p className="text-sm text-blue-100 mt-3 flex items-center gap-2">
                     <Users size={14} />
-                    Tim: <span className="font-semibold text-gray-700">{user.team}</span>
+                    Tim: <span className="font-semibold text-white">{user.team}</span>
                 </p>
             </div>
-            <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
+            <div className="mt-5 pt-4 border-t border-blue-400/50 flex items-center justify-between">
                 <div className="text-center">
                     <span className={`text-xs font-bold px-3 py-1 rounded-full ${getRatingColorClasses(user.rating_label)}`}>
                         {user.rating_label}
@@ -73,8 +73,8 @@ const KinerjaCard = ({ user, startDate, endDate }) => {
                     </div>
                 </div>
                 <div className="text-right">
-                    <p className="text-xs text-gray-500">Periode</p>
-                    <p className="font-semibold text-gray-800">{periodeDisplay}</p>
+                    <p className="text-xs text-blue-100">Periode</p>
+                    <p className="font-semibold text-white">{periodeDisplay}</p>
                 </div>
             </div>
         </div>
@@ -111,10 +111,10 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
         const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
         return [
-            { name: "Belum", value: counts.start, color: "#6B7280", percentage: total > 0 ? Math.round((counts.start / total) * 100) : 0 },
-            { name: "Dikerjakan", value: counts.progress, color: "#3B82F6", percentage: total > 0 ? Math.round((counts.progress / total) * 100) : 0 },
-            { name: "Terlambat", value: counts.terlambat, color: "#EF4444", percentage: total > 0 ? Math.round((counts.terlambat / total) * 100) : 0 },
-            { name: "Selesai", value: counts.selesai, color: "#10B981", percentage: total > 0 ? Math.round((counts.selesai / total) * 100) : 0 },
+            { name: "Belum", value: counts.start, color: "#FDE047", percentage: total > 0 ? Math.round((counts.start / total) * 100) : 0 },
+            { name: "Dikerjakan", value: counts.progress, color: "#7DD3FC", percentage: total > 0 ? Math.round((counts.progress / total) * 100) : 0 },
+            { name: "Terlambat", value: counts.terlambat, color: "#FDA4AF", percentage: total > 0 ? Math.round((counts.terlambat / total) * 100) : 0 },
+            { name: "Selesai", value: counts.selesai, color: "#D9F99D", percentage: total > 0 ? Math.round((counts.selesai / total) * 100) : 0 },
         ].filter(item => item.value > 0);
     };
 
@@ -125,7 +125,7 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
         datasets: [{
             data: progressData.map(item => item.value),
             backgroundColor: progressData.map(item => item.color),
-            borderColor: '#ffffff',
+            borderColor: '#059669',
             borderWidth: 4,
         }],
     };
@@ -139,8 +139,8 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
     };
 
     return (
-        <div className="bg-white p-5 rounded-xl shadow-sm h-full">
-            <h3 className="font-bold text-gray-800 mb-2">Ringkasan Tugas Realtime</h3>
+        <div className="bg-emerald-600 p-5 rounded-xl shadow-sm h-full">
+            <h3 className="font-bold text-white mb-2">Ringkasan Tugas Realtime</h3>
             <div className="flex items-center h-full -mt-2">
                 {progressData.length > 0 ? (
                     <>
@@ -151,7 +151,7 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
                             {progressData.map((item) => (
                                 <div key={item.name} className="flex items-center gap-2 text-xs">
                                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                                    <span className="text-gray-600 font-medium">
+                                    <span className="text-emerald-100 font-medium">
                                         {item.name}: {item.value} ({item.percentage}%)
                                     </span>
                                 </div>
@@ -160,9 +160,9 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
                     </>
                 ) : (
                     <div className="flex items-center justify-center h-full w-full">
-                        <div className="text-center text-gray-500">
-                            <Coffee size={32} className="mx-auto mb-2 text-gray-400" />
-                            <p className="text-sm font-semibold text-gray-600">Tidak Ada Tugas</p>
+                        <div className="text-center text-emerald-200">
+                            <Coffee size={32} className="mx-auto mb-2 text-emerald-300" />
+                            <p className="text-sm font-semibold text-white">Tidak Ada Tugas</p>
                             <p className="text-xs">User ini belum memiliki tugas.</p>
                         </div>
                     </div>
@@ -243,7 +243,7 @@ const TugasCard = ({ tabs }) => {
     const activeTabData = tabs.find((tb) => tb.id === activeTab);
 
     return (
-        <div className="bg-white p-5 rounded-2xl shadow-sm h-full flex flex-col border border-gray-200/80">
+        <div className="bg-amber-500 p-5 rounded-2xl shadow-sm h-full flex flex-col border border-gray-200/80">
             <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-3 border-b border-gray-200 styled-scrollbar">
                 {tabs.map((tab) => (
                     <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -261,9 +261,9 @@ const TugasCard = ({ tabs }) => {
                 {activeTabData?.cards?.length > 0 ? (
                     activeTabData.cards.map((task) => <TaskItem key={task.id} task={task} />)
                 ) : (
-                     <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 text-sm p-8">
-                        <Coffee size={36} className="mb-4 text-gray-400" />
-                        <p className="font-semibold text-gray-700 text-base">Tidak Ada Tugas</p>
+                     <div className="flex flex-col items-center justify-center h-full text-center text-sm p-8  text-amber-100 rounded-lg">
+                        <Coffee size={36} className="mb-4 text-amber-200" />
+                        <p className="font-semibold text-white text-base">Tidak Ada Tugas</p>
                         <p>Anda bisa beristirahat sejenak di kategori ini.</p>
                     </div>
                 )}
@@ -295,26 +295,26 @@ const PenghambatCard = ({ data, tim, dashboardId }) => {
                         </div>
                         <div>
                             <p className={`text-2xl font-bold ${colorClass.text}`}>{value}</p>
-                            <p className="text-sm font-semibold text-gray-600">{label}</p>
+                            <p className="text-sm font-semibold text-white">{label}</p>
                         </div>
                     </div>
-                    <p className="text-xs text-gray-400 mt-2 ml-12">{subLabel}</p>
+                    <p className="text-xs text-rose-200 mt-2 ml-12">{subLabel}</p>
                 </div>
                 {task ? (
-                     <div className="mt-4 pt-4 border-t border-gray-100">
-                        <p className="text-xs font-semibold text-gray-700">Tugas Paling Kritis</p>
+                     <div className="mt-4 pt-4 border-t border-rose-400/50">
+                        <p className="text-xs font-semibold text-rose-100">Tugas Paling Kritis</p>
                         <p 
                             onClick={handleTaskClick} 
-                            className="text-sm text-blue-600 mt-1 truncate cursor-pointer hover:underline"
+                            className="text-sm text-blue-400 mt-1 truncate cursor-pointer hover:underline"
                             title={task.nama_card}
                         >
                             {task.nama_card}
                         </p>
                     </div>
                 ) : (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                        <p className="text-xs font-semibold text-gray-700">Tugas Paling Kritis</p>
-                        <p className="text-sm text-gray-400 mt-1">Tidak ada data</p>
+                    <div className="mt-4 pt-4 border-t border-rose-400/50">
+                        <p className="text-xs font-semibold text-rose-100">Tugas Paling Kritis</p>
+                        <p className="text-sm text-rose-300 mt-1">Tidak ada data</p>
                     </div>
                 )}
             </div>
@@ -324,8 +324,8 @@ const PenghambatCard = ({ data, tim, dashboardId }) => {
     const hasBlockers = data?.mengendap?.jumlah > 0 || data?.terlambat_kritis?.jumlah > 0;
 
     return (
-        <div className="bg-white p-6 rounded-2xl shadow-sm h-full border border-gray-200/80">
-            <h3 className="text-sm font-semibold text-gray-500 mb-5">Potensi Penghambat</h3>
+        <div className="bg-rose-600 p-6 rounded-2xl shadow-sm h-full border border-rose-700">
+            <h3 className="text-sm font-semibold text-rose-100 mb-5">Potensi Penghambat</h3>
             {hasBlockers ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 h-full">
                     <StatItem
@@ -349,9 +349,9 @@ const PenghambatCard = ({ data, tim, dashboardId }) => {
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center">
-                    <CheckCircle2 size={40} className="text-green-500 mb-3" />
-                    <p className="font-semibold text-gray-800">Semua Berjalan Lancar!</p>
-                    <p className="text-sm text-gray-500 mt-1">Tidak ada tugas yang terdeteksi sebagai penghambat.</p>
+                    <CheckCircle2 size={40} className="text-green-400 mb-3" />
+                    <p className="font-semibold text-white">Semua Berjalan Lancar!</p>
+                    <p className="text-sm text-rose-200 mt-1">Tidak ada tugas yang terdeteksi sebagai penghambat.</p>
                 </div>
             )}
         </div>

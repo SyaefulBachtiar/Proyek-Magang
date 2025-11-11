@@ -28,7 +28,7 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                         size={20}
                                         className="md:size-25"
                                     />
-                                    <h1 className="text-lg md:text-xl font-semibold truncate max-w-48">
+                                    <h1 className="text-lg md:text-xl font-semibold truncate max-w-80">
                                         {nama_board}
                                     </h1>
                                 </div>
