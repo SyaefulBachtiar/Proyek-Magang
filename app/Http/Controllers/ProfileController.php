@@ -22,7 +22,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        $user = $request->user()->load('perusahaan');
+        $user = $request->user()->load('anggotaPerusahaan'); 
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
@@ -76,10 +76,14 @@ class ProfileController extends Controller
         $user->update($validated);
 
         if (isset($validated['jabatan'])) {
-            $user->perusahaan()->updateOrCreate(
-                ['user_id' => $user->id],
-                ['jabatan' => $validated['jabatan']]
-            );
+            
+            $anggota = $user->anggotaPerusahaan; 
+
+            if ($anggota) {
+                $anggota->update([
+                    'jabatan' => $validated['jabatan']
+                ]);
+            }
         }
 
         return redirect()->back()->with('message', 'Profil berhasil diperbarui!');

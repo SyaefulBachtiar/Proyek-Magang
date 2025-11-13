@@ -37,7 +37,7 @@ function ProfileContent({ user, userProfile }) {
     const { data, setData, post, processing, errors, isDirty, reset } = useForm({
         name: user.name || "",
         email: user.email || "",
-        jabatan: userProfile.perusahaan?.jabatan || "",
+        jabatan: userProfile.anggota_perusahaan?.jabatan || "", // <-- DIUBAH
         bio_profile: userProfile.bio_profile || "",
         poto_profile_user: null,
     });
@@ -156,7 +156,7 @@ function ProfileContent({ user, userProfile }) {
                                 
                                 <div className="mt-2">
                                     <span className="text-sm font-semibold bg-sky-100 text-sky-800 px-3 py-1 rounded-md">
-                                        {userProfile.perusahaan?.jabatan || "Belum diatur"}
+                                        {userProfile.anggota_perusahaan?.jabatan || "Belum diatur"} {/* <-- DIUBAH */}
                                     </span>
                                 </div>
                             </div>
