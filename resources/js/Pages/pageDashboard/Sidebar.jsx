@@ -69,7 +69,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
         }
     };
 
-    // Clear search
     const clearSearch = () => {
         setSearchQuery("");
         setDropwdownProyek(false);
@@ -112,7 +111,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                     </div>
                 </div>
 
-                {/* search sidebar */}
                 <div className="w-full group cursor-pointer ">
                     <div className="w-full group flex overflow-hidden gap-4 relative items-center py-1 px-[2px]">
                         <Search
@@ -136,7 +134,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                             </p>
                         )}
 
-                        {/* Clear search button */}
                         {searchQuery && (
                             <button
                                 onClick={clearSearch}
@@ -151,7 +148,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                         </div>
                     </div>
 
-                    {/* hasil search */}
                     <div
                         className={`w-full overflow-hidden transition-all delay-150 ease-in-out duration-300 flex flex-col gap-2 ${
                             isSearchFocused || searchQuery
@@ -159,7 +155,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                 : "hidden group-hover:min-h-[100px] group-hover:flex group-hover:mt-4 group-hover:p-2"
                         }`}
                     >
-                        {/* Show no results message */}
                         {searchQuery &&
                             filteredProyekTim.length === 0 &&
                             filteredTimBiasa.length === 0 && (
@@ -168,7 +163,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                 </div>
                             )}
 
-                        {/* Proyek Section */}
                         {(!searchQuery || filteredProyekTim.length > 0) && (
                             <div className="group/chevron">
                                 <div
@@ -242,7 +236,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                             </div>
                         )}
 
-                        {/* Tim Section */}
                         {(!searchQuery || filteredTimBiasa.length > 0) && (
                             <div className="group/chevron">
                                 <div
@@ -365,7 +358,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                             </div>
                         </div>
 
-                        {/* leaderboard sidebar */}
                         <div
                             className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
                                 activePage === "DashboardLeaderboard"
@@ -394,18 +386,19 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                     ""
                 )}
 
-                <div
-                    className={`w-full text-xs text-gray-500 px-4 pt-4 border-t border-gray-200 mt-4 ${
-                        sidebarOpen ? "block" : "hidden group-hover:block"
-                    }`}
-                >
-                    <p className="font-bold">Horizon University Indonesia</p>
+<div
+    className={`w-full text-xs text-gray-500 px-4 pt-4 border-t border-gray-200 mt-4 transition-all duration-300 ease-in-out delay-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 ${
+        sidebarOpen
+            ? "opacity-100 visible translate-y-0"
+            : "opacity-0 invisible translate-y-2"
+    }`}
+>
+    <p className="font-bold">Horizon University Indonesia</p>
     <p className="mt-1 sm:mt-0 opacity-75">
         &copy; {new Date().getFullYear()} All rights reserved.
     </p>
-                </div>
+</div>
             </div>
-            
         </>
     );
 }

@@ -1,64 +1,62 @@
-import ApplicationLogo from "@/Components/ApplicationLogo";
 import { Link } from "@inertiajs/react";
 
 export default function GuestLayout({ children, register }) {
     return (
-        <div className="flex min-h-screen bg-white">
-            <div className="relative hidden sm:block sm:w-1/2">
-                <Link
-                    href="/"
-                    className="absolute z-10 top-10 left-10"
-                >
-                    <div className="flex items-center justify-center gap-4 px-4 py-3 bg-white rounded-lg shadow-md w-fit">
-                        <img
-                            src="/img/kemenkes.png"
-                            alt="Logo Kemenkes"
-                            className="object-contain h-10 w-10"
-                        />
-                        <h1 className="text-xl font-semibold text-gray-800">
-                            BBPK Ciloto
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-cyan-300 via-teal-200 to-green-300">
+            <div className="absolute top-10 left-10 z-10 hidden sm:block">
+                <Link href="/" className="flex items-center gap-3">
+                    <img
+                        src="/img/kemenkes.png"
+                        alt="Logo Kemenkes"
+                        className="object-contain h-10 w-10"
+                    />
+                    <div>
+                        <h1 className="text-xl font-bold text-teal-700 leading-tight">
+                            Kemenkes
                         </h1>
+                        <p className="text-sm font-semibold text-teal-600">
+                            BBPK Ciloto
+                        </p>
                     </div>
                 </Link>
+            </div>
 
-                {/* Gambar */}
+            <div className="hidden sm:block sm:w-1/2">
                 <img
-                    src="/img/first.png"
-                    alt="BBPK Ciloto"
-                    className="object-cover w-full h-full"
+                    src="/img/login.png"
+                    alt="Ilustrasi Login"
+                    className="object-contain w-full h-auto max-w-lg mx-auto"
                 />
             </div>
 
-            <div className="flex flex-col w-full px-6 py-40 sm:w-1/2 sm:px-12 lg:px-20">
-                
-                {/* Logo untuk Mobile (Muncul di atas form) */}
-                <div className="mb-10 sm:hidden">
-                    <Link href="/" className="flex items-center gap-3 w-fit">
-                        <img
-                            src="/img/kemenkes.png"
-                            alt="Logo Kemenkes"
-                            className="object-contain h-10 w-10"
-                        />
-                        <h1 className="text-xl font-semibold text-gray-800">
-                            BBPK Ciloto
+            <div className="flex flex-col items-center justify-center w-full max-w-xl px-10 py-20 sm:w-2/3 sm:px-0">
+
+                <div className="w-full rounded-3xl bg-gradient-to-br from-teal-400/80 to-green-400/80 p-10 backdrop-blur-sm shadow-2xl">
+                    <div className="mb-8 flex justify-center sm:hidden">
+                        <Link href="/" className="flex items-center gap-3">
+                            <img
+                                src="/img/kemenkes.png"
+                                alt="Logo Kemenkes"
+                                className="object-contain h-10 w-10"
+                            />
+                            <h1 className="text-xl font-bold text-white">
+                                BBPK Ciloto
+                            </h1>
+                        </Link>
+                    </div>
+
+                    <div className="mb-10 text-center">
+                        <h1 className="text-3xl font-extrabold text-white tracking-wide">
+                            SIKEL
                         </h1>
-                    </Link>
-                </div>
+                        <p className="mt-1 text-xl font-bold text-white">
+                            Sistem Informasi Kegiatan Laporan
+                        </p>
+                    </div>
 
-                <div className="w-full mb-8 text-start">
-                    <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-                        {register ? "Register" : "Log in"}
-                    </h1>
-                    <p className="mt-2 text-sm font-light text-gray-600">
-                        {register
-                            ? "Buat akun baru"
-                            : "Login ke Aplikasi kantor BBPK Ciloto"}
-                    </p>
+                    <div className="w-full">{children}</div>
                 </div>
-
-                <div className="w-full">{children}</div>
             </div>
-
         </div>
     );
 }

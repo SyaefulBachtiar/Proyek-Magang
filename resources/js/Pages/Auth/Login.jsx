@@ -1,3 +1,5 @@
+// resources/js/Pages/Auth/Login.jsx
+
 import Checkbox from "@/Components/Checkbox";
 import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
@@ -25,26 +27,33 @@ export default function Login({ status, canResetPassword }) {
         });
     };
 
+    const customInputStyle =
+  "mt-1 block w-full border-0 border-b-2 border-white/70 bg-transparent pl-3 pb-2 text-white transition duration-200 ease-in-out focus:border-green-300 focus:ring-0 [&:-webkit-autofill]:text-white [&:-webkit-autofill]:transition-[background-color_9999s_ease-in-out]";
+
     return (
         <GuestLayout>
             <Head title="Log in" />
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
+                <div className="mb-4 text-sm font-medium text-green-200">
                     {status}
                 </div>
             )}
 
-            <form onSubmit={submit} className="block">
+            <form onSubmit={submit} className="block space-y-8">
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel
+                        htmlFor="email"
+                        value="Email"
+                        className="text-1xl font-bold text-white"
+                    />
 
                     <TextInput
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full"
+                        className={customInputStyle} 
                         autoComplete="username"
                         isFocused={true}
                         onChange={(e) => setData("email", e.target.value)}
@@ -53,8 +62,12 @@ export default function Login({ status, canResetPassword }) {
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                <div>
+                    <InputLabel
+                        htmlFor="password"
+                        value="Password"
+                        className="text-sm font-medium text-white"
+                    />
 
                     <div className="relative">
                         <TextInput
@@ -62,20 +75,23 @@ export default function Login({ status, canResetPassword }) {
                             type={showPassword ? "text" : "password"}
                             name="password"
                             value={data.password}
-                            className="mt-1 block w-full pr-10"
+
+                            className={`${customInputStyle} pr-10`}
                             autoComplete="current-password"
-                            onChange={(e) => setData("password", e.target.value)}
+                            onChange={(e) =>
+                                setData("password", e.target.value)
+                            }
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 focus:outline-none"
+                            className="absolute inset-y-0 right-0 flex items-center px-0 text-white/70 transition hover:text-white focus:outline-none"
                             tabIndex={-1}
                         >
                             {showPassword ? (
                                 <EyeOff className="w-5 h-5" />
                             ) : (
-                                <Eye className="w-5 h-S5" />
+                                <Eye className="w-5 h-5" />
                             )}
                         </button>
                     </div>
@@ -83,7 +99,8 @@ export default function Login({ status, canResetPassword }) {
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
-                <div className="mt-4 block">
+                {/* (Perbaikan) 'mt-6' dihapus */}
+                <div className="flex items-center justify-between">
                     <label className="flex items-center">
                         <Checkbox
                             name="remember"
@@ -91,44 +108,40 @@ export default function Login({ status, canResetPassword }) {
                             onChange={(e) =>
                                 setData("remember", e.target.checked)
                             }
+                            className="rounded border-white/100 bg-transparent text-green-500 shadow-sm transition focus:ring-green-400"
                         />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Ingatkan Saya
+                        <span className="ms-2 text-sm text-white/90">
+                            Ingat Saya
                         </span>
                     </label>
+
+                    <Link
+                        href={route("password.request")}
+                        className="text-sm font-medium text-white underline transition hover:text-green-200"
+                    >
+                        Lupa Password?
+                    </Link>
                 </div>
 
-                {/* ====== AREA PERUBAHAN YANG DIPERBAIKI ====== */}
-                <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    
-                    {/* Link-link */}
-                    <div className="space-y-3">
-                        {/* Link "Lupa kata sandi?" sekarang selalu tampil */}
-                        <Link
-                            href={route("password.request")}
-                            className="block rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                            Lupa kata sandi?
-                        </Link>
-                        
-                        <p className="text-sm text-gray-600">
-                            Belum punya akun?{" "}
-                            <Link
-                                href={route("register")}
-                                className="underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                            >
-                                Daftar
-                            </Link>
-                        </p>
-                    </div>
-
-                    {/* Tombol Login */}
-                    <PrimaryButton 
-                        className="w-full justify-center mt-6 sm:mt-0 sm:w-auto sm:ms-4" 
+                <div>
+                    <PrimaryButton
+                        className="w-full justify-center rounded-lg bg-green-500 py-3 text-lg font-bold text-white transition-all duration-200 hover:bg-green-600 hover:shadow-lg active:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-400/50"
                         disabled={processing}
                     >
-                        Log in
+                        Login
                     </PrimaryButton>
+                </div>
+
+                <div className="text-center">
+                    <p className="text-sm text-white/90">
+                        Belum Punya Akun?{" "}
+                        <Link
+                            href={route("register")}
+                            className="font-bold text-white underline transition hover:text-green-200"
+                        >
+                            Daftar
+                        </Link>
+                    </p>
                 </div>
             </form>
         </GuestLayout>

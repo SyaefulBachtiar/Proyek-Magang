@@ -111,7 +111,7 @@ const RingkasanCard = ({ user, tugasPerTabs }) => {
         const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
         return [
-            { name: "Belum", value: counts.start, color: "#FDE047", percentage: total > 0 ? Math.round((counts.start / total) * 100) : 0 },
+            { name: "Belum", value: counts.start, color: "#fcd34d", percentage: total > 0 ? Math.round((counts.start / total) * 100) : 0 },
             { name: "Dikerjakan", value: counts.progress, color: "#7DD3FC", percentage: total > 0 ? Math.round((counts.progress / total) * 100) : 0 },
             { name: "Terlambat", value: counts.terlambat, color: "#FDA4AF", percentage: total > 0 ? Math.round((counts.terlambat / total) * 100) : 0 },
             { name: "Selesai", value: counts.selesai, color: "#D9F99D", percentage: total > 0 ? Math.round((counts.selesai / total) * 100) : 0 },
@@ -243,7 +243,7 @@ const TugasCard = ({ tabs }) => {
     const activeTabData = tabs.find((tb) => tb.id === activeTab);
 
     return (
-        <div className="bg-amber-500 p-5 rounded-2xl shadow-sm h-full flex flex-col border border-gray-200/80">
+        <div className="bg-amber-300 p-5 rounded-2xl shadow-sm h-full flex flex-col border border-gray-200/80">
             <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-3 border-b border-gray-200 styled-scrollbar">
                 {tabs.map((tab) => (
                     <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -324,7 +324,7 @@ const PenghambatCard = ({ data, tim, dashboardId }) => {
     const hasBlockers = data?.mengendap?.jumlah > 0 || data?.terlambat_kritis?.jumlah > 0;
 
     return (
-        <div className="bg-rose-600 p-6 rounded-2xl shadow-sm h-full border border-rose-700">
+        <div className="bg-rose-500 p-6 rounded-2xl shadow-sm h-full border border-rose-700">
             <h3 className="text-sm font-semibold text-rose-100 mb-5">Potensi Penghambat</h3>
             {hasBlockers ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 h-full">
