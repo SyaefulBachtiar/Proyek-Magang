@@ -32,10 +32,6 @@ class UndanganController extends Controller
         'id_perusahaan' => $id_perusahaan,
     ]);
 
-        // 1. SIMPAN UNDUANGAN KE DATABASE
-        // Sudah dilakukan di atas dengan Undangan::create()
-
-    // 2. BUAT URL YANG SUDAH DITANDATANGANI DAN BERLAKU 7 HARI
         $signedUrl = URL::temporarySignedRoute(
             'register', // Nama route
             now()->addDays(7), // Waktu kedaluwarsa
