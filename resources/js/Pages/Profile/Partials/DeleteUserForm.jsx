@@ -4,12 +4,16 @@ import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
-import { useForm } from '@inertiajs/react';
+// 1. Impor usePage
+import { useForm, usePage } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 
 export default function DeleteUserForm({ className = '' }) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
     const passwordInput = useRef();
+
+    // 2. Dapatkan 'auth' dari props halaman
+    const { auth } = usePage().props;
 
     const {
         data,
@@ -30,7 +34,8 @@ export default function DeleteUserForm({ className = '' }) {
     const deleteUser = (e) => {
         e.preventDefault();
 
-        destroy(route('profile.destroy'), {
+        // 3. Tambahkan parameter { id: auth.user.id } ke fungsi route()
+        destroy(route('profile.destroy', { id: auth.user.id }), {
             preserveScroll: true,
             onSuccess: () => closeModal(),
             onError: () => passwordInput.current.focus(),
