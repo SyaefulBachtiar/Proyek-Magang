@@ -55,5 +55,35 @@ npm run dev
 ```bash
 php artisan db:seed
 ```
+### 9. Intall Emoji Fitur Chat Group
+```bash
+npm install emoji-picker-react
+```
 
+### 10. Untuk Link Storage
+```bash
+php artisan storage:link
+```
+
+### 11. Install Pusher
+```bash
+npm install laravel-echo pusher-js
+```
+
+### 12. Install Riverb
+```bash
+composer require laravel/reverb
+```
+
+### 13. Install Riverb
+```bash
+composer require laravel/reverb
+```
+
+### 13. Perintah Untuk Running
+```bash
+php artisan serve
+npm run dev
+php artisan reverb:start
+```
 
