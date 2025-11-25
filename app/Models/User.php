@@ -40,7 +40,9 @@ class User extends Authenticatable
         'nama_perusahaan',
         'remember_token',
         'is_online',
-        'last_seen'
+        'last_seen',
+        'is_admin',
+        'status'   
     ];
 
     /**
@@ -61,6 +63,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 

@@ -1,6 +1,7 @@
 <?php
 
-
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Middleware\IsAdmin;
 use App\Http\Controllers\KelolaTimController;
 use App\Http\Controllers\AksesTimController;
 use App\Http\Controllers\ChatGrup\ChatGrupController;
@@ -168,6 +169,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/users', [Tim_perusahaanController::class, 'getUsers']); // untuk modal
 
     Route::post('/undangan', [UndanganController::class, 'kirim'])->name('undangan.kirim');
+});
+
+
+// GROUP ROUTE ADMINISTRATOR
+Route::middleware(['auth', IsAdmin::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+    Route::put('/user/{id}/approve', [AdminController::class, 'approve'])->name('user.approve');
+    Route::put('/user/{id}/deactivate', [AdminController::class, 'deactivate'])->name('user.deactivate');
+    Route::delete('/user/{id}', [AdminController::class, 'destroy'])->name('user.destroy');
+    Route::put('/password', [AdminController::class, 'updatePassword'])->name('password.update');
 });
 
 require __DIR__.'/auth.php';

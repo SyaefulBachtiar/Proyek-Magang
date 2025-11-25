@@ -10,14 +10,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Models\Perusahaan;
-
+use Illuminate\Validation\ValidationException; // <--- Jangan lupa import ini
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
     public function create(): Response
     {
         return Inertia::render('Auth/Login', [
@@ -26,9 +22,6 @@ class AuthenticatedSessionController extends Controller
         ]);
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
@@ -37,14 +30,24 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        $id = $user->id;
+        if ($user->is_admin) {
+            return redirect()->route('admin.dashboard');
+        }
 
-        return redirect()->route('dashboard.with.id', ['id' => $id]);
+        if ($user->status !== 'active') {
+            
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda belum disetujui oleh Administrator atau sedang dinonaktifkan.',
+            ]);
+        }
+
+        return redirect()->route('dashboard.with.id', ['id' => $user->id]);
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();

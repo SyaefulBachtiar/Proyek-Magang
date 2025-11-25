@@ -1,5 +1,3 @@
-// resources/js/Pages/Auth/Login.jsx
-
 import Checkbox from "@/Components/Checkbox";
 import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
@@ -8,7 +6,7 @@ import TextInput from "@/Components/TextInput";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle } from "lucide-react"; // Menambahkan icon CheckCircle
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -28,15 +26,19 @@ export default function Login({ status, canResetPassword }) {
     };
 
     const customInputStyle =
-  "mt-1 block w-full border-0 border-b-2 border-white/70 bg-transparent pl-3 pb-2 text-white transition duration-200 ease-in-out focus:border-green-300 focus:ring-0 [&:-webkit-autofill]:text-white [&:-webkit-autofill]:transition-[background-color_9999s_ease-in-out]";
+        "mt-1 block w-full border-0 border-b-2 border-white/70 bg-transparent pl-3 pb-2 text-white transition duration-200 ease-in-out focus:border-green-300 focus:ring-0 [&:-webkit-autofill]:text-white [&:-webkit-autofill]:transition-[background-color_9999s_ease-in-out]";
 
     return (
         <GuestLayout>
             <Head title="Log in" />
 
+            {/* TAMPILAN NOTIFIKASI BARU */}
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-200">
-                    {status}
+                <div className="mb-6 flex items-start gap-3 rounded-xl border border-white/40 bg-white/20 p-4 shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-white/30">
+                    <CheckCircle className="h-6 w-6 flex-shrink-0 text-white drop-shadow-md" />
+                    <div className="text-sm font-medium text-white drop-shadow-md leading-snug">
+                        {status}
+                    </div>
                 </div>
             )}
 
@@ -53,7 +55,7 @@ export default function Login({ status, canResetPassword }) {
                         type="email"
                         name="email"
                         value={data.email}
-                        className={customInputStyle} 
+                        className={customInputStyle}
                         autoComplete="username"
                         isFocused={true}
                         onChange={(e) => setData("email", e.target.value)}
@@ -75,12 +77,9 @@ export default function Login({ status, canResetPassword }) {
                             type={showPassword ? "text" : "password"}
                             name="password"
                             value={data.password}
-
                             className={`${customInputStyle} pr-10`}
                             autoComplete="current-password"
-                            onChange={(e) =>
-                                setData("password", e.target.value)
-                            }
+                            onChange={(e) => setData("password", e.target.value)}
                         />
                         <button
                             type="button"
@@ -99,15 +98,12 @@ export default function Login({ status, canResetPassword }) {
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
-                {/* (Perbaikan) 'mt-6' dihapus */}
                 <div className="flex items-center justify-between">
                     <label className="flex items-center">
                         <Checkbox
                             name="remember"
                             checked={data.remember}
-                            onChange={(e) =>
-                                setData("remember", e.target.checked)
-                            }
+                            onChange={(e) => setData("remember", e.target.checked)}
                             className="rounded border-white/100 bg-transparent text-green-500 shadow-sm transition focus:ring-green-400"
                         />
                         <span className="ms-2 text-sm text-white/90">

@@ -50,7 +50,7 @@ class Perusahaan extends Model
 
     public function anggotaPerusahaan()
     {
-        return $this->hasOne(Anggota_perusahaan::class, 'perusahaan_id', 'id');
+        return $this->hasMany(Anggota_perusahaan::class, 'perusahaan_id', 'id');
     }
 
     public function timPerusahaan()

@@ -22,23 +22,14 @@ use Illuminate\Validation\ValidationException;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
     public function create(Request $request): Response
     {
         return Inertia::render('Auth/Register', [
             'register' => Route::has('register'),
-            // PERBAIKAN 2: Ambil kode 'undangan' dari URL dan kirimkan sebagai prop ke view
             'kodeUndangan' => $request->query('undangan'),
         ]);
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
          $request->validate([
@@ -48,16 +39,16 @@ class RegisteredUserController extends Controller
             'undangan' => 'nullable|string|exists:undangan,id',
         ]);
 
-        // Gunakan DB Transaction untuk memastikan konsistensi data
         $user = DB::transaction(function () use ($request) {
             $namaPerusahaan = null;
             $kodeUndangan = $request->input('undangan');
+            
 
-            // Logika untuk pendaftaran via undangan
+            $statusAkun = !empty($kodeUndangan) ? 'active' : 'pending'; 
+
             if (!empty($kodeUndangan)) {
                 $undangan = Undangan::where('id', $kodeUndangan)->first();
 
-                // PERBAIKAN: Tambahkan validasi jika undangan ada tapi email tidak cocok
                 if ($undangan && $undangan->email !== $request->email) {
                     throw ValidationException::withMessages([
                         'email' => 'Alamat email ini tidak cocok dengan yang tertera di undangan.',
@@ -67,25 +58,22 @@ class RegisteredUserController extends Controller
                 if ($undangan) {
                     $namaPerusahaan = $undangan->nama_perusahaan;
                     $id_perusahan = $undangan->id_perusahaan;
-                    // PERBAIKAN: Simpan role dari undangan untuk ditetapkan ke user baru.
-                    // Ini memperbaiki bug di mana role dari undangan tidak digunakan.
-                    // Asumsi: Tabel 'users' memiliki kolom 'role' untuk menyimpan peran pengguna.
                     $userRole = $undangan->role; 
-                    $undangan->delete(); // Hapus undangan agar tidak bisa dipakai ulang
+                    $undangan->delete(); 
                 }
             }
 
-            // Buat user baru. id_perusahaan akan diisi jika dari undangan.
+            // Buat user dengan status yang sudah ditentukan
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
+                'status' => $statusAkun, // <--- UPDATE DISINI
             ]);
 
-            // Jika user daftar mandiri (tanpa undangan), buat perusahaan baru
+            // Jika Mandiri (Buat Perusahaan Baru)
             if (!$namaPerusahaan) {
                 $perusahaan = Perusahaan::create([
-                    'id' => strtoupper(Str::random(20)),
                     'nama_perusahaan' => null,
                     'deskripsi' => null,
                     'image' => null,
@@ -93,26 +81,16 @@ class RegisteredUserController extends Controller
                 ]);
 
                 Anggota_perusahaan::create([
-                    'id' => strtoupper(Str::random(20)),
                     'role' => 'Super User',
                     'jabatan' => 'Owner',
                     'perusahaan_id' => $perusahaan->id,
                     'user_id' => $user->id,
                 ]);
 
-            }else{
-                // $perusahaan = Perusahaan::create([
-                //     'id' => strtoupper(Str::random(20)),
-                //     'nama_perusahaan' => $namaPerusahaan,
-                //     'deskripsi' => null,
-                //     'image' => null,
-                //     'user_id' => $user->id,
-                // ]);
-
-
+            } else {
+                // Jika via Undangan
                 Anggota_perusahaan::create([
-                    'id' => strtoupper(Str::random(20)),
-                    'role' => $userRole ?? 'Member', // Gunakan role dari undangan atau default ke 'Member'
+                    'role' => $userRole ?? 'Member', 
                     'jabatan' => null,
                     'perusahaan_id' => $id_perusahan,
                     'user_id' => $user->id,
@@ -124,7 +102,13 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        // PERBAIKAN: Alihkan ke dashboard, bukan kembali ke halaman login
-        return redirect()->route('login');
+        // PENTING: Jangan login otomatis jika status pending
+        if ($user->status === 'pending') {
+            return redirect()->route('login')->with('status', 'Registrasi berhasil! Mohon tunggu persetujuan Administrator untuk login.');
+        }
+
+        Auth::login($user);
+
+        return redirect()->route('dashboard.fallback');
     }
 }

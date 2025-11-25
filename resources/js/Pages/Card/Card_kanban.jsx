@@ -32,6 +32,8 @@ import Lampiran from "@/modal/Proyek/Lampiran";
 import InputChecklist from "@/Components/InputChecklist";
 import ElipsisModal from "@/Components/ElipsisModal";
 import KomponenKomentar from "@/Components/KomponenKomentar";
+// PERUBAHAN 1: Import Axios
+import axios from "axios"; 
 
 const initialState = {
     tambahAnggota: false,
@@ -279,6 +281,7 @@ export default function Card_kanban() {
         });
     }
     
+    // PERUBAHAN UTAMA DI SINI (Menggunakan Axios)
     const handleFileUpload = async (event, checklistId) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -318,27 +321,21 @@ export default function Card_kanban() {
             formData.append("file", file);
             formData.append("checklist_id", checklistId);
 
-            const response = await fetch(
+            // GANTI FETCH DENGAN AXIOS
+            await axios.post(
                 route("upload.checklist.file", {
                     id: user.id,
                     checklist_id: checklistId,
                 }),
+                formData,
                 {
-                    method: "POST",
                     headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-                        Accept: "application/json",
-                        "X-Requested-With": "XMLHttpRequest",
+                        "Content-Type": "multipart/form-data",
                     },
-                    body: formData,
                 }
             );
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Gagal mengupload file");
-            }
-
+            // Jika sukses (Axios akan throw error jika gagal, jadi tidak butuh cek response.ok)
             router.reload({
                 only: ["checklist"],
                 preserveState: true,
@@ -347,9 +344,11 @@ export default function Card_kanban() {
 
         } catch (error) {
             console.error("Error uploading file:", error);
+            // Ambil pesan error dari response backend jika ada
+            const errorMessage = error.response?.data?.message || error.message || "Gagal mengupload file";
             dispatch({
                 type: "SET_FILE_ERROR",
-                payload: { error: error.message },
+                payload: { error: errorMessage },
             });
         } finally {
             dispatch({
