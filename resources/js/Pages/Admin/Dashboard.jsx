@@ -3,7 +3,7 @@ import { Head, Link, router, usePage, useForm } from '@inertiajs/react';
 import { 
     Search, Trash2, CheckCircle, XCircle, Shield, 
     LogOut, Lock, Users, Building2, ChevronDown, ChevronUp, User,
-    Eye, EyeOff // <--- 1. MENAMBAHKAN ICON MATA DI SINI
+    Eye, EyeOff
 } from 'lucide-react';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
@@ -12,14 +12,11 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import Modal from '@/Components/Modal';
 
 export default function AdminDashboard({ companies, filters }) {
-    // Ganti 'users' jadi 'companies'
     const [term, setTerm] = useState(filters.term || '');
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     
-    // State untuk mengontrol baris mana yang sedang terbuka (dropdown)
     const [expandedCompanyId, setExpandedCompanyId] = useState(null);
 
-    // 2. MENAMBAHKAN STATE UNTUK LIHAT PASSWORD
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -49,7 +46,6 @@ export default function AdminDashboard({ companies, filters }) {
             onSuccess: () => {
                 setShowPasswordModal(false);
                 reset();
-                // Reset visibility state juga saat sukses
                 setShowCurrentPassword(false);
                 setShowNewPassword(false);
                 setShowConfirmPassword(false);
@@ -117,7 +113,6 @@ export default function AdminDashboard({ companies, filters }) {
                     </form>
                 </div>
 
-                {/* TABEL PERUSAHAAN (ACCORDION STYLE) */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="grid grid-cols-12 bg-gray-50 border-b border-gray-200 py-3 px-4 text-xs font-bold uppercase text-gray-500 tracking-wider">
                         <div className="col-span-4">Perusahaan & Owner</div>
@@ -186,7 +181,6 @@ export default function AdminDashboard({ companies, filters }) {
                                         </div>
                                     </div>
 
-                                    {/* BARIS DROPDOWN (DAFTAR ANGGOTA) */}
                                     {expandedCompanyId === company.id && (
                                         <div className="col-span-12 bg-gray-50/80 border-b border-gray-100 p-4 pl-14">
                                             <div className="text-xs font-bold text-gray-400 uppercase mb-3">Daftar Anggota Perusahaan</div>
@@ -263,14 +257,11 @@ export default function AdminDashboard({ companies, filters }) {
                 </div>
             </main>
 
-            {/* 3. MODAL GANTI PASSWORD (DENGAN ICON MATA) */}
             <Modal show={showPasswordModal} onClose={() => setShowPasswordModal(false)}>
                  <div className="p-6">
                     <h2 className="text-xl font-bold text-gray-900 mb-2">Ganti Password Admin</h2>
                     <form onSubmit={submitPassword} className="space-y-5 mt-4">
-                        
-                        {/* Password Saat Ini */}
-                        <div>
+                                                <div>
                             <InputLabel htmlFor="current_password" value="Password Saat Ini" />
                             <div className="relative mt-1">
                                 <TextInput 

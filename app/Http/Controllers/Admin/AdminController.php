@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Perusahaan; // Import Model Perusahaan
+use App\Models\Perusahaan;
 use App\Models\Anggota_perusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,13 +15,12 @@ class AdminController extends Controller
 {
     public function index(Request $request)
     {
-        // UBAH LOGIKA: Ambil data berbasis PERUSAHAAN, bukan User flat.
         $companies = Perusahaan::with([
-                'user', // Ambil data Owner
-                'anggotaPerusahaan.user' // Ambil data SELURUH anggota (termasuk karyawan undangan)
+                'user',
+                'anggotaPerusahaan.user'
             ])
             ->when($request->term, function ($query, $term) {
-                // Fitur Search: Cari berdasarkan Nama Perusahaan ATAU Nama Owner
+               
                 $query->where('nama_perusahaan', 'like', '%' . $term . '%')
                       ->orWhereHas('user', function($q) use ($term) {
                           $q->where('name', 'like', '%' . $term . '%')
@@ -33,7 +32,7 @@ class AdminController extends Controller
             ->withQueryString();
 
         return Inertia::render('Admin/Dashboard', [
-            'companies' => $companies, // Kirim data companies, bukan users
+            'companies' => $companies,
             'filters' => $request->only(['term']),
         ]);
     }
@@ -54,7 +53,6 @@ class AdminController extends Controller
 
     public function destroy($id)
     {
-        // Hapus Owner (Cascade ke perusahaan dan karyawan via logika sebelumnya)
         $user = User::with('perusahaan')->findOrFail($id);
 
         if ($user->perusahaan) {
