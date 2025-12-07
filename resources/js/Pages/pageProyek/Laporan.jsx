@@ -495,7 +495,7 @@ export default function Laporan({ dashboardId, activePage, tim, anggotaTim, tuga
                     .react-datepicker__day--keyboard-selected { background-color: #dbeafe; color: #1e40af; }
                 `}</style>
             </Head>
-            <div className="flex flex-col lg:flex-row w-full min-h-screen bg-gray-50 p-4 lg:p-6 gap-6">
+            <div className="flex flex-col lg:flex-row w-full min-h-screen bg-gray-100 p-4 lg:p-6 gap-6">
 
                 {/* Sidebar Kontrol */}
                 <aside className="w-full lg:w-80 lg:flex-shrink-0 bg-white rounded-2xl shadow-sm p-5 flex flex-col gap-5 h-fit border border-gray-200/80">

@@ -135,7 +135,7 @@ function DashboardContent({ children }) {
                     </div>
 
                     {/* Main content */}
-                    <div className="w-full h-full flex-1 overflow-y-auto my-scrollable-element bg-teal-400 rounded-tl-2xl">
+                    <div className="w-full h-full flex-1 overflow-y-auto my-scrollable-element bg-gray-100 rounded-tl-2xl">
                         {children}
                     </div>
                 </div>

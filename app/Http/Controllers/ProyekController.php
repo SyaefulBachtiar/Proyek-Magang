@@ -13,7 +13,7 @@ use App\Models\timPerusahaan\Card_listModel;
 use App\Models\timPerusahaan\Checklist;
 use App\Models\TimPerusahaan\Checklist_card;
 use App\Models\TimPerusahaan\Deskripsi;
-use App\Models\timPerusahaan\Kalender;
+use App\Models\TimPerusahaan\Kalender;
 use App\Models\TimPerusahaan\Komentar;
 use App\Models\timPerusahaan\Label_card;
 use App\Models\timPerusahaan\Label_tim;

@@ -16,7 +16,6 @@ function Pengaturan() {
     const { perusahaanData = {}, activePage } = props;
     const { setActivePage } = DashboardState(); 
 
-   
     useEffect(() => {
         if (activePage && setActivePage) {
             setActivePage(activePage);
@@ -33,7 +32,9 @@ function Pengaturan() {
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const logoToShow = previewImage || perusahaanData.logo_url;
+    const defaultImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.nama || 'P')}&color=7F9CF5&background=EBF4FF&bold=true`;
+    
+    const logoToShow = previewImage || perusahaanData.logo_url || defaultImage;
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -44,7 +45,7 @@ function Pengaturan() {
         const file = e.target.files[0];
         if (file) {
             const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/svg+xml'];
-            const maxSize = 2 * 1024 * 1024; // 2MB
+            const maxSize = 2 * 1024 * 1024; 
 
             if (!validTypes.includes(file.type)) {
                 alert('Format file tidak didukung. Gunakan JPEG, PNG, JPG, GIF, atau SVG.');
@@ -132,24 +133,19 @@ function Pengaturan() {
                                         className={`block ${!isEditing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                     >
                                         <div className="w-32 h-32 bg-gray-200 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
-                                            {logoToShow ? (
-                                                <img 
-                                                    src={logoToShow} 
-                                                    alt="Logo Perusahaan" 
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-20 h-20 text-gray-500">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-full h-full">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                                                    </svg>
-                                                </div>
-                                            )}
+                                            <img 
+                                                src={logoToShow} 
+                                                alt="Logo Perusahaan" 
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.target.onerror = null; 
+                                                    e.target.src = defaultImage;
+                                                }}
+                                            />
                                         </div>
                                     </label>
                                 </div>
 
-                               
                                 <div className="space-y-1">
                                     <p className="text-sm text-gray-600">
                                         Klik profile untuk mengubah foto profile

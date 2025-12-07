@@ -47,7 +47,7 @@ export default function GuestLayout({ children, register }) {
 
                     <div className="mb-10 text-center">
                         <h1 className="text-3xl font-extrabold text-white tracking-wide">
-                            SIKEL
+                            CilotoTrack
                         </h1>
                         <p className="mt-1 text-xl font-bold text-white">
                             Sistem Informasi Kegiatan Laporan
