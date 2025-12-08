@@ -42,7 +42,7 @@ class Perusahaan extends Model
             return Storage::url($this->image);
         }
 
-        return asset('images/default-company-logo.png');
+        return asset('img/default-company-logo.jpg');
     }
 
 

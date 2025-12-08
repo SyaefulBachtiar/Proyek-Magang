@@ -132,6 +132,8 @@ class LaporanController extends Controller
             return [
                 'id' => $item->user->id,
                 'name' => $item->user->name,
+                // PERUBAHAN DISINI: Menambahkan URL foto profil
+                'poto_profile_user' => $item->user->poto_profile_user ? asset('storage/' . $item->user->poto_profile_user) : null,
                 'role' => $item->role_anggota,
                 'team' => $tim->nama_tim,
                 'rating_bintang' => $ratingBintang,

@@ -31,17 +31,11 @@ Broadcast::channel('user.{id_user}', function ($user, $id_user) {
     if ($user->id !== $id_user) {
         return false;
     }
-
-    // Syarat kedua: Pastikan pengguna ini terdaftar di sebuah perusahaan.
     return Anggota_perusahaan::where('user_id', $id_user)->exists();
-    // return $user->id ===  $id_user;
 });
 
-// KODE BARU DITAMBAHKAN DI SINI
 Broadcast::channel('company.presence.{companyId}', function ($user, $companyId) {
-    // 1. Otorisasi: Pastikan pengguna adalah anggota perusahaan ini.
     if ($user->anggotaPerusahaan && $user->anggotaPerusahaan->perusahaan_id === $companyId) {
-        // 2. Jika ya, kembalikan data pengguna untuk dibagikan dengan anggota lain.
         return [
             'id' => $user->id,
             'name' => $user->name,

@@ -90,6 +90,7 @@ class LeaderboardController extends Controller
                 'name' => $user->name,
                 'tasks' => $tepatWaktu, 
                 'rating_bintang' => $ratingBintang, 
+                'poto_profile_user' => $user->poto_profile_user ? asset('storage/' . $user->poto_profile_user) : null,
             ];
         }
 

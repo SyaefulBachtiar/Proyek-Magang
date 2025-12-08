@@ -52,7 +52,12 @@ const KinerjaCard = ({ user, startDate, endDate }) => {
             <div>
                 <h3 className="text-sm font-semibold text-blue-100 mb-4">Laporan Kinerja</h3>
                 <div className="flex items-center gap-4">
-                    <img src={`https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=c7d2fe&color=3730a3&size=48`} alt={user.name} className="w-12 h-12 rounded-full"/>
+                    {/* PERBAIKAN: Menampilkan foto user di KinerjaCard */}
+                    <img 
+                        src={user.poto_profile_user || `https://ui-avatars.com/api/?name=${user.name.replace(/\s/g, '+')}&background=c7d2fe&color=3730a3&size=48`} 
+                        alt={user.name} 
+                        className="w-12 h-12 rounded-full object-cover bg-blue-500"
+                    />
                     <div>
                         <p className="font-bold text-white text-lg">{user.name}</p>
                         <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-sm font-semibold">{user.role}</span>
@@ -358,12 +363,17 @@ const PenghambatCard = ({ data, tim, dashboardId }) => {
     );
 };
 
+// PERBAIKAN: Komponen MemberList sekarang menggunakan logic foto profil yang sama
 const MemberList = ({ members, selectedUser, onSelectUser }) => (
   <div className="flex flex-col gap-1.5 max-h-80 overflow-y-auto pr-2 styled-scrollbar">
     {members.map((member) => (
       <div key={member.id} onClick={() => onSelectUser(member)}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${selectedUser?.id === member.id ? "bg-blue-600 text-white font-semibold shadow-md" : "text-gray-700 hover:bg-gray-100"}`}>
-        <img src={`https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=random&color=fff&size=32`} alt={member.name} className="w-8 h-8 rounded-full flex-shrink-0" />
+        <img 
+            src={member.poto_profile_user || `https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=random&color=fff&size=32`} 
+            alt={member.name} 
+            className="w-8 h-8 rounded-full flex-shrink-0 object-cover" 
+        />
         <span className="text-sm truncate">{member.name}</span>
       </div>
     ))}

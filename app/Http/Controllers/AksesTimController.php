@@ -26,7 +26,10 @@ class AksesTimController extends Controller
                 'id'    => $anggota->user->id,       
                 'name'  => $anggota->user->name,     
                 'email' => $anggota->user->email,   
-                'role'  => $anggota->role,           
+                'role'  => $anggota->role,
+                'poto_profile_user' => $anggota->user->poto_profile_user 
+                    ? asset('storage/' . $anggota->user->poto_profile_user) 
+                    : null,           
             ];
         });
             

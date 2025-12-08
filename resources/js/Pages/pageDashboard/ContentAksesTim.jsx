@@ -52,7 +52,7 @@ function AksesTim() {
         member.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "");
+    // Fungsi getInitial dihapus karena kita menggunakan ui-avatars
 
     const roleColor = {
         "Super User": "bg-blue-900",
@@ -142,9 +142,15 @@ function AksesTim() {
                         className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 px-3 py-4 sm:p-4 flex items-center justify-between"
                     >
                         <div className="flex items-center space-x-3 min-w-0">
-                            <div className="w-10 h-10 rounded-full bg-blue-200 text-blue-800 font-bold flex items-center justify-center flex-shrink-0">
-                                {getInitial(member.name)}
-                            </div>
+                            
+                            {/* --- PERUBAHAN DISINI: Menggunakan IMG tag untuk foto profil --- */}
+                            <img 
+                                src={member.poto_profile_user || `https://ui-avatars.com/api/?name=${member.name.replace(/\s/g, '+')}&background=bfdbfe&color=1e40af&size=40`} 
+                                alt={member.name} 
+                                className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-blue-100"
+                            />
+                            {/* ------------------------------------------------------------- */}
+
                             <div className="flex flex-col min-w-0">
                                 <span className="font-semibold text-gray-800 truncate">
                                     {member.name}

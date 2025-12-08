@@ -15,7 +15,7 @@ class UserLoggedIn
     {
         //
     }
-      public function handle(Login $event)
+    public function handle(Login $event)
     {
         Cache::put('user-is-online-' . $event->user->id, true, now()->addMinutes(5));
 
@@ -24,13 +24,14 @@ class UserLoggedIn
             'last_seen' => now()
         ]);
         $currentUser = $event->user;
-        
+
         if ($currentUser && $currentUser->anggotaPerusahaan) {
-            $namaPerusahaan = $currentUser->anggotaPerusahaan->perusahaan->nama_perusahaan;
-            
-            $companyUserIds = User::whereHas('anggotaPerusahaan.perusahaan', function ($query) use ($namaPerusahaan) {
-                $query->where('nama_perusahaan', $namaPerusahaan);
+            $perusahaanId = $currentUser->anggotaPerusahaan->perusahaan_id;
+
+            $companyUserIds = User::whereHas('anggotaPerusahaan', function ($query) use ($perusahaanId) {
+                $query->where('perusahaan_id', $perusahaanId);
             })->pluck('id')->toArray();
+            
             broadcast(new NotifikasiEvent($event->user->id, $companyUserIds));
         }
     }

@@ -18,30 +18,26 @@ class UserLoggedOut
     {
         //
     }
-
-    /**
-     * Hande the event.
-     */
-      public function handle(Logout $event)
+    public function handle(Logout $event)
     {
 
-    Cache::forget('user-is-online-' . $event->user->id);
+        Cache::forget('user-is-online-' . $event->user->id);
 
-    User::where('id', $event->user->id)->update([
-                'is_online' => false,
-                'last_seen' => now()
-            ]);;
+        User::where('id', $event->user->id)->update([
+            'is_online' => false,
+            'last_seen' => now()
+        ]);;
 
         $currentUser = $event->user;
-        
+
         if ($currentUser && $currentUser->anggotaPerusahaan) {
-            $namaPerusahaan = $currentUser->anggotaPerusahaan->perusahaan->nama_perusahaan;
-            
-            $companyUserIds = User::whereHas('anggotaPerusahaan.perusahaan', function ($query) use ($namaPerusahaan) {
-                $query->where('nama_perusahaan', $namaPerusahaan);
+            $perusahaanId = $currentUser->anggotaPerusahaan->perusahaan_id;
+
+            $companyUserIds = User::whereHas('anggotaPerusahaan', function ($query) use ($perusahaanId) {
+                $query->where('perusahaan_id', $perusahaanId);
             })->pluck('id')->toArray();
+            
             broadcast(new NotifikasiEvent($event->user->id, $companyUserIds));
         }
     }
-
 }
