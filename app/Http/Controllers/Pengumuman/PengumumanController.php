@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Pengumuman;
 use App\Http\Controllers\Controller;
 use App\Models\Pengumuman;
 use App\Models\User;
-use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\TimPerusahaan\TimPerusahaan; // Pastikan namespace sesuai Model (Capital T)
+use App\Models\TimPerusahaan\BoardModel;    // Import BoardModel
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,16 @@ class PengumumanController extends Controller
      */
     public function pengumuman($id, $id_tim)
     {
-        $tim = TimPerusahaan::findOrFail($id_tim);
+        $userId = Auth::id(); // Ambil ID user login
+
+        // UPDATE QUERY: Gunakan withUnread agar notifikasi muncul
+        $tim = TimPerusahaan::with('board_tim')
+            ->withUnread($userId)
+            ->findOrFail($id_tim);
+        
+        // AMBIL ID BOARD: Diperlukan untuk real-time notifikasi di Navbar
+        $id_board = $tim->board_tim ? $tim->board_tim->id : BoardModel::where('id_team', $id_tim)->value('id');
+
         $listPengumuman = Pengumuman::where('id_tim', $id_tim)
                                 ->with('pembuat') 
                                 ->orderBy('created_at', 'desc')
@@ -26,7 +36,8 @@ class PengumumanController extends Controller
         return Inertia::render('pageProyek/Pengumuman', [
             'dashboardId' => $id,
             'activePage' => 'pengumumanPage',
-            'tim' => $tim,
+            'tim' => $tim,           // Data tim sekarang membawa unread_messages_count
+            'id_board' => $id_board, // Data board dikirim untuk channel socket
             'listPengumuman' => $listPengumuman,
         ]);
     }

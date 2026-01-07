@@ -2,7 +2,7 @@
 
 namespace App\Models\TimPerusahaan;
 
-use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\TimPerusahaan\TimPerusahaan;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,6 +28,10 @@ class Messages extends Model
 
     public function sender () {
         return $this->belongsTo(User::class, 'sender_id', 'id');
+    }
+
+    public function parent() {
+        return $this->belongsTo(Messages::class, 'parent_id', 'id');
     }
 
     public function read () {

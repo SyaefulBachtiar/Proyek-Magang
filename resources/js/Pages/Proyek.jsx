@@ -8,7 +8,7 @@ import {
     UserRoundPlus,
     Megaphone,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Kanban from "./pageProyek/Kanban";
 import { router, usePage } from "@inertiajs/react";
 import TambahAnggotaBoard from "@/modal/Proyek/TambahAnggotaBoard";
@@ -16,6 +16,28 @@ import TambahAnggotaBoard from "@/modal/Proyek/TambahAnggotaBoard";
 export default function Proyek({ children, dashboardId, activePage, tim }) {
     const { id_board, role, nama_board } = usePage().props;
     const [tambahAnggota, setTambahAnggota] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(tim?.unread_messages_count || 0);
+
+    useEffect(() => {
+        setUnreadCount(tim?.unread_messages_count || 0);
+    }, [tim]);
+
+    useEffect(() => {
+        if (!id_board) return;
+
+        const channel = window.Echo.private(`board.${id_board}`);
+
+        channel.listen(".board.updated", (event) => {
+            if (event.type === 'chat' && activePage !== 'chatGrupPage') {
+                setUnreadCount((prevCount) => prevCount + 1);
+            }
+        });
+
+        return () => {
+            window.Echo.leave(`board.${id_board}`);
+        };
+    }, [id_board, activePage]);
+
     return (
         <>
             <Dashboard
@@ -86,7 +108,7 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                     ></div>
                                 </div>
                                 <div
-                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
+                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-visible flex-shrink-0 group transition-all duration-200 hover:bg-[#005f66]" // Tambahkan overflow-visible dan hover effect
                                     onClick={() =>
                                         router.visit(
                                             route("proyek.chatgrup", {
@@ -96,17 +118,26 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
                                         )
                                     }
                                 >
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 relative">
                                         <MessageSquare size={20} />
                                         <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
                                             Chat grup
                                         </span>
+                                        
+                                        {/* --- BAGIAN NOTIFIKASI MODERN --- */}
+                                        {unreadCount > 0 && (
+                                            <span className="absolute -top-3 -right-3 md:-top-3 md:-right-4 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-md ring-2 ring-[#006F78] transition-transform duration-300 animate-in zoom-in">
+                                                {unreadCount > 99 ? '99+' : unreadCount}
+                                            </span>
+                                        )}
+                                        {/* ------------------------------- */}
                                     </div>
+                                    
                                     <div
-                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
+                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute transition-all duration-300 ${
                                             activePage === "chatGrupPage"
                                                 ? "w-full"
-                                                : ""
+                                                : "w-0 group-hover:w-full" // Efek hover garis bawah
                                         }`}
                                     ></div>
                                 </div>

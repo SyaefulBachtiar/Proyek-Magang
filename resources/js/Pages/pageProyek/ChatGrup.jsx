@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Proyek from "../Proyek";
 import { useEffect, useReducer, useRef, useState } from "react";
-import BubleChat from "@/Components/BubleChat"; // <-- Perubahan ada di file ini
+import BubleChat from "@/Components/BubleChat";
 import { Head, router, usePage } from "@inertiajs/react";
 import EmojiPicker from "emoji-picker-react";
 

@@ -3,13 +3,10 @@ import {
     ChevronRight,
     FolderKanban,
     House,
-    ListFilterIcon,
+    Medal,
     Search,
     Settings,
     ShieldCheck,
-    UserRound,
-    Medal,
-    FolderOpenDot,
     Users,
     X,
 } from "lucide-react";
@@ -38,10 +35,8 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
 
     const highlightText = (text, query) => {
         if (!query) return text;
-
         const regex = new RegExp(`(${query})`, "gi");
         const parts = text.split(regex);
-
         return parts.map((part, index) =>
             regex.test(part) ? (
                 <span key={index} className="bg-yellow-200 font-semibold">
@@ -56,13 +51,8 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
     const handleSearchChange = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
-
-        if (query && filteredProyekTim.length > 0) {
-            setDropwdownProyek(true);
-        }
-        if (query && filteredTimBiasa.length > 0) {
-            setDropdownTim(true);
-        }
+        if (query && filteredProyekTim.length > 0) setDropwdownProyek(true);
+        if (query && filteredTimBiasa.length > 0) setDropdownTim(true);
         if (!query) {
             setDropwdownProyek(false);
             setDropdownTim(false);
@@ -76,329 +66,280 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
         setIsSearchFocused(false);
     };
 
-    const handleSearchFocus = () => {
-        setIsSearchFocused(true);
-    };
-
+    const handleSearchFocus = () => setIsSearchFocused(true);
     const handleSearchBlur = () => {
         setTimeout(() => {
-            if (!searchQuery) {
-                setIsSearchFocused(false);
-            }
+            if (!searchQuery) setIsSearchFocused(false);
         }, 200);
     };
 
+    // Helper untuk styling item menu agar konsisten
+    const MenuItem = ({ icon: Icon, label, active, onClick }) => (
+        <div
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 group/item ${
+                active
+                    ? "bg-gray-100 text-gray-900 font-medium"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            }`}
+            onClick={onClick}
+        >
+            <div className="flex items-center justify-center min-w-[24px]">
+                <Icon size={22} strokeWidth={2} />
+            </div>
+            {/* Teks muncul jika sidebarOpen TRUE atau saat parent sidebar di-HOVER */}
+            <span
+                className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                    sidebarOpen
+                        ? "w-full opacity-100"
+                        : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100"
+                }`}
+            >
+                {label}
+            </span>
+        </div>
+    );
+
     return (
-        <>
-            <div className="w-full flex flex-col justify-end my-10 rounded-lg gap-6 overflow-y-auto">
-                <div
-                    className={`w-full group cursor-pointer rounded-md hover:bg-[#F4F4F4] ${
-                        activePage === "DashboardMain" ? "bg-[#F4F4F4]" : ""
-                    }`}
-                    onClick={() =>
-                        router.visit(route("dashboard.with.id", { id }))
-                    }
-                >
-                    <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
-                        <div
-                            className={`px-[5px] rounded-lg h-[42px] flex items-center`}
-                        >
-                            <div className="w-8 h-8 flex justify-center items-center">
-                                <House size={25} />
-                            </div>
-                        </div>
-                        <p className="w-[80px] flex-shrink-0">Dashboard</p>
+        // Tambahkan 'group' di container utama untuk mendeteksi hover pada seluruh sidebar
+        <div className="group flex flex-col h-full w-full py-6 gap-2 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-200">
+            {/* MENU DASHBOARD */}
+            <MenuItem
+                icon={House}
+                label="Dashboard"
+                active={activePage === "DashboardMain"}
+                onClick={() => router.visit(route("dashboard.with.id", { id }))}
+            />
+
+            {/* SEARCH BAR */}
+            <div className="w-full flex flex-col relative my-2">
+                <div className="relative flex items-center w-full px-3 py-2">
+                    <div className="absolute left-3 z-10 text-gray-500">
+                        <Search size={22} strokeWidth={2} />
                     </div>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        onFocus={handleSearchFocus}
+                        onBlur={handleSearchBlur}
+                        className={`w-full pl-10 pr-8 py-2.5 bg-transparent border border-transparent rounded-xl text-sm transition-all duration-300 focus:outline-none focus:bg-white focus:border-gray-200 focus:ring-2 focus:ring-gray-100 ${
+                            !sidebarOpen && !isSearchFocused && !searchQuery
+                                ? "cursor-pointer"
+                                : "cursor-text bg-gray-50/50"
+                        } ${
+                            sidebarOpen || isSearchFocused || searchQuery
+                                ? "opacity-100 w-full"
+                                : "opacity-0 w-0 group-hover:w-full group-hover:opacity-100 group-hover:bg-white group-hover:pl-10"
+                        }`}
+                        placeholder={
+                            sidebarOpen || isSearchFocused ? "Cari tim..." : ""
+                        }
+                    />
+                    
+                    {/* Placeholder Text untuk mode Collapse */}
+                    {!isSearchFocused && !searchQuery && !sidebarOpen && (
+                        <span className="absolute left-12 text-sm text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                            Cari...
+                        </span>
+                    )}
+
+                    {searchQuery && (
+                        <button
+                            onClick={clearSearch}
+                            className="absolute right-3 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
                 </div>
 
-                <div className="w-full group cursor-pointer ">
-                    <div className="w-full group flex overflow-hidden gap-4 relative items-center py-1 px-[2px]">
-                        <Search
-                            className="absolute top-1/2 left-2 -translate-y-1/2"
-                            size={25}
-                        />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                            onFocus={handleSearchFocus}
-                            onBlur={handleSearchBlur}
-                            className={`pr-4 py-2 border-none rounded-lg focus:border-gray-400 focus:ring-gray-400 transition-all delay-150 ease-in-out duration-200 group-hover:pl-10 focus:pl-10 group-hover:w-full focus:w-full h-full ${
-                                sidebarOpen ? "w-0 pl-6" : "w-0 pl-6"
-                            }`}
-                            placeholder="Cari tim..."
-                        />
-                        {!isSearchFocused && !searchQuery && (
-                            <p className="group-hover:hidden focus-within:hidden transition-all delay-150 ease-in-out duration-300 pointer-events-none">
-                                Cari
-                            </p>
+                {/* HASIL SEARCH / LIST PROYEK & TIM */}
+                <div
+                    className={`flex flex-col gap-1 transition-all duration-300 ease-in-out px-3 ${
+                        isSearchFocused || searchQuery
+                            ? "max-h-[500px] opacity-100 mt-2"
+                            : "max-h-0 opacity-0 overflow-hidden group-hover:max-h-[500px] group-hover:opacity-100 group-hover:mt-2" // Muncul saat hover
+                    }`}
+                >
+                    {/* (Bagian List Proyek & Tim Logic - Tidak diubah, hanya styling wrapper) */}
+                    {searchQuery &&
+                        filteredProyekTim.length === 0 &&
+                        filteredTimBiasa.length === 0 && (
+                            <div className="text-center text-xs text-gray-500 py-3 italic">
+                                Tidak ada hasil
+                            </div>
                         )}
 
-                        {searchQuery && (
-                            <button
-                                onClick={clearSearch}
-                                className="absolute right-16 bg-white top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 w-5 h-5 hidden items-center justify-center transition-all delay-150 ease-in-out duration-200 group-hover:flex"
+                    {(!searchQuery || filteredProyekTim.length > 0) && (
+                        <div className="flex flex-col">
+                            <div
+                                onClick={() =>
+                                    setDropwdownProyek(!dropdownProyek)
+                                }
+                                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-gray-700 transition-colors"
                             >
-                                <X />
-                            </button>
-                        )}
-
-                        <div className="p-2 bg-white rounded-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
-                            <ListFilterIcon className="w-5 h-5" />
-                        </div>
-                    </div>
-
-                    <div
-                        className={`w-full overflow-hidden transition-all delay-150 ease-in-out duration-300 flex flex-col gap-2 ${
-                            isSearchFocused || searchQuery
-                                ? "min-h-auto mt-4 p-2"
-                                : "hidden group-hover:min-h-[100px] group-hover:flex group-hover:mt-4 group-hover:p-2"
-                        }`}
-                    >
-                        {searchQuery &&
-                            filteredProyekTim.length === 0 &&
-                            filteredTimBiasa.length === 0 && (
-                                <div className="text-center text-gray-500 py-4">
-                                    <p>Tidak ada hasil untuk "{searchQuery}"</p>
+                                <div className="flex items-center gap-3">
+                                    <FolderKanban size={18} />
+                                    <span className="text-sm font-medium whitespace-nowrap">
+                                        Proyek{" "}
+                                        {searchQuery && (
+                                            <span className="text-xs text-gray-400 ml-1">
+                                                ({filteredProyekTim.length})
+                                            </span>
+                                        )}
+                                    </span>
+                                </div>
+                                <ChevronRight
+                                    size={14}
+                                    className={`text-gray-400 transition-transform duration-200 ${
+                                        dropdownProyek ? "rotate-90" : ""
+                                    }`}
+                                />
+                            </div>
+                            {dropdownProyek && (
+                                <div className="pl-4 pr-1 mt-1 pb-2">
+                                    <ul className="relative border-l border-gray-200 ml-2.5">
+                                        {filteredProyekTim.map((tim) => (
+                                            <li
+                                                key={tim.id}
+                                                onClick={() =>
+                                                    router.visit(
+                                                        route("proyek", {
+                                                            id: id,
+                                                            id_tim: tim.id,
+                                                            id_board:
+                                                                tim.board_tim
+                                                                    ?.id,
+                                                        })
+                                                    )
+                                                }
+                                                className="group/item relative pl-6 py-2 cursor-pointer rounded-r-lg hover:bg-gray-50 transition-colors"
+                                            >
+                                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-px bg-gray-200 group-hover/item:bg-gray-300"></span>
+                                                <span className="absolute left-[14px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full border border-gray-300 bg-white group-hover/item:border-blue-400 group-hover/item:bg-blue-400 transition-colors"></span>
+                                                <div className="flex items-center gap-2 text-gray-600 group-hover/item:text-gray-900">
+                                                    <span className="text-sm truncate w-full block">
+                                                        {highlightText(
+                                                            tim.nama_tim,
+                                                            searchQuery
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
                             )}
+                        </div>
+                    )}
 
-                        {(!searchQuery || filteredProyekTim.length > 0) && (
-                            <div className="group/chevron">
-                                <div
-                                    onClick={() =>
-                                        setDropwdownProyek(!dropdownProyek)
-                                    }
-                                    className="flex justify-between items-center hover:bg-gray-200 py-2 px-1 rounded-md"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <FolderKanban />
-                                        <h1>
-                                            Proyek{" "}
-                                            {searchQuery &&
-                                                `(${filteredProyekTim.length})`}
-                                        </h1>
-                                    </div>
-                                    <ChevronRight
-                                        className={`hidden group-hover/chevron:flex transition-all ease-in-out duration-200 ${
-                                            dropdownProyek ? "rotate-90" : ""
-                                        }`}
-                                    />
+                    {(!searchQuery || filteredTimBiasa.length > 0) && (
+                        <div className="flex flex-col mt-1">
+                            <div
+                                onClick={() => setDropdownTim(!dropdownTim)}
+                                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-gray-700 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Users size={18} />
+                                    <span className="text-sm font-medium whitespace-nowrap">
+                                        Tim{" "}
+                                        {searchQuery && (
+                                            <span className="text-xs text-gray-400 ml-1">
+                                                ({filteredTimBiasa.length})
+                                            </span>
+                                        )}
+                                    </span>
                                 </div>
-                                {dropdownProyek && (
-                                    <div className="w-full min-h-20">
-                                        <ul className="relative ml-3 mt-2">
-                                            <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-400"></div>
-
-                                            {filteredProyekTim.map(
-                                                (tim, index) => (
-                                                    <li
-                                                        onClick={() =>
-                                                            router.visit(
-                                                                route(
-                                                                    "proyek",
-                                                                    {
-                                                                        id: id,
-                                                                        id_tim: tim.id,
-                                                                        id_board:
-                                                                            tim
-                                                                                .board_tim
-                                                                                ?.id,
-                                                                    }
-                                                                )
-                                                            )
-                                                        }
-                                                        key={tim.id}
-                                                        className="relative rounded-md py-2 hover:bg-gray-200 m-2 flex items-center gap-2 pl-4 cursor-pointer"
-                                                    >
-                                                        <div className="absolute left-0 top-1/2 w-4 h-px bg-gray-400 -translate-y-1/2"></div>
-                                                        <div className="absolute left-0 top-1/2 w-1.5 h-1.5 bg-gray-400 rounded-full -translate-y-1/2 -translate-x-1/2"></div>
-
-                                                        {index ===
-                                                            filteredProyekTim.length -
-                                                                1 && (
-                                                            <div className="absolute left-0 top-1/2 bottom-0 w-px bg-white"></div>
-                                                        )}
-
-                                                        <FolderOpenDot className="text-blue-500" />
-                                                        <p className="text-sm">
-                                                            {highlightText(
-                                                                tim.nama_tim,
-                                                                searchQuery
-                                                            )}
-                                                        </p>
-                                                    </li>
-                                                )
-                                            )}
-                                        </ul>
-                                    </div>
-                                )}
+                                <ChevronRight
+                                    size={14}
+                                    className={`text-gray-400 transition-transform duration-200 ${
+                                        dropdownTim ? "rotate-90" : ""
+                                    }`}
+                                />
                             </div>
-                        )}
-
-                        {(!searchQuery || filteredTimBiasa.length > 0) && (
-                            <div className="group/chevron">
-                                <div
-                                    onClick={() => setDropdownTim(!dropdownTim)}
-                                    className="flex justify-between items-center hover:bg-gray-200 py-2 px-1 rounded-md"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <Users />
-                                        <h1>
-                                            Tim{" "}
-                                            {searchQuery &&
-                                                `(${filteredTimBiasa.length})`}
-                                        </h1>
-                                    </div>
-                                    <ChevronRight
-                                        className={`hidden group-hover/chevron:flex transition-all ease-in-out duration-200 ${
-                                            dropdownTim ? "rotate-90" : ""
-                                        }`}
-                                    />
+                            {dropdownTim && (
+                                <div className="pl-4 pr-1 mt-1 pb-2">
+                                    <ul className="relative border-l border-gray-200 ml-2.5">
+                                        {filteredTimBiasa.map((anggota) => (
+                                            <li
+                                                key={anggota.id}
+                                                onClick={() =>
+                                                    router.visit(
+                                                        route("proyek", {
+                                                            id: id,
+                                                            id_tim: anggota.id,
+                                                            id_board:
+                                                                anggota
+                                                                    .board_tim
+                                                                    ?.id,
+                                                        })
+                                                    )
+                                                }
+                                                className="group/item relative pl-6 py-2 cursor-pointer rounded-r-lg hover:bg-gray-50 transition-colors"
+                                            >
+                                                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-px bg-gray-200 group-hover/item:bg-gray-300"></span>
+                                                <span className="absolute left-[14px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full border border-gray-300 bg-white group-hover/item:border-green-400 group-hover/item:bg-green-400 transition-colors"></span>
+                                                <div className="flex items-center gap-2 text-gray-600 group-hover/item:text-gray-900">
+                                                    <span className="text-sm truncate w-full block">
+                                                        {highlightText(
+                                                            anggota.nama_tim,
+                                                            searchQuery
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
-                                {dropdownTim && (
-                                    <div className="w-full min-h-20">
-                                        <ul className="relative ml-3 mt-2">
-                                            <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-400"></div>
-
-                                            {filteredTimBiasa.map(
-                                                (anggota, index) => (
-                                                    <li
-                                                        onClick={() =>
-                                                            router.visit(
-                                                                route(
-                                                                    "proyek",
-                                                                    {
-                                                                        id: id,
-                                                                        id_tim: anggota.id,
-                                                                        id_board:
-                                                                            anggota
-                                                                                .board_tim
-                                                                                ?.id,
-                                                                    }
-                                                                )
-                                                            )
-                                                        }
-                                                        key={anggota.id}
-                                                        className="relative rounded-md hover:bg-gray-200 m-2 flex items-center gap-2 pl-4 py-2 cursor-pointer"
-                                                    >
-                                                        <div className="absolute left-0 top-1/2 w-4 h-px bg-gray-400 -translate-y-1/2"></div>
-                                                        <div className="absolute left-0 top-1/2 w-1.5 h-1.5 bg-gray-400 rounded-full -translate-y-1/2 -translate-x-1/2"></div>
-
-                                                        {index ===
-                                                            filteredTimBiasa.length -
-                                                                1 && (
-                                                            <div className="absolute left-0 top-1/2 bottom-0 w-px bg-white"></div>
-                                                        )}
-
-                                                        <FolderOpenDot className="text-green-500" />
-                                                        <p className="text-sm">
-                                                            {highlightText(
-                                                                anggota.nama_tim,
-                                                                searchQuery
-                                                            )}
-                                                        </p>
-                                                    </li>
-                                                )
-                                            )}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    )}
                 </div>
-                {role !== "Member" ? (
-                    <>
-                        <div
-                            className={`w-full group cursor-pointer rounded-md hover:bg-[#F4F4F4] ${
-                                activePage === "DashboardAksesTim"
-                                    ? "bg-[#F4F4F4]"
-                                    : ""
-                            }`}
-                            onClick={() =>
-                                router.visit(route("aksestim", { id }))
-                            }
-                        >
-                            <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
-                                <div
-                                    className={`px-[5px] rounded-lg h-[42px] border-gray-300 flex items-center`}
-                                >
-                                    <div className="w-8 h-8 flex justify-center items-center">
-                                        <ShieldCheck size={25} />
-                                    </div>
-                                </div>
-                                <p className="w-[80px] flex-shrink-0">
-                                    Akses Tim
-                                </p>
-                            </div>
-                        </div>
-
-                        <div
-                            className={`w-full group cursor-pointer rounded-md hover:bg-[#F4F4F4] ${
-                                activePage === "DashboardPengaturan"
-                                    ? "bg-[#F4F4F4]"
-                                    : ""
-                            }`}
-                            onClick={() =>
-                                router.visit(route("pengaturan", { id }))
-                            }
-                        >
-                            <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
-                                <div
-                                    className={`px-[5px] rounded-lg h-[42px] flex items-center`}
-                                >
-                                    <div className="w-8 h-8 flex justify-center items-center">
-                                        <Settings size={25} />
-                                    </div>
-                                </div>
-                                <p className="w-[80px] flex-shrink-0">
-                                    Pengaturan
-                                </p>
-                            </div>
-                        </div>
-
-                        <div
-                            className={`w-full group cursor-pointer rounded-md hover:bg-gray-200 ${
-                                activePage === "DashboardLeaderboard"
-                                    ? "bg-gray-200"
-                                    : ""
-                            }`}
-                            onClick={() =>
-                                router.visit(route("leaderboard", { id }))
-                            }
-                        >
-                            <div className="flex overflow-hidden gap-4 items-center rounded-lg w-full">
-                                <div
-                                    className={`px-[5px] rounded-lg h-[42px] flex items-center`}
-                                >
-                                    <div className="w-8 h-8 flex justify-center items-center">
-                                        <Medal size={25} />
-                                    </div>
-                                </div>
-                                <p className="w-[80px] flex-shrink-0">
-                                    Leaderboard
-                                </p>
-                            </div>
-                        </div>
-                    </>
-                ) : (
-                    ""
-                )}
-
-<div
-    className={`w-full text-xs text-gray-500 px-4 pt-4 border-t border-gray-200 mt-4 transition-all duration-300 ease-in-out delay-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 ${
-        sidebarOpen
-            ? "opacity-100 visible translate-y-0"
-            : "opacity-0 invisible translate-y-2"
-    }`}
->
-    <p className="font-bold">Horizon University Indonesia</p>
-    <p className="mt-1 sm:mt-0 opacity-75">
-        &copy; {new Date().getFullYear()} All rights reserved.
-    </p>
-</div>
             </div>
-        </>
+
+            {/* MENU BAWAH (Akses Tim, Pengaturan, dll) */}
+            {/* Menggunakan mt-6 untuk memberi jarak yang pas, BUKAN mt-auto */}
+            <div className="flex flex-col gap-2 mt-6">
+                {role !== "Member" && (
+                    <>
+                        <MenuItem
+                            icon={ShieldCheck}
+                            label="Akses Tim"
+                            active={activePage === "DashboardAksesTim"}
+                            onClick={() => router.visit(route("aksestim", { id }))}
+                        />
+                        <MenuItem
+                            icon={Settings}
+                            label="Pengaturan"
+                            active={activePage === "DashboardPengaturan"}
+                            onClick={() => router.visit(route("pengaturan", { id }))}
+                        />
+                        <MenuItem
+                            icon={Medal}
+                            label="Leaderboard"
+                            active={activePage === "DashboardLeaderboard"}
+                            onClick={() => router.visit(route("leaderboard", { id }))}
+                        />
+                    </>
+                )}
+            </div>
+
+            {/* FOOTER COPYRIGHT */}
+            {/* Tetap menggunakan mt-auto di sini agar copyright turun ke paling bawah jika konten sedikit */}
+            <div
+                className={`mt-auto pt-4 border-t border-gray-100 px-4 transition-all duration-500 ease-in-out ${
+                    sidebarOpen
+                        ? "opacity-100 translate-y-0 max-h-24"
+                        : "opacity-0 translate-y-4 max-h-0 overflow-hidden group-hover:opacity-100 group-hover:translate-y-0 group-hover:max-h-24"
+                }`}
+            >
+                <p className="text-xs font-bold text-gray-800 whitespace-nowrap">
+                    Horizon University Indonesia
+                </p>
+                <p className="text-[10px] text-gray-400 mt-1 whitespace-nowrap">
+                    &copy; {new Date().getFullYear()} All rights reserved.
+                </p>
+            </div>
+        </div>
     );
 }

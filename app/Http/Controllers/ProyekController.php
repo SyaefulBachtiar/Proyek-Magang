@@ -37,7 +37,14 @@ class ProyekController extends Controller
     // kanban
     public function index($id, $id_tim, $id_board)
     {
-        $tim = TimPerusahaan::findOrFail($id_tim);
+        $userId = Auth::id();
+
+        $tim = TimPerusahaan::withCount(['messages as unread_messages_count' => function ($query) use ($userId) {
+            $query->whereDoesntHave('read', function ($q) use ($userId) {
+                $q->where('id_user_read', $userId);
+            });
+        }])->findOrFail($id_tim);
+
         if (!$tim->board_tim) {
             abort(404, 'Board tidak ditemukan');
         }
@@ -216,7 +223,7 @@ class ProyekController extends Controller
         // Memformat data agar sesuai dengan kebutuhan frontend.
         $formatedTim = $anggota_tim_list->map(function ($anggota) {
             if (!$anggota->user) {
-                return null; 
+                return null;
             }
             return [
                 'id' => $anggota->user->id,
@@ -224,7 +231,7 @@ class ProyekController extends Controller
                 'email' => $anggota->user->email,
                 'role_anggota' => $anggota->role_anggota,
             ];
-        })->filter(); 
+        })->filter();
 
         return inertia('Card/Card_kanban', [
             'id' => $id,
@@ -234,7 +241,7 @@ class ProyekController extends Controller
             'label_tim' => $label_tim,
             'label_card' => $label_card,
             'id_board' => $id_board,
-            'anggota_tim' => $formatedTim, 
+            'anggota_tim' => $formatedTim,
             'dataCard' => $dataCard,
             'title_checklist' => $title_checklist,
             'checklist' => $checklist,
@@ -243,7 +250,7 @@ class ProyekController extends Controller
             'komentar' => $data_komentar,
         ]);
     }
- 
+
     // Fungsi tambah anggota card
     public function tambah_anggota_card(Request $request, $id, $id_user, $cardId)
     {
@@ -268,7 +275,7 @@ class ProyekController extends Controller
                 'id' => (string) Str::uuid(),
                 'id_user' => $id_user,
                 'id_card' => $cardId,
-                'id_anggota_tim' => $anggota_tim->id 
+                'id_anggota_tim' => $anggota_tim->id
             ]);
 
             $userYangMenambahkan = User::where('id', $id)->value('name');
@@ -832,31 +839,30 @@ class ProyekController extends Controller
     }
 
     public function upload_checklist_file(Request $request, $id, $checklist_id)
-{
-    $request->validate([
-        'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,pdf,doc,docx,xls,xlsx,csv|max:5120', // Maks 5MB
-    ]);
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,pdf,doc,docx,xls,xlsx,csv|max:5120', // Max 5MB
+        ]);
+        $checklist = Checklist_card::with('card.listBoard')->findOrFail($checklist_id);
 
-    $checklist = Checklist_card::findOrFail($checklist_id);
+        if ($request->hasFile('file')) {
+            if ($checklist->image) {
+                Storage::disk('public')->delete($checklist->image);
+            }
 
-    if ($request->hasFile('file')) {
-        if ($checklist->image) {
-            Storage::disk('public')->delete($checklist->image);
+            $filePath = $request->file('file')->store('checklist-files', 'public');
+            $checklist->update(['image' => $filePath]);
+        }
+        if ($checklist->card && $checklist->card->listBoard) {
+            $id_board = $checklist->card->listBoard->id_board;
+            $this->broadcastBoardUpdate($id_board);
         }
 
-        $filePath = $request->file('file')->store('checklist-files', 'public');
-        $checklist->update(['image' => $filePath]);
+        return response()->json([
+            'message' => 'File berhasil diupload',
+            'file_url' => Storage::url($checklist->image)
+        ]);
     }
-
-    $id_board = $checklist->card->listBoard->id_board;
-
-    $this->broadcastBoardUpdate($id_board);
-
-    return response()->json([
-        'message' => 'File berhasil diupload',
-        'file_url' => Storage::url($checklist->image)
-    ]);
-}
 
     // update
     public function updateListTitle(Request $request, $id, $id_list)

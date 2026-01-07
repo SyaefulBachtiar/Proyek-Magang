@@ -38,6 +38,7 @@ export default function InputEditor({
             spellChecker: false,
             maxHeight: "150px",
             minHeight: "100px",
+            autoDownloadFontAwesome: false,
         }),
         []
     );

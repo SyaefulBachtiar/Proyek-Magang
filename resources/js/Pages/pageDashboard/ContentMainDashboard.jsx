@@ -109,19 +109,19 @@ function MainDashboard() {
 
     return (
         <>
-            <div className="flex flex-col justify-center items-center ">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 {!perusahaan ? (
-                    <div className="flex flex-col justify-center items-center w-full mt-10 px-4 sm:px-0">
+                    <div className="flex flex-col justify-center items-center w-full min-h-[50vh]">
                         <form
                             onSubmit={handleSubmit}
-                            className="w-full max-w-md bg-white shadow-lg rounded-lg px-4 sm:px-8 pt-6 pb-8 mb-4 border border-gray-100"
+                            className="w-full max-w-lg bg-white shadow-xl rounded-xl p-6 sm:p-8 border border-gray-100"
                         >
-                            <div className="mb-6 flex gap-3 sm:gap-5 items-end">
-                                <div className="h-[40px] w-[40px] flex-shrink-0">
+                            <div className="mb-8 flex gap-4 items-center">
+                                <div className="h-12 w-12 flex-shrink-0">
                                     <img
                                         src="/img/perusahaan.png"
                                         alt="Perusahaan"
-                                        className="object-cover w-full h-full"
+                                        className="object-contain w-full h-full"
                                     />
                                 </div>
                                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
@@ -129,10 +129,10 @@ function MainDashboard() {
                                 </h2>
                             </div>
                             {recentlySuccessful && (
-                                <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
-                                    <CheckCircle size={16} />
-                                    <span className="text-sm">
-                                        Instansi berhasil di tambahkan!
+                                <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-3">
+                                    <CheckCircle size={20} />
+                                    <span className="text-sm font-medium">
+                                        Instansi berhasil ditambahkan!
                                     </span>
                                 </div>
                             )}
@@ -164,7 +164,7 @@ function MainDashboard() {
                                     </p>
                                 )}
                             </div>
-                            <div className="flex items-center justify-center">
+                            <div className="flex items-center justify-center pt-2">
                                 <button
                                     type="submit"
                                     disabled={
@@ -177,7 +177,7 @@ function MainDashboard() {
                                         !formData.nama_perusahaan.trim() ||
                                         !isDirty
                                             ? "bg-gray-400 cursor-not-allowed"
-                                            : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transform hover:scale-[1.02]"
+                                            : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 active:scale-95"
                                     }`}
                                 >
                                     {processing ? (
@@ -199,289 +199,269 @@ function MainDashboard() {
                         </form>
                     </div>
                 ) : role === "Super User" || role === "Admin" ? (
-                    <div
-                        className="flex mt-10 p-3 rounded-lg bg-blue-600 text-white justify-center items-center gap-2 cursor-pointer shadow-[0_2px_10px_rgba(0,0,0,0.25)]"
-                        onClick={() => setBuatTimModal(true)}
-                    >
-                        <Plus size={24} sm:size={30} />
-                        <h1 className="text-xl sm:text-2xl">Buat grup</h1>
+                    // BAGIAN TOMBOL BUAT GRUP (DIPASTIKAN DI TENGAH)
+                    <div className="flex justify-center mt-8 mb-10">
+                        <button
+                            className="flex items-center gap-2 px-8 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 group"
+                            onClick={() => setBuatTimModal(true)}
+                        >
+                            <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                            <span className="text-lg font-bold">
+                                Buat grup
+                            </span>
+                        </button>
                     </div>
-                ) : (
-                    ""
-                )}
+                ) : null}
+
                 {data.length > 0 ? (
-                    <div className="flex flex-col justify-center items-center mt-10">
-                        <div className="w-full px-4 sm:px-2 md:px-2 xl:px-10 pb-10">
-                            {proyekTim.length > 0 && (
-                                <div className="my-4 w-full rounded-lg">
-                                    <div className="mb-5">
-                                        <h1 className="text-xl sm:text-2xl">
-                                            Proyek
-                                        </h1>
-                                    </div>
-                                    <div className="grid grid-flow-row grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
-                                        {proyekTim.map((tim) => (
-                                            <div
-                                                key={tim.id}
-                                                className="w-full md:w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] hover:shadow-lg bg-[#F0E460] rounded-xl group relative"
-                                            >
-                                                {activeEllipsisId ===
-                                                    tim.id && (
-                                                    <div className="absolute right-10 md:right-auto md:left-72 z-50 top-8 bg-white rounded-md p-2 min-w-[120px] shadow-lg border border-gray-100">
-                                                        <ul className="space-y-2">
-                                                            <li
-                                                                className="cursor-pointer text-gray-700 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(
-                                                                    e
-                                                                ) => {
-                                                                    e.stopPropagation();
-                                                                    handleEditClick(
-                                                                        tim
-                                                                    );
-                                                                }}
-                                                            >
-                                                                Edit
-                                                            </li>
-                                                            <li
-                                                                className="cursor-pointer text-red-600 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(
-                                                                    e
-                                                                ) => {
-                                                                    e.stopPropagation();
-                                                                    setActiveEllipsisId(
-                                                                        null
-                                                                    );
-                                                                    if (
-                                                                        confirm(
-                                                                            "Apakah Anda yakin ingin menghapus tim ini?"
-                                                                        )
-                                                                    ) {
-                                                                        router.delete(
-                                                                            route(
-                                                                                "tim-perusahaan.destroy",
-                                                                                {
-                                                                                    id: id,
-                                                                                    id_tim: tim.id,
-                                                                                }
-                                                                            ),
-                                                                            {
-                                                                                preserveScroll: true,
-                                                                            }
-                                                                        );
-                                                                    }
-                                                                }}
-                                                            >
-                                                                Hapus
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                                <div className="absolute top-3 right-3 z-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white/40">
-                                                    <EllipsisVertical
-                                                        size={18}
-                                                        className="text-black hover:text-gray-700"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleEllipsis(
-                                                                tim.id
-                                                            );
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            route("proyek", {
-                                                                id: id,
-                                                                id_tim: tim.id,
-                                                                id_board:
+                    <div className="flex flex-col gap-12 pb-12">
+                        {proyekTim.length > 0 && (
+                            <div className="w-full">
+                                <h1 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">
+                                    Proyek
+                                </h1>
+                                {/* Grid Responsif: 1 kolom di HP, naik jadi 2, 3, dan 4 di layar besar */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                    {proyekTim.map((tim) => (
+                                        <div
+                                            key={tim.id}
+                                            className="group relative w-full bg-[#F0E460] rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-visible"
+                                        >
+                                            {activeEllipsisId === tim.id && (
+                                                <div className="absolute right-2 top-10 z-50 bg-white rounded-lg p-1 min-w-[140px] shadow-2xl border border-gray-100 ring-1 ring-black ring-opacity-5">
+                                                    <ul className="flex flex-col">
+                                                        <li
+                                                            className="cursor-pointer text-gray-700 hover:bg-gray-50 px-3 py-2.5 rounded-md transition-colors text-sm font-medium"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleEditClick(
                                                                     tim
-                                                                        .board_tim
-                                                                        ?.id,
-                                                            })
-                                                        )
-                                                    }
-                                                    className="rounded-xl h-full overflow-hidden"
-                                                >
-                                                    <div className="h-[168px] relative flex justify-center items-center">
-                                                        <div className="w-full h-full relative">
-                                                            <img
-                                                                src={
-                                                                    tim.image
-                                                                        ? `/storage/${tim.image}`
-                                                                        : "/img/kanban.png"
+                                                                );
+                                                            }}
+                                                        >
+                                                            Edit
+                                                        </li>
+                                                        <li
+                                                            className="cursor-pointer text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-md transition-colors text-sm font-medium"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveEllipsisId(
+                                                                    null
+                                                                );
+                                                                if (
+                                                                    confirm(
+                                                                        "Apakah Anda yakin ingin menghapus tim ini?"
+                                                                    )
+                                                                ) {
+                                                                    router.delete(
+                                                                        route(
+                                                                            "tim-perusahaan.destroy",
+                                                                            {
+                                                                                id: id,
+                                                                                id_tim: tim.id,
+                                                                            }
+                                                                        ),
+                                                                        {
+                                                                            preserveScroll: true,
+                                                                        }
+                                                                    );
                                                                 }
-                                                                alt={
-                                                                    tim.nama_tim
-                                                                }
-                                                                className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
-                                                            />
-                                                        </div>
+                                                            }}
+                                                        >
+                                                            Hapus
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            )}
 
-                                                        <div className="absolute inset-0 shadow-none group-hover:shadow-inset-lg transition-shadow duration-300"></div>
+                                            <div className="absolute top-2 right-2 z-40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+                                                <button
+                                                    className="p-1.5 rounded-full bg-white/80 hover:bg-white text-gray-700 shadow-sm backdrop-blur-sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        toggleEllipsis(tim.id);
+                                                    }}
+                                                >
+                                                    <EllipsisVertical size={18} />
+                                                </button>
+                                            </div>
+
+                                            <div
+                                                onClick={() =>
+                                                    router.visit(
+                                                        route("proyek", {
+                                                            id: id,
+                                                            id_tim: tim.id,
+                                                            id_board:
+                                                                tim.board_tim
+                                                                    ?.id,
+                                                        })
+                                                    )
+                                                }
+                                                className="cursor-pointer flex flex-col h-full rounded-xl overflow-hidden"
+                                            >
+                                                {/* Aspect Video menjaga rasio gambar tetap bagus */}
+                                                <div className="relative aspect-video w-full overflow-hidden bg-gray-200">
+                                                    <img
+                                                        src={
+                                                            tim.image
+                                                                ? `/storage/${tim.image}`
+                                                                : "/img/kanban.png"
+                                                        }
+                                                        alt={tim.nama_tim}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+                                                </div>
+
+                                                <div className="p-4 bg-white flex-1 flex flex-col justify-center">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Kanban
+                                                            size={16}
+                                                            className="text-blue-600 flex-shrink-0"
+                                                        />
+                                                        <h3 className="text-lg font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors">
+                                                            {tim.nama_tim}
+                                                        </h3>
                                                     </div>
-                                                    <div className="px-4 bg-white h-full">
-                                                        <div className="pt-2">
-                                                            <div className="flex items-center gap-2">
-                                                                <Kanban
-                                                                    size={16}
-                                                                />
-                                                                <h1 className="text-lg text-gray-700 group-hover:underline cursor-pointer">
-                                                                    {
-                                                                        tim.nama_tim
-                                                                    }
-                                                                </h1>
-                                                            </div>
-                                                            <p className="text-sm text-gray-400 truncate">
-                                                                {
-                                                                    tim.deskripsi_tim
-                                                                }
-                                                            </p>
-                                                        </div>
-                                                    </div>
+                                                    <p className="text-sm text-gray-500 line-clamp-2">
+                                                        {tim.deskripsi_tim ||
+                                                            "Tidak ada deskripsi"}
+                                                    </p>
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
-                            {timBiasa.length > 0 && (
-                                <div className="my-4 w-full rounded-lg mt-10 md:mt-16">
-                                    <div className="mb-5">
-                                        <h1 className="text-xl sm:text-2xl">
-                                            Tim
-                                        </h1>
-                                    </div>
-                                    <div className="grid grid-flow-row grid-cols-1 md:grid-cols-3 gap-6 md:gap-10">
-                                        {timBiasa.map((tim) => (
-                                            <div
-                                                key={tim.id}
-                                                className="w-full md:w-[328px] h-[234px] transition-all ease-in-out duration-300 cursor-pointer shadow-[2px_2px_15px_rgba(0,0,0,0.10)] bg-[#F0E460] hover:shadow-lg rounded-xl group relative"
-                                            >
-                                                {activeEllipsisId ===
-                                                    tim.id && (
-                                                    <div className="absolute right-10 md:right-auto md:left-72 z-50 top-8 bg-white shadow-lg rounded-md p-2 min-w-[120px] border border-gray-100">
-                                                        <ul className="space-y-2">
-                                                            <li
-                                                                className="cursor-pointer text-gray-700 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(
-                                                                    e
-                                                                ) => {
-                                                                    e.stopPropagation();
-                                                                    handleEditClick(
-                                                                        tim
-                                                                    );
-                                                                }}
-                                                            >
-                                                                Edit
-                                                            </li>
-                                                            <li
-                                                                className="cursor-pointer text-red-600 hover:bg-gray-200 px-3 py-2 rounded transition-colors"
-                                                                onClick={(
-                                                                    e
-                                                                ) => {
-                                                                    e.stopPropagation();
-                                                                    setActiveEllipsisId(
-                                                                        null
-                                                                    );
-                                                                    if (
-                                                                        confirm(
-                                                                            "Apakah Anda yakin ingin menghapus tim ini?"
-                                                                        )
-                                                                    ) {
-                                                                        router.delete(
-                                                                            route(
-                                                                                "tim-perusahaan.destroy",
-                                                                                {
-                                                                                    id: id,
-                                                                                    id_tim: tim.id,
-                                                                                }
-                                                                            ),
-                                                                            {
-                                                                                preserveScroll: true,
-                                                                            }
-                                                                        );
-                                                                    }
-                                                                }}
-                                                            >
-                                                                Hapus
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                                <div className="absolute top-3 right-3 z-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 rounded-md bg-white/40">
-                                                    <EllipsisVertical
-                                                        size={18}
-                                                        className="text-black hover:text-gray-700"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            toggleEllipsis(
-                                                                tim.id
-                                                            );
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            route("proyek", {
-                                                                id: id,
-                                                                id_tim: tim.id,
-                                                                id_board:
-                                                                    tim
-                                                                        .board_tim
-                                                                        ?.id,
-                                                            })
-                                                        )
-                                                    }
-                                                    className="rounded-xl h-full overflow-hidden"
-                                                >
-                                                    <div className="h-[168px] relative flex justify-center items-center">
-                                                        <div className="w-full h-full relative">
-                                                            <img
-                                                                src={
-                                                                    tim.image
-                                                                        ? `/storage/${tim.image}`
-                                                                        : "/img/kanban.png"
-                                                                }
-                                                                alt={
-                                                                    tim.nama_tim
-                                                                }
-                                                                className="w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
-                                                            />
-                                                        </div>
+                            </div>
+                        )}
 
-                                                        <div className="absolute inset-0 shadow-none group-hover:shadow-inset-lg transition-shadow duration-300"></div>
-                                                    </div>
-                                                    <div className="px-4 h-full bg-white">
-                                                        <div className="pt-2">
-                                                            <h1 className="text-lg text-gray-700 group-hover:underline">
-                                                                {tim.nama_tim}
-                                                            </h1>
-                                                            <p className="text-sm text-gray-400 truncate">
-                                                                {
-                                                                    tim.deskripsi_tim
+                        {timBiasa.length > 0 && (
+                            <div className="w-full">
+                                <h1 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">
+                                    Tim
+                                </h1>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                    {timBiasa.map((tim) => (
+                                        <div
+                                            key={tim.id}
+                                            className="group relative w-full bg-[#F0E460] rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-visible"
+                                        >
+                                            {activeEllipsisId === tim.id && (
+                                                <div className="absolute right-2 top-10 z-50 bg-white rounded-lg p-1 min-w-[140px] shadow-2xl border border-gray-100 ring-1 ring-black ring-opacity-5">
+                                                    <ul className="flex flex-col">
+                                                        <li
+                                                            className="cursor-pointer text-gray-700 hover:bg-gray-50 px-3 py-2.5 rounded-md transition-colors text-sm font-medium"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleEditClick(
+                                                                    tim
+                                                                );
+                                                            }}
+                                                        >
+                                                            Edit
+                                                        </li>
+                                                        <li
+                                                            className="cursor-pointer text-red-600 hover:bg-red-50 px-3 py-2.5 rounded-md transition-colors text-sm font-medium"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveEllipsisId(
+                                                                    null
+                                                                );
+                                                                if (
+                                                                    confirm(
+                                                                        "Apakah Anda yakin ingin menghapus tim ini?"
+                                                                    )
+                                                                ) {
+                                                                    router.delete(
+                                                                        route(
+                                                                            "tim-perusahaan.destroy",
+                                                                            {
+                                                                                id: id,
+                                                                                id_tim: tim.id,
+                                                                            }
+                                                                        ),
+                                                                        {
+                                                                            preserveScroll: true,
+                                                                        }
+                                                                    );
                                                                 }
-                                                            </p>
-                                                        </div>
+                                                            }}
+                                                        >
+                                                            Hapus
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            )}
+
+                                            <div className="absolute top-2 right-2 z-40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+                                                <button
+                                                    className="p-1.5 rounded-full bg-white/80 hover:bg-white text-gray-700 shadow-sm backdrop-blur-sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        toggleEllipsis(tim.id);
+                                                    }}
+                                                >
+                                                    <EllipsisVertical size={18} />
+                                                </button>
+                                            </div>
+
+                                            <div
+                                                onClick={() =>
+                                                    router.visit(
+                                                        route("proyek", {
+                                                            id: id,
+                                                            id_tim: tim.id,
+                                                            id_board:
+                                                                tim.board_tim
+                                                                    ?.id,
+                                                        })
+                                                    )
+                                                }
+                                                className="cursor-pointer flex flex-col h-full rounded-xl overflow-hidden"
+                                            >
+                                                <div className="relative aspect-video w-full overflow-hidden bg-gray-200">
+                                                    <img
+                                                        src={
+                                                            tim.image
+                                                                ? `/storage/${tim.image}`
+                                                                : "/img/kanban.png"
+                                                        }
+                                                        alt={tim.nama_tim}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+                                                </div>
+
+                                                <div className="p-4 bg-white flex-1 flex flex-col justify-center">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Kanban
+                                                            size={16}
+                                                            className="text-blue-600 flex-shrink-0"
+                                                        />
+                                                        <h3 className="text-lg font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors">
+                                                            {tim.nama_tim}
+                                                        </h3>
                                                     </div>
+                                                    <p className="text-sm text-gray-500 line-clamp-2">
+                                                        {tim.deskripsi_tim ||
+                                                            "Tidak ada deskripsi"}
+                                                    </p>
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
-                ) : !perusahaan ? (
-                    ""
-                ) : (
-                    <div className="w-full mt-10 flex justify-center items-center">
-                        <div className="w-full max-w-sm md:w-[500px] md:max-w-none px-4 md:px-0">
+                ) : !perusahaan ? null : (
+                    <div className="flex justify-center items-center mt-12 px-4">
+                        <div className="w-full max-w-md lg:max-w-lg">
                             <img
                                 src="/img/ilustrasi.png"
                                 alt="ilustrasi"
-                                className="w-full h-full object-cover"
+                                className="w-full h-auto object-contain drop-shadow-lg"
                             />
                         </div>
                     </div>

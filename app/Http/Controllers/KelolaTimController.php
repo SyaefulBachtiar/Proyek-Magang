@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\timPerusahaan\TimPerusahaan;
-use App\Models\timPerusahaan\Anggota_tim;
+use App\Models\TimPerusahaan\TimPerusahaan; // Pastikan Huruf Besar T
+use App\Models\TimPerusahaan\Anggota_tim;   // Pastikan Huruf Besar T
+use App\Models\TimPerusahaan\BoardModel;    // Tambahkan ini untuk ambil ID Board
 use App\Models\Anggota_perusahaan;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -14,17 +15,26 @@ class KelolaTimController extends Controller
 {
     public function index(Request $request, $id, $id_tim)
     {
-        $tim = TimPerusahaan::findOrFail($id_tim);
+        $userId = Auth::id(); // Ambil ID User login
+
+        // 1. UPDATE QUERY: Gunakan withUnread untuk notifikasi
+        $tim = TimPerusahaan::withUnread($userId)->findOrFail($id_tim);
+        
+        // 2. AMBIL ID BOARD: Diperlukan untuk real-time notifikasi di Navbar
+        $id_board = $tim->board_tim ? $tim->board_tim->id : BoardModel::where('id_team', $id_tim)->value('id');
+
         $perusahaan_id = $id; 
         
         $searchQuery = $request->input('search');
         $query = Anggota_tim::with('user')
             ->where('id_tim_perusahaan', $id_tim);
+            
         if ($searchQuery) {
             $query->whereHas('user', function ($q) use ($searchQuery) {
                 $q->where('name', 'like', '%' . $searchQuery . '%');
             });
         }
+
         $anggotaList = $query->get()
             ->map(function ($anggota) use ($perusahaan_id) {
                 $anggotaPerusahaan = Anggota_perusahaan::where('user_id', $anggota->user->id)
@@ -55,7 +65,8 @@ class KelolaTimController extends Controller
         return Inertia::render('pageProyek/KelolaTim', [
             'dashboardId' => $perusahaan_id,
             'activePage' => 'kelolatimPage',
-            'tim' => $tim,
+            'tim' => $tim,           // Tim sekarang membawa data unread_messages_count
+            'id_board' => $id_board, // Wajib dikirim untuk layout Proyek.jsx
             'anggota_list' => $anggotaList,
             'currentAuth' => [
                 'id' => $currentUser->id,
@@ -86,10 +97,10 @@ class KelolaTimController extends Controller
 
         $anggotaToUpdate = Anggota_tim::findOrFail($request->anggota_tim_id);
 
-
         if ($anggotaToUpdate->id_users === $currentUser->id) {
             return Redirect::back()->withErrors(['message' => 'Anda tidak dapat mengubah role Anda sendiri.']);
         }
+        
         $targetUserCompanyRole = Anggota_perusahaan::where('user_id', $anggotaToUpdate->id_users)
                                                 ->where('perusahaan_id', $perusahaan_id)
                                                 ->first()->role ?? null;
@@ -99,6 +110,7 @@ class KelolaTimController extends Controller
         if ($isUneditable) {
             return Redirect::back()->withErrors(['message' => 'Role Super User (Ketua Tim) tidak dapat diubah oleh siapa pun.']);
         }
+        
         if (strtolower($request->new_role) === 'ketua tim') {
             $anggotaToUpdate->role_anggota = 'Ketua Tim';
         } else {

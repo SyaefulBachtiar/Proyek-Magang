@@ -15,13 +15,17 @@ class BoardUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $boardId;
+    public $type;
 
     /**
      * Create a new event instance.
+     * * @param string $boardId
+     * @param string $type  (Default 'kanban' agar fitur lama tidak error)
      */
-    public function __construct($boardId)
+    public function __construct($boardId, $type = 'kanban') 
     {
         $this->boardId = $boardId;
+        $this->type = $type;
     }
 
     /**

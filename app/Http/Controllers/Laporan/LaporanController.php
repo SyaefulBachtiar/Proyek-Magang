@@ -9,13 +9,18 @@ use App\Models\timPerusahaan\TimPerusahaan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth; 
 
 class LaporanController extends Controller
 {
     public function laporan(Request $request, $id, $id_tim)
     {
-        $tim = TimPerusahaan::findOrFail($id_tim);
-        $id_board = optional($tim->board_tim)->id;
+        $userId = Auth::id(); 
+        $tim = TimPerusahaan::with('board_tim')
+            ->withUnread($userId)
+            ->findOrFail($id_tim);
+
+        $id_board = $tim->board_tim ? $tim->board_tim->id : null;
 
         $anggota = Anggota_tim::with('user')
             ->where('id_tim_perusahaan', $id_tim)
@@ -34,7 +39,7 @@ class LaporanController extends Controller
             $querySemuaTugas->whereBetween('created_at', [$startDate, $endDate]);
         }
         
-        $semuaTugas = $querySemuaTugas->with('kalender', 'anggota_card_list.user', 'listBoard') // Pastikan 'listBoard' tetap ada
+        $semuaTugas = $querySemuaTugas->with('kalender', 'anggota_card_list.user', 'listBoard')
             ->withMax('checklist_card', 'updated_at')
             ->withCount([
                 'checklist_card',
@@ -132,7 +137,6 @@ class LaporanController extends Controller
             return [
                 'id' => $item->user->id,
                 'name' => $item->user->name,
-                // PERUBAHAN DISINI: Menambahkan URL foto profil
                 'poto_profile_user' => $item->user->poto_profile_user ? asset('storage/' . $item->user->poto_profile_user) : null,
                 'role' => $item->role_anggota,
                 'team' => $tim->nama_tim,
@@ -214,10 +218,10 @@ class LaporanController extends Controller
         return Inertia::render('pageProyek/Laporan', [
             'dashboardId' => $id,
             'activePage' => 'laporanPage',
-            'tim' => $tim,
+            'tim' => $tim, 
             'anggotaTim' => $formattedAnggota,
             'tugasPerTabs' => $tugasPerTab,
-            'id_board' => $id_board,
+            'id_board' => $id_board, 
             'penghambat' => $dataPenghambat,
         ]);
     }

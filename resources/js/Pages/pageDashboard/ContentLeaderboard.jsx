@@ -138,7 +138,6 @@ function Leaderboard() {
     .filter((user) =>
       user.name.toLowerCase().includes(search.toLowerCase())
     );
-
   const topThree = filteredData.filter((user) => user.rank <= 3);
   const restOfUsers = filteredData.filter((user) => user.rank > 3);
 
@@ -184,9 +183,7 @@ function Leaderboard() {
             )}
           </div>
         )}
-        {/* ---------------------------------- */}
 
-        {/* General Ranking List */}
         {restOfUsers.length > 0 && (
           <div className="max-w-3xl mx-auto">
              <h2 className="text-xl font-bold text-gray-800 mb-5 px-2 flex items-center gap-2">

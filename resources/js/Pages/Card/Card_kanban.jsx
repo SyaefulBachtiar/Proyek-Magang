@@ -297,6 +297,8 @@ export default function Card_kanban() {
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
             "text/csv",
         ];
+
+        // Validasi Tipe File
         if (!allowedTypes.includes(file.type)) {
             dispatch({
                 type: "SET_FILE_ERROR",
@@ -307,6 +309,7 @@ export default function Card_kanban() {
             return;
         }
 
+        // Validasi Ukuran File (5MB)
         const maxSize = 5 * 1024 * 1024; 
         if (file.size > maxSize) {
             dispatch({
@@ -321,21 +324,17 @@ export default function Card_kanban() {
             formData.append("file", file);
             formData.append("checklist_id", checklistId);
 
-            // GANTI FETCH DENGAN AXIOS
+            // PERBAIKAN UTAMA: Hapus headers manual.
+            // Biarkan Axios mengatur Content-Type dan Boundary secara otomatis.
             await axios.post(
                 route("upload.checklist.file", {
                     id: user.id,
                     checklist_id: checklistId,
                 }),
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
+                formData
             );
 
-            // Jika sukses (Axios akan throw error jika gagal, jadi tidak butuh cek response.ok)
+            // Reload data parsial agar UI terupdate
             router.reload({
                 only: ["checklist"],
                 preserveState: true,
@@ -344,7 +343,6 @@ export default function Card_kanban() {
 
         } catch (error) {
             console.error("Error uploading file:", error);
-            // Ambil pesan error dari response backend jika ada
             const errorMessage = error.response?.data?.message || error.message || "Gagal mengupload file";
             dispatch({
                 type: "SET_FILE_ERROR",
@@ -355,6 +353,7 @@ export default function Card_kanban() {
                 type: "SET_UPLOADING_FILE",
                 payload: { checklistId: null }, 
             });
+            // Reset input file agar bisa upload file yang sama jika gagal sebelumnya
             event.target.value = "";
         }
     };
