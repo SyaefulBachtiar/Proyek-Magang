@@ -2,9 +2,9 @@
 
 namespace App\Models\TimPerusahaan;
 
-use App\Models\timPerusahaan\Card_listModel;
-use App\Models\timPerusahaan\TimPerusahaan;
-use App\Models\timPerusahaan\Title_Checklist;
+use App\Models\TimPerusahaan\Card_listModel;
+use App\Models\TimPerusahaan\TimPerusahaan;
+use App\Models\TimPerusahaan\Title_Checklist;
 use Illuminate\Database\Eloquent\Model;
 
 class Title_Checklist_card extends Model

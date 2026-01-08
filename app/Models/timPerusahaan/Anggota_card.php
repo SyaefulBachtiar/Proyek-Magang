@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\timPerusahaan;
+namespace App\Models\TimPerusahaan;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;

@@ -2,7 +2,7 @@
 
 namespace App\Models\timPerusahaan;
 
-use App\Models\timPerusahaan\Title_Checklist_card;
+use App\Models\TimPerusahaan\Title_Checklist_card;
 use Illuminate\Database\Eloquent\Model;
 
 class Title_Checklist extends Model

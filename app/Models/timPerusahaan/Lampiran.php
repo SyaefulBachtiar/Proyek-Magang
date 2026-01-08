@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\timPerusahaan;
+namespace App\Models\TimPerusahaan;
 
 use App\Models\TimPerusahaan\Komentar;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

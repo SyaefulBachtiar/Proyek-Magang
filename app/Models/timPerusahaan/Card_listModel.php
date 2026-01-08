@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\timPerusahaan;
+namespace App\Models\TimPerusahaan;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder; 

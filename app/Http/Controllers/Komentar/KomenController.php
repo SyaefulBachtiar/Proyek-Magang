@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Komentar;
 
 use App\Events\BoardUpdated;
 use App\Http\Controllers\Controller;
-use App\Models\timPerusahaan\Card_listModel;
+use App\Models\TimPerusahaan\Card_listModel;
 use App\Models\TimPerusahaan\Komentar;
-use App\Models\timPerusahaan\Lampiran;
-use App\Models\timPerusahaan\Notifikasi;
+use App\Models\TimPerusahaan\Lampiran;
+use App\Models\TimPerusahaan\Notifikasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 

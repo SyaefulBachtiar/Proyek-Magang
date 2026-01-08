@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Tim;
 
 use App\Http\Controllers\Controller;
-use App\Models\timPerusahaan\Anggota_card;
-use App\Models\timPerusahaan\Card_listModel;
-use App\Models\timPerusahaan\List_boardModel;
-use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\TimPerusahaan\Anggota_card;
+use App\Models\TimPerusahaan\Card_listModel;
+use App\Models\TimPerusahaan\List_boardModel;
+use App\Models\TimPerusahaan\TimPerusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;

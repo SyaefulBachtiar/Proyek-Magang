@@ -20,7 +20,7 @@ class BoardUpdated implements ShouldBroadcast
     /**
      * Create a new event instance.
      * * @param string $boardId
-     * @param string $type  (Default 'kanban' agar fitur lama tidak error)
+     * @param string $type  
      */
     public function __construct($boardId, $type = 'kanban') 
     {
@@ -31,7 +31,7 @@ class BoardUpdated implements ShouldBroadcast
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, \Illuminate\Broadcasting\Channel>
+     * @return array<int,
      */
     public function broadcastOn(): array
     {

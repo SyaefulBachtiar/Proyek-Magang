@@ -4,14 +4,14 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use App\Models\timPerusahaan\Anggota_card;
-use App\Models\timPerusahaan\Anggota_tim;
-use App\Models\timPerusahaan\Card_listModel;
+use App\Models\TimPerusahaan\Anggota_card;
+use App\Models\TimPerusahaan\Anggota_tim;
+use App\Models\TimPerusahaan\Card_listModel;
 use App\Models\TimPerusahaan\Komentar;
 use App\Models\TimPerusahaan\Messages;
-use App\Models\timPerusahaan\Notifikasi;
+use App\Models\TimPerusahaan\Notifikasi;
 use App\Models\TimPerusahaan\ReadAtMessage;
-use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\TimPerusahaan\TimPerusahaan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;

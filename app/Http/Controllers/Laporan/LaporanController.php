@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Laporan;
 
 use App\Http\Controllers\Controller;
-use App\Models\timPerusahaan\Anggota_tim;
-use App\Models\timPerusahaan\Card_listModel;
-use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\TimPerusahaan\Anggota_tim;
+use App\Models\TimPerusahaan\Card_listModel;
+use App\Models\TimPerusahaan\TimPerusahaan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;

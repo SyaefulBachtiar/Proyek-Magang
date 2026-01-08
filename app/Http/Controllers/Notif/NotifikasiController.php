@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Notif;
 
 use App\Events\NotifikasiEvent;
 use App\Http\Controllers\Controller;
-use App\Models\timPerusahaan\Notifikasi;
+use App\Models\TimPerusahaan\Notifikasi;
 use Doctrine\DBAL\ArrayParameters\Exception;
 use Illuminate\Http\Request;
 

@@ -2,8 +2,8 @@
 
 namespace App\Models\TimPerusahaan;
 
-use App\Models\timPerusahaan\Card_listModel;
-use App\Models\timPerusahaan\Lampiran;
+use App\Models\TimPerusahaan\Card_listModel;
+use App\Models\TimPerusahaan\Lampiran;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 

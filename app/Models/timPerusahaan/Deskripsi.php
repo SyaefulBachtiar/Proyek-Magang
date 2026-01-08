@@ -2,7 +2,7 @@
 
 namespace App\Models\TimPerusahaan;
 
-use App\Models\timPerusahaan\Card_listModel;
+use App\Models\TimPerusahaan\Card_listModel;
 use Illuminate\Database\Eloquent\Model;
 
 class Deskripsi extends Model

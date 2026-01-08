@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models\timPerusahaan;
+namespace App\Models\TimPerusahaan;
 
-use App\Models\timPerusahaan\Card_listModel;
+use App\Models\TimPerusahaan\Card_listModel;
 use App\Models\TimPerusahaan\Checklist_card;
 use Illuminate\Database\Eloquent\Model;
 

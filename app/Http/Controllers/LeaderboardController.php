@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Anggota_perusahaan;
-use App\Models\timPerusahaan\Card_listModel;
+use App\Models\TimPerusahaan\Card_listModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

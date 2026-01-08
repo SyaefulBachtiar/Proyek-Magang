@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\TimPerusahaan\TimPerusahaan;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

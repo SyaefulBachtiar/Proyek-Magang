@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Perusahaan;
-use App\Models\timPerusahaan\Anggota_tim;
-use App\Models\timPerusahaan\BoardModel;
-use App\Models\timPerusahaan\TimPerusahaan;
+use App\Models\TimPerusahaan\Anggota_tim;
+use App\Models\TimPerusahaan\BoardModel;
+use App\Models\TimPerusahaan\TimPerusahaan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
