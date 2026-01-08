@@ -37,14 +37,7 @@ class ProyekController extends Controller
     // kanban
     public function index($id, $id_tim, $id_board)
     {
-        $userId = Auth::id();
-
-        $tim = TimPerusahaan::withCount(['messages as unread_messages_count' => function ($query) use ($userId) {
-            $query->whereDoesntHave('read', function ($q) use ($userId) {
-                $q->where('id_user_read', $userId);
-            });
-        }])->findOrFail($id_tim);
-
+        $tim = TimPerusahaan::findOrFail($id_tim);
         if (!$tim->board_tim) {
             abort(404, 'Board tidak ditemukan');
         }
@@ -89,7 +82,7 @@ class ProyekController extends Controller
         }
 
         $request->validate([
-            'nama_tugas' => 'required|string|max:50',
+            'nama_tugas' => 'required|string|max:100',
             'id_list' => 'required|string|max:36|exists:list_board,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
@@ -141,7 +134,7 @@ class ProyekController extends Controller
 
             $this->broadcastBoardUpdate($id_board);
 
-            return back()->with('success', 'Berhasil Menambahkan Card');
+            return back()->with('success', 'Berhasil MenambahkBerhasan Card');
         } catch (\Exception $e) {
             return redirect()->back()->with('gagal', 'Gagal Menambahkan Card: ' . $e);
         }
@@ -152,7 +145,7 @@ class ProyekController extends Controller
     {
 
         $request->validate([
-            'nama_list' => 'required|string|max:50',
+            'nama_list' => 'required|string|max:100',
             'id_board' => 'required|string|max:36|exists:board_tim,id',
         ]);
 
@@ -223,7 +216,7 @@ class ProyekController extends Controller
         // Memformat data agar sesuai dengan kebutuhan frontend.
         $formatedTim = $anggota_tim_list->map(function ($anggota) {
             if (!$anggota->user) {
-                return null;
+                return null; 
             }
             return [
                 'id' => $anggota->user->id,
@@ -231,7 +224,7 @@ class ProyekController extends Controller
                 'email' => $anggota->user->email,
                 'role_anggota' => $anggota->role_anggota,
             ];
-        })->filter();
+        })->filter(); 
 
         return inertia('Card/Card_kanban', [
             'id' => $id,
@@ -241,7 +234,7 @@ class ProyekController extends Controller
             'label_tim' => $label_tim,
             'label_card' => $label_card,
             'id_board' => $id_board,
-            'anggota_tim' => $formatedTim,
+            'anggota_tim' => $formatedTim, 
             'dataCard' => $dataCard,
             'title_checklist' => $title_checklist,
             'checklist' => $checklist,
@@ -250,7 +243,7 @@ class ProyekController extends Controller
             'komentar' => $data_komentar,
         ]);
     }
-
+ 
     // Fungsi tambah anggota card
     public function tambah_anggota_card(Request $request, $id, $id_user, $cardId)
     {
@@ -275,7 +268,7 @@ class ProyekController extends Controller
                 'id' => (string) Str::uuid(),
                 'id_user' => $id_user,
                 'id_card' => $cardId,
-                'id_anggota_tim' => $anggota_tim->id
+                'id_anggota_tim' => $anggota_tim->id 
             ]);
 
             $userYangMenambahkan = User::where('id', $id)->value('name');
@@ -324,7 +317,8 @@ class ProyekController extends Controller
 
     private function broadcastBoardUpdate($id_board)
     {
-        broadcast(new BoardUpdated($id_board));
+        // TAMBAHKAN ->toOthers() DI SINI
+        broadcast(new BoardUpdated($id_board))->toOthers();
     }
 
     public function updateListOrder(Request $request, $id)
@@ -868,7 +862,7 @@ class ProyekController extends Controller
     public function updateListTitle(Request $request, $id, $id_list)
     {
         $request->validate([
-            'judul' => 'required|string|max:50',
+            'judul' => 'required|string|max:100',
         ]);
 
         try {
@@ -1088,7 +1082,7 @@ class ProyekController extends Controller
     public function updateCardTitle(Request $request, $id, $cardId)
     {
         $request->validate([
-            'nama_card' => 'required|string|max:50',
+            'nama_card' => 'required|string|max:100',
         ]);
 
         try {

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TimPerusahaan\TimPerusahaan; // Pastikan Huruf Besar T
-use App\Models\TimPerusahaan\Anggota_tim;   // Pastikan Huruf Besar T
-use App\Models\TimPerusahaan\BoardModel;    // Tambahkan ini untuk ambil ID Board
+use App\Models\TimPerusahaan\TimPerusahaan; 
+use App\Models\TimPerusahaan\Anggota_tim;  
+use App\Models\TimPerusahaan\BoardModel;    
 use App\Models\Anggota_perusahaan;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -15,12 +15,9 @@ class KelolaTimController extends Controller
 {
     public function index(Request $request, $id, $id_tim)
     {
-        $userId = Auth::id(); // Ambil ID User login
-
-        // 1. UPDATE QUERY: Gunakan withUnread untuk notifikasi
+        $userId = Auth::id(); 
         $tim = TimPerusahaan::withUnread($userId)->findOrFail($id_tim);
         
-        // 2. AMBIL ID BOARD: Diperlukan untuk real-time notifikasi di Navbar
         $id_board = $tim->board_tim ? $tim->board_tim->id : BoardModel::where('id_team', $id_tim)->value('id');
 
         $perusahaan_id = $id; 

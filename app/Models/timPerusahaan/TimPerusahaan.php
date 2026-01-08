@@ -3,6 +3,7 @@
 namespace App\Models\TimPerusahaan;
 
 use App\Models\Perusahaan;
+use App\Models\Pengumuman;
 use App\Models\TimPerusahaan\Messages;
 use App\Models\TimPerusahaan\Title_Checklist;
 use App\Models\TimPerusahaan\Title_Checklist_card;
@@ -82,12 +83,24 @@ class TimPerusahaan extends Model
         return $this->hasMany(Messages::class, 'id_tim', 'id');
     }
 
+    public function pengumuman()
+    {
+        return $this->hasMany(Pengumuman::class, 'id_tim', 'id');
+    }
+
     public function scopeWithUnread($query, $userId)
     {
-        return $query->withCount(['messages as unread_messages_count' => function ($q) use ($userId) {
-            $q->whereDoesntHave('read', function ($subQ) use ($userId) {
-                $subQ->where('id_user_read', $userId);
-            });
-        }]);
+        return $query->withCount([
+            'messages as unread_messages_count' => function ($q) use ($userId) {
+                $q->whereDoesntHave('read', function ($subQ) use ($userId) {
+                    $subQ->where('id_user_read', $userId);
+                });
+            },
+            'pengumuman as unread_announcements_count' => function ($q) use ($userId) {
+                $q->whereDoesntHave('read', function ($subQ) use ($userId) {
+                    $subQ->where('id_user_read', $userId);
+                });
+            }
+        ]);
     }
 }

@@ -73,7 +73,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
         }, 200);
     };
 
-    // Helper untuk styling item menu agar konsisten
     const MenuItem = ({ icon: Icon, label, active, onClick }) => (
         <div
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 group/item ${
@@ -86,7 +85,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
             <div className="flex items-center justify-center min-w-[24px]">
                 <Icon size={22} strokeWidth={2} />
             </div>
-            {/* Teks muncul jika sidebarOpen TRUE atau saat parent sidebar di-HOVER */}
             <span
                 className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
                     sidebarOpen
@@ -100,9 +98,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
     );
 
     return (
-        // Tambahkan 'group' di container utama untuk mendeteksi hover pada seluruh sidebar
-        <div className="group flex flex-col h-full w-full py-6 gap-2 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-200">
-            {/* MENU DASHBOARD */}
+        <div className="group flex flex-col h-full w-full py-6 gap-2 overflow-x-hidden overflow-y-hidden hover:overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
             <MenuItem
                 icon={House}
                 label="Dashboard"
@@ -110,7 +106,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                 onClick={() => router.visit(route("dashboard.with.id", { id }))}
             />
 
-            {/* SEARCH BAR */}
             <div className="w-full flex flex-col relative my-2">
                 <div className="relative flex items-center w-full px-3 py-2">
                     <div className="absolute left-3 z-10 text-gray-500">
@@ -136,7 +131,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                         }
                     />
                     
-                    {/* Placeholder Text untuk mode Collapse */}
                     {!isSearchFocused && !searchQuery && !sidebarOpen && (
                         <span className="absolute left-12 text-sm text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                             Cari...
@@ -153,15 +147,13 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                     )}
                 </div>
 
-                {/* HASIL SEARCH / LIST PROYEK & TIM */}
                 <div
                     className={`flex flex-col gap-1 transition-all duration-300 ease-in-out px-3 ${
                         isSearchFocused || searchQuery
                             ? "max-h-[500px] opacity-100 mt-2"
-                            : "max-h-0 opacity-0 overflow-hidden group-hover:max-h-[500px] group-hover:opacity-100 group-hover:mt-2" // Muncul saat hover
+                            : "max-h-0 opacity-0 overflow-hidden group-hover:max-h-[500px] group-hover:opacity-100 group-hover:mt-2" 
                     }`}
                 >
-                    {/* (Bagian List Proyek & Tim Logic - Tidak diubah, hanya styling wrapper) */}
                     {searchQuery &&
                         filteredProyekTim.length === 0 &&
                         filteredTimBiasa.length === 0 && (
@@ -297,8 +289,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                 </div>
             </div>
 
-            {/* MENU BAWAH (Akses Tim, Pengaturan, dll) */}
-            {/* Menggunakan mt-6 untuk memberi jarak yang pas, BUKAN mt-auto */}
             <div className="flex flex-col gap-2 mt-6">
                 {role !== "Member" && (
                     <>
@@ -324,8 +314,6 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                 )}
             </div>
 
-            {/* FOOTER COPYRIGHT */}
-            {/* Tetap menggunakan mt-auto di sini agar copyright turun ke paling bawah jika konten sedikit */}
             <div
                 className={`mt-auto pt-4 border-t border-gray-100 px-4 transition-all duration-500 ease-in-out ${
                     sidebarOpen
