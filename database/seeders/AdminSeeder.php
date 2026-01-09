@@ -11,11 +11,11 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        if (!User::where('email', 'admin@platform.com')->exists()) {
+        if (!User::where('email', 'datinciloto@gmail.com')->exists()) {
             User::create([
                 'id' => strtoupper(Str::uuid()),
                 'name' => 'Administrator Utama',
-                'email' => 'admin@platform.com',
+                'email' => 'datinciloto@gmail.com',
                 'password' => Hash::make('password123'),
                 'is_admin' => true,
                 'status' => 'active',

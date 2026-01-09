@@ -281,7 +281,6 @@ export default function Card_kanban() {
         });
     }
     
-    // PERUBAHAN UTAMA DI SINI (Menggunakan Axios)
     const handleFileUpload = async (event, checklistId) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -309,7 +308,6 @@ export default function Card_kanban() {
             return;
         }
 
-        // Validasi Ukuran File (5MB)
         const maxSize = 5 * 1024 * 1024; 
         if (file.size > maxSize) {
             dispatch({
@@ -324,8 +322,6 @@ export default function Card_kanban() {
             formData.append("file", file);
             formData.append("checklist_id", checklistId);
 
-            // PERBAIKAN UTAMA: Hapus headers manual.
-            // Biarkan Axios mengatur Content-Type dan Boundary secara otomatis.
             await axios.post(
                 route("upload.checklist.file", {
                     id: user.id,
@@ -353,7 +349,6 @@ export default function Card_kanban() {
                 type: "SET_UPLOADING_FILE",
                 payload: { checklistId: null }, 
             });
-            // Reset input file agar bisa upload file yang sama jika gagal sebelumnya
             event.target.value = "";
         }
     };

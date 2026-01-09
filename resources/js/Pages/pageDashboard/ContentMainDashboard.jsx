@@ -199,7 +199,6 @@ function MainDashboard() {
                         </form>
                     </div>
                 ) : role === "Super User" || role === "Admin" ? (
-                    // BAGIAN TOMBOL BUAT GRUP (DIPASTIKAN DI TENGAH)
                     <div className="flex justify-center mt-8 mb-10">
                         <button
                             className="flex items-center gap-2 px-8 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 group"

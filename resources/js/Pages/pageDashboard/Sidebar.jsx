@@ -322,7 +322,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                 }`}
             >
                 <p className="text-xs font-bold text-gray-800 whitespace-nowrap">
-                    Horizon University Indonesia
+                    Balai Besar Pelatihan Kesehatan Ciloto
                 </p>
                 <p className="text-[10px] text-gray-400 mt-1 whitespace-nowrap">
                     &copy; {new Date().getFullYear()} All rights reserved.
