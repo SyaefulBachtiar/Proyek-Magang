@@ -43,186 +43,123 @@ export default function Proyek({ children, dashboardId, activePage, tim }) {
         };
     }, [id_board, activePage]);
 
+    const NavButton = ({ icon: Icon, label, active, onClick, badgeCount }) => (
+        <div
+            onClick={onClick}
+            className={`
+                group relative flex flex-shrink-0 cursor-pointer select-none items-center gap-2
+                rounded-md px-3 py-2 transition-all duration-200 overflow-hidden
+                bg-[#006F78] text-white hover:bg-[#005f66] active:scale-95
+            `}
+        >
+            <div className="relative flex items-center justify-center">
+                <Icon size={20} />
+                
+                {/* Badge Notifikasi */}
+                {badgeCount > 0 && (
+    <span className="
+        absolute -right-1.5 -top-1.5 
+        flex h-4 min-w-[16px] items-center justify-center
+        rounded-full bg-rose-500
+        px-1 text-[9px] font-semibold text-white
+        shadow-md ring-2 ring-white
+        transition-all duration-300
+        group-hover:scale-110
+    ">
+        {badgeCount > 99 ? '99+' : badgeCount}
+    </span>
+)}
+
+            </div>
+            
+            <span className="hidden whitespace-nowrap text-sm font-medium md:inline">
+                {label}
+            </span>
+            <div
+                className={`absolute bottom-0 left-0 h-1 bg-[#A8E038] transition-all duration-300 ease-out ${
+                    active ? "w-full" : "w-0 group-hover:w-full"
+                }`}
+            ></div>
+        </div>
+    );
+
     return (
         <>
             <Dashboard
                 header={
-                    <>
-                        <div className="w-full flex justify-between items-center border-t-2 py-2 pt-3">
-                            <div className="pl-3 flex-shrink-0">
-                                <div className="flex gap-2 items-center">
-                                    <SquareKanban
-                                        size={20}
-                                        className="md:size-25"
-                                    />
-                                    <h1 className="text-lg md:text-xl font-semibold truncate max-w-80">
-                                        {nama_board}
-                                    </h1>
-                                </div>
+                    // Sticky Header agar navbar menempel saat di-scroll di mobile
+                    <div className="sticky top-0 z-30 w-full border-t border-gray-200 bg-white shadow-sm">
+                        <div className="flex flex-col gap-3 py-3 px-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                            
+                            {/* Judul & Ikon Board */}
+                            <div className="flex min-w-0 flex-shrink-0 items-center gap-3 pl-1">
+                                <SquareKanban size={24} className="text-[#006F78]" />
+                                <h1 className="truncate text-lg font-bold text-gray-800 sm:text-xl md:max-w-md">
+                                    {nama_board}
+                                </h1>
                             </div>
-                            <div className="flex gap-2 px-3 sm:px-0 overflow-x-auto pb-2 -mb-2 sm:overflow-x-visible sm:pb-0 sm:-mb-0">
-                                <div
-                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
-                                    onClick={() =>
-                                        router.visit(
-                                            route("proyek.kelolatim", {
-                                                id: dashboardId,
-                                                id_tim: tim.id,
-                                            })
-                                        )
-                                    }
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <AppWindow size={20} />
-                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
-                                            Anggota Tim
-                                        </span>
-                                    </div>
-                                    <div
-                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
-                                            activePage === "kelolatimPage"
-                                                ? "w-full"
-                                                : "w-0"
-                                        }`}
-                                    ></div>
-                                </div>
-                                <div
-                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
-                                    onClick={() =>
-                                        router.visit(
-                                            route("proyek", {
-                                                id: dashboardId,
-                                                id_tim: tim.id,
-                                                id_board: id_board,
-                                            })
-                                        )
-                                    }
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <LayoutList size={20} />
-                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
-                                            Tugas
-                                        </span>
-                                    </div>
-                                    <div
-                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
-                                            activePage === "tugasPage"
-                                                ? "w-full"
-                                                : ""
-                                        }`}
-                                    ></div>
-                                </div>
 
-                                <div
-                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-visible flex-shrink-0 group transition-all duration-200 hover:bg-[#005f66]"
-                                    onClick={() =>
-                                        router.visit(
-                                            route("proyek.chatgrup", {
-                                                id: dashboardId,
-                                                id_tim: tim.id,
-                                            })
-                                        )
-                                    }
-                                >
-                                    <div className="flex items-center gap-2 relative">
-                                        <MessageSquare size={20} />
-                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
-                                            Chat grup
-                                        </span>
-                                        {unreadChat > 0 && (
-                                            <span className="absolute -top-3 -right-3 md:-top-3 md:-right-4 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-md ring-2 ring-[#006F78] transition-transform duration-300 animate-in zoom-in">
-                                                {unreadChat > 99 ? '99+' : unreadChat}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div
-                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute transition-all duration-300 ${
-                                            activePage === "chatGrupPage"
-                                                ? "w-full"
-                                                : "w-0 group-hover:w-full"
-                                        }`}
-                                    ></div>
-                                </div>
+                            {/* Menu Navigasi Scrollable (Tanpa Scrollbar Kasar) */}
+                            <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 sm:w-auto sm:pb-0 no-scrollbar">
+                                <NavButton 
+                                    label="Anggota Tim" 
+                                    icon={AppWindow} 
+                                    active={activePage === "kelolatimPage"}
+                                    onClick={() => router.visit(route("proyek.kelolatim", { id: dashboardId, id_tim: tim.id }))}
+                                />
+                                
+                                <NavButton 
+                                    label="Tugas" 
+                                    icon={LayoutList} 
+                                    active={activePage === "tugasPage"}
+                                    onClick={() => router.visit(route("proyek", { id: dashboardId, id_tim: tim.id, id_board: id_board }))}
+                                />
 
-                                <div
-                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-visible flex-shrink-0 group transition-all duration-200 hover:bg-[#005f66]"
-                                    onClick={() =>
-                                        router.visit(
-                                            route("proyek.pengumuman", {
-                                                id: dashboardId,
-                                                id_tim: tim.id,
-                                            })
-                                        )
-                                    }
-                                >
-                                    <div className="flex items-center gap-2 relative">
-                                        <Megaphone size={20} />
-                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
-                                            Pengumuman
-                                        </span>
-                                        {unreadAnnounce > 0 && (
-                                            <span className="absolute -top-3 -right-3 md:-top-3 md:-right-4 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-md ring-2 ring-[#006F78] transition-transform duration-300 animate-in zoom-in">
-                                                {unreadAnnounce > 99 ? '99+' : unreadAnnounce}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div
-                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute transition-all duration-300 ${
-                                            activePage === "pengumumanPage"
-                                                ? "w-full"
-                                                : "w-0 group-hover:w-full"
-                                        }`}
-                                    ></div>
-                                </div>
+                                <NavButton 
+                                    label="Chat Grup" 
+                                    icon={MessageSquare} 
+                                    active={activePage === "chatGrupPage"}
+                                    badgeCount={unreadChat}
+                                    onClick={() => router.visit(route("proyek.chatgrup", { id: dashboardId, id_tim: tim.id }))}
+                                />
 
-                                <div
-                                    className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
-                                    onClick={() =>
-                                        router.visit(
-                                            route("proyek.laporan", {
-                                                id: dashboardId,
-                                                id_tim: tim.id,
-                                            })
-                                        )
-                                    }
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <AlignEndHorizontal size={20} />
-                                        <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
-                                            Laporan
-                                        </span>
-                                    </div>
-                                    <div
-                                        className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute ${
-                                            activePage === "laporanPage"
-                                                ? "w-full"
-                                                : ""
-                                        }`}
-                                    ></div>
-                                </div>
-                                {role !== "Member" ? (
-                                    <div
-                                        className="bg-[#006F78] text-white p-2 md:px-3 md:py-1.5 rounded-md cursor-pointer relative overflow-hidden flex-shrink-0"
-                                        onClick={() =>
-                                            setTambahAnggota(!tambahAnggota)
-                                        }
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <UserRoundPlus size={20} />
-                                            <span className="hidden md:inline text-sm font-medium whitespace-nowrap">
-                                                Tambah
-                                            </span>
-                                        </div>
-                                        <div
-                                            className={`bg-[#A8E038] h-1 left-0 bottom-0 absolute`}
-                                        ></div>
-                                    </div>
-                                ) : (
-                                    ""
+                                <NavButton 
+                                    label="Pengumuman" 
+                                    icon={Megaphone} 
+                                    active={activePage === "pengumumanPage"}
+                                    badgeCount={unreadAnnounce}
+                                    onClick={() => router.visit(route("proyek.pengumuman", { id: dashboardId, id_tim: tim.id }))}
+                                />
+
+                                <NavButton 
+                                    label="Laporan" 
+                                    icon={AlignEndHorizontal} 
+                                    active={activePage === "laporanPage"}
+                                    onClick={() => router.visit(route("proyek.laporan", { id: dashboardId, id_tim: tim.id }))}
+                                />
+
+                                {role !== "Member" && (
+                                    <NavButton 
+                                        label="Tambah" 
+                                        icon={UserRoundPlus} 
+                                        active={false}
+                                        onClick={() => setTambahAnggota(!tambahAnggota)}
+                                    />
                                 )}
                             </div>
                         </div>
-                    </>
+
+                        {/* CSS Inline untuk menyembunyikan scrollbar di mobile agar rapi */}
+                        <style>{`
+                            .no-scrollbar::-webkit-scrollbar {
+                                display: none;
+                            }
+                            .no-scrollbar {
+                                -ms-overflow-style: none;
+                                scrollbar-width: none;
+                            }
+                        `}</style>
+                    </div>
                 }
             >
                 <ProyekContent>{children}</ProyekContent>

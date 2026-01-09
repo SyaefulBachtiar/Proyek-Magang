@@ -75,6 +75,11 @@ class ChatGrupController extends Controller
                     $q->where('id_user_read', $userId);
                 });
             }])
+            ->withCount(['pengumuman as unread_announcements_count' => function ($query) use ($userId) {
+                $query->whereDoesntHave('read', function ($q) use ($userId) {
+                    $q->where('id_user_read', $userId);
+                });
+            }])
             ->findOrFail($id_tim);
 
         $id_board = $tim->board_tim->id;
@@ -126,7 +131,7 @@ class ChatGrupController extends Controller
             $timPerusahaan = TimPerusahaan::with('board_tim')->where('id', $id_tim)->first();
             $id_board = $timPerusahaan->board_tim->id;
 
-            broadcast(new BoardUpdated($id_board, 'chat'));
+            broadcast(new BoardUpdated($id_board, 'chat'))->toOthers();
 
             DB::commit();
         } catch (\Exception $e) {
@@ -147,7 +152,7 @@ class ChatGrupController extends Controller
 
         $hapus_pesan->delete();
 
-        broadcast(new BoardUpdated($id_board, 'chat'));
+        broadcast(new BoardUpdated($id_board, 'chat'))->toOthers();
     }
 
     public function edit_pesan(Request $request, $id, $id_pesan)
@@ -164,6 +169,6 @@ class ChatGrupController extends Controller
             'pesan' => $request->pesan_text
         ]);
 
-        broadcast(new BoardUpdated($id_board, 'chat'));
+        broadcast(new BoardUpdated($id_board, 'chat'))->toOthers();
     }
 }

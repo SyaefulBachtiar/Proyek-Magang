@@ -37,10 +37,13 @@ class ProyekController extends Controller
     // kanban
     public function index($id, $id_tim, $id_board)
     {
-        $tim = TimPerusahaan::findOrFail($id_tim);
+        $userId = Auth::id(); 
+        $tim = TimPerusahaan::withUnread($userId)->findOrFail($id_tim);
+
         if (!$tim->board_tim) {
             abort(404, 'Board tidak ditemukan');
         }
+        
         $board_data = List_boardModel::with(['cards' => function ($query) {
             $query->orderBy('urutan', 'asc')
                 ->with('anggota_card_list.user', 'anggota_card_list.anggota_tim', 'label_card', 'kalender', 'title_checklist_card.checklist_card')
@@ -55,19 +58,16 @@ class ProyekController extends Controller
 
         $user = Auth::user();
 
-        // Ambil role pengguna saat ini untuk tim yang sedang dibuka
         $currentUserRole = Anggota_tim::where('id_tim_perusahaan', $id_tim)
             ->where('id_users', $user->id)
             ->value('role_anggota');
-
-        $nama_perusahaan = $user->anggotaPerusahaan?->perusahaan?->nama_perusahaan;
 
         return Inertia::render('pageProyek/Kanban', [
             'dashboardId' => $id,
             'id_tim' => $id_tim,
             'id_board' => $id_board,
             'activePage' => 'tugasPage',
-            'tim' => $tim,
+            'tim' => $tim, 
             'dataBoard' => $board_data,
             'currentUserRole' => $currentUserRole,
         ]);

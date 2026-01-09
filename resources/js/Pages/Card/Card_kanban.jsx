@@ -32,7 +32,6 @@ import Lampiran from "@/modal/Proyek/Lampiran";
 import InputChecklist from "@/Components/InputChecklist";
 import ElipsisModal from "@/Components/ElipsisModal";
 import KomponenKomentar from "@/Components/KomponenKomentar";
-// PERUBAHAN 1: Import Axios
 import axios from "axios"; 
 
 const initialState = {
@@ -297,7 +296,6 @@ export default function Card_kanban() {
             "text/csv",
         ];
 
-        // Validasi Tipe File
         if (!allowedTypes.includes(file.type)) {
             dispatch({
                 type: "SET_FILE_ERROR",
@@ -330,7 +328,6 @@ export default function Card_kanban() {
                 formData
             );
 
-            // Reload data parsial agar UI terupdate
             router.reload({
                 only: ["checklist"],
                 preserveState: true,
@@ -577,14 +574,14 @@ export default function Card_kanban() {
         <Proyek>
             <Head title="Card"/>
             <div className="w-screen h-screen fixed top-0 left-0 bg-black/20 flex justify-center items-center z-50 ">
-                <div ref={lihatCardRef} className="rounded-none lg:rounded-xl bg-white w-full h-full lg:w-[80%] lg:h-[90%] flex flex-col overflow-hidden relative">
-                    <div className="flex justify-end absolute top-2 right-2">
-                        <div className="p-1 hover:bg-black/20 rounded-md cursor-pointer" onClick={() => router.visit(route("proyek", { id: user.id, id_tim: id_tim, id_board: id_board }))}>
+                <div ref={lihatCardRef} className="rounded-none lg:rounded-xl bg-white w-full h-full lg:w-[80%] lg:h-[90%] flex flex-col lg:overflow-y-auto overflow-hidden relative">
+                    <div className="flex justify-end absolute top-2 right-2 z-10">
+                        <div className="p-1 hover:bg-black/20 rounded-md cursor-pointer bg-white/50 backdrop-blur-sm" onClick={() => router.visit(route("proyek", { id: user.id, id_tim: id_tim, id_board: id_board }))}>
                             <X />
                         </div>
                     </div>
                 
-                    <div className="p-4 border-b border-b-gray-200">
+                    <div className="p-4 border-b border-b-gray-200 mt-6 lg:mt-0">
                         {isEditingTitle ? (
                             <div className="flex items-center gap-2 flex-wrap">
                                 <input
@@ -629,8 +626,8 @@ export default function Card_kanban() {
                         )}
                     </div>
 
-                    <div className="px-4 py-4 flex-1 flex flex-col lg:flex-row overflow-hidden gap-4">
-                        <div className="flex flex-col gap-4 w-full lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto my-scrollable-element flex-1 h-0 lg:flex-none lg:h-auto">
+                    <div className="px-4 py-4 flex-1 flex flex-col lg:flex-row lg:overflow-visible overflow-hidden gap-4">
+                        <div className="flex flex-col gap-4 w-full lg:w-1/2 border-r-0 lg:border-r-2 border-gray-200 pr-0 lg:pr-4 overflow-y-auto lg:overflow-visible my-scrollable-element flex-1 h-0 lg:flex-none lg:h-auto">
                             <div className="flex justify-between items-center">
                                 <div className="flex gap-2 items-center">
                                     <Captions />
@@ -851,7 +848,7 @@ export default function Card_kanban() {
                                 </div>
                             )}
                         </div>
-                        <div className="w-full lg:w-1/2 px-0 lg:px-4 overflow-y-auto flex-1 h-0 lg:flex-none lg:h-auto">
+                        <div className="w-full lg:w-1/2 px-0 lg:px-4 overflow-y-auto lg:overflow-visible flex-1 h-0 lg:flex-none lg:h-auto">
                             <div className="flex gap-2 items-center mb-4"><MessageSquareText /><p className="font-bold text-lg">Komentar</p></div>
                             {!state.isCommenting ? (<div onClick={() => dispatch({ type: "START_KOMENTAR", payload: true })} className="mt-2 p-3 border border-gray-200 rounded-lg shadow-sm hover:bg-gray-100 cursor-pointer text-gray-500"><p>Tulis komentar...</p></div>) : (<InputEditor anggota_card={anggota_card} close={() => dispatch({ type: "BATAL_KOMENTAR" })} value={state.komentarValue} loading={state.loading} isCommenting={state.isCommenting} onChange={(val) => dispatch({ type: "SET_KOMENTAR_VALUE", payload: val })} setComment={(val) => dispatch({ type: "SET_KOMENTAR_VALUE", payload: val })} onSave={handleKomentar} placeholder={state.mention ? `Komentari ${state.mention}` : "Komentar"}/>)}
                             <KomponenKomentar komentar={komentar} id_board={id_board} balasKomentar={(val) => balasKomentar(val)} editKomentar={(val) => editKomentar(val)}/>

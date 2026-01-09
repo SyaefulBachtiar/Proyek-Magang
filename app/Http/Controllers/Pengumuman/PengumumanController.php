@@ -77,7 +77,7 @@ class PengumumanController extends Controller
         $id_board = BoardModel::where('id_team', $id_tim)->value('id');
 
         if ($id_board) {
-            broadcast(new BoardUpdated($id_board, 'announcement'));
+            broadcast(new BoardUpdated($id_board, 'announcement'))->toOthers();
         }
 
         return back()->with('success', 'Pengumuman berhasil dibuat!');
