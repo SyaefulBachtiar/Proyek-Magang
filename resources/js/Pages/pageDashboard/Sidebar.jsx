@@ -73,20 +73,31 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
         }, 200);
     };
 
+    // Komponen Menu Item Standar
     const MenuItem = ({ icon: Icon, label, active, onClick }) => (
         <div
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 group/item ${
                 active
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-teal-400 shadow-md shadow-teal-400/30"
+                    : "bg-teal-200 hover:bg-teal-400 "
             }`}
             onClick={onClick}
         >
-            <div className="flex items-center justify-center min-w-[24px]">
+            <div
+                className={`flex items-center justify-center min-w-[24px] transition-colors duration-200 ${
+                    active
+                        ? "text-white"
+                        : "text-teal-500 group-hover:text-teal-600"
+                }`}
+            >
                 <Icon size={22} strokeWidth={2} />
             </div>
             <span
-                className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                className={`whitespace-nowrap overflow-hidden transition-all duration-300 font-medium ${
+                    active
+                        ? "text-white"
+                        : "text-gray-600 group-hover:text-teal-700"
+                } ${
                     sidebarOpen
                         ? "w-full opacity-100"
                         : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100"
@@ -130,13 +141,11 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                             sidebarOpen || isSearchFocused ? "Cari tim..." : ""
                         }
                     />
-                    
                     {!isSearchFocused && !searchQuery && !sidebarOpen && (
                         <span className="absolute left-12 text-sm text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                             Cari...
                         </span>
                     )}
-
                     {searchQuery && (
                         <button
                             onClick={clearSearch}
@@ -151,7 +160,7 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                     className={`flex flex-col gap-1 transition-all duration-300 ease-in-out px-3 ${
                         isSearchFocused || searchQuery
                             ? "max-h-[500px] opacity-100 mt-2"
-                            : "max-h-0 opacity-0 overflow-hidden group-hover:max-h-[500px] group-hover:opacity-100 group-hover:mt-2" 
+                            : "max-h-0 opacity-0 overflow-hidden group-hover:max-h-[500px] group-hover:opacity-100 group-hover:mt-2"
                     }`}
                 >
                     {searchQuery &&
@@ -168,23 +177,43 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                                 onClick={() =>
                                     setDropwdownProyek(!dropdownProyek)
                                 }
-                                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-gray-700 transition-colors"
+                                className={`flex items-center justify-between px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 group/item ${
+                                    dropdownProyek
+                                        ? "bg-teal-400 shadow-md shadow-teal-400/30" // Aktif
+                                        : "bg-teal-200 hover:bg-teal-400" // Tidak Aktif
+                                }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <FolderKanban size={18} />
-                                    <span className="text-sm font-medium whitespace-nowrap">
+                                    <div
+                                        className={`flex items-center justify-center min-w-[24px] ${
+                                            dropdownProyek
+                                                ? "text-white"
+                                                : "text-teal-500 group-hover/item:text-teal-600"
+                                        }`}
+                                    >
+                                        <FolderKanban size={22} strokeWidth={2} />
+                                    </div>
+                                    <span
+                                        className={`text-sm font-medium whitespace-nowrap ${
+                                            dropdownProyek
+                                                ? "text-white"
+                                                : "text-gray-600 group-hover/item:text-teal-700"
+                                        }`}
+                                    >
                                         Proyek{" "}
                                         {searchQuery && (
-                                            <span className="text-xs text-gray-400 ml-1">
+                                            <span className="text-xs opacity-70 ml-1">
                                                 ({filteredProyekTim.length})
                                             </span>
                                         )}
                                     </span>
                                 </div>
                                 <ChevronRight
-                                    size={14}
-                                    className={`text-gray-400 transition-transform duration-200 ${
-                                        dropdownProyek ? "rotate-90" : ""
+                                    size={18}
+                                    className={`transition-transform duration-200 ${
+                                        dropdownProyek
+                                            ? "text-white rotate-90"
+                                            : "text-gray-400"
                                     }`}
                                 />
                             </div>
@@ -229,23 +258,43 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                         <div className="flex flex-col mt-1">
                             <div
                                 onClick={() => setDropdownTim(!dropdownTim)}
-                                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-gray-700 transition-colors"
+                                className={`flex items-center justify-between px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 group/item ${
+                                    dropdownTim
+                                        ? "bg-teal-400 shadow-md shadow-teal-400/30" // Aktif
+                                        : "bg-teal-200 hover:bg-teal-400" // Tidak Aktif
+                                }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <Users size={18} />
-                                    <span className="text-sm font-medium whitespace-nowrap">
+                                    <div
+                                        className={`flex items-center justify-center min-w-[24px] ${
+                                            dropdownTim
+                                                ? "text-white"
+                                                : "text-teal-500 group-hover/item:text-teal-600"
+                                        }`}
+                                    >
+                                        <Users size={22} strokeWidth={2} />
+                                    </div>
+                                    <span
+                                        className={`text-sm font-medium whitespace-nowrap ${
+                                            dropdownTim
+                                                ? "text-white"
+                                                : "text-gray-600 group-hover/item:text-teal-700"
+                                        }`}
+                                    >
                                         Tim{" "}
                                         {searchQuery && (
-                                            <span className="text-xs text-gray-400 ml-1">
+                                            <span className="text-xs opacity-70 ml-1">
                                                 ({filteredTimBiasa.length})
                                             </span>
                                         )}
                                     </span>
                                 </div>
                                 <ChevronRight
-                                    size={14}
-                                    className={`text-gray-400 transition-transform duration-200 ${
-                                        dropdownTim ? "rotate-90" : ""
+                                    size={18}
+                                    className={`transition-transform duration-200 ${
+                                        dropdownTim
+                                            ? "text-white rotate-90"
+                                            : "text-gray-400"
                                     }`}
                                 />
                             </div>
@@ -296,19 +345,25 @@ export default function Sidebar({ sidebarOpen, activePage, id }) {
                             icon={ShieldCheck}
                             label="Akses Tim"
                             active={activePage === "DashboardAksesTim"}
-                            onClick={() => router.visit(route("aksestim", { id }))}
+                            onClick={() =>
+                                router.visit(route("aksestim", { id }))
+                            }
                         />
                         <MenuItem
                             icon={Settings}
                             label="Pengaturan"
                             active={activePage === "DashboardPengaturan"}
-                            onClick={() => router.visit(route("pengaturan", { id }))}
+                            onClick={() =>
+                                router.visit(route("pengaturan", { id }))
+                            }
                         />
                         <MenuItem
                             icon={Medal}
                             label="Leaderboard"
                             active={activePage === "DashboardLeaderboard"}
-                            onClick={() => router.visit(route("leaderboard", { id }))}
+                            onClick={() =>
+                                router.visit(route("leaderboard", { id }))
+                            }
                         />
                     </>
                 )}
